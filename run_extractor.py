@@ -894,7 +894,7 @@ def main():
 
 if __name__ == '__main__':
     log_name = "extraction_log_" + str(os.getpid())
-    # logging.basicConfig(filename = log_name, level=logging.DEBUG)
+    logging.basicConfig(filename = log_name, level=logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG)
 
     file_to_check = []
