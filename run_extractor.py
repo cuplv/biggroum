@@ -28,22 +28,17 @@ import traceback
 import string
 from xml.dom.minidom import parse, parseString
 
-MIN_STATUS = 2
+MIN_STATUS = 0
 MIN_HEAP_SIZE="1024m"
-MAX_HEAP_SIZE="10000m"
+MAX_HEAP_SIZE="4096m"
 TIMEOUT="60"
-
-tasks_list = ["download", "build", "extract"]
 
 
 def get_repo_status_file_name(repo_path):
     return os.path.join(repo_path, "repo_status.json")
 
 
-class RepoStatus:
-    """Serialize the "status" of the repo processing using json.
-    The status represent the current activity to run.
-    """
+class ExtractorStatus:
     Download, Build, Extract, Done = range(4)
 
     status2task = {Download: "download",
@@ -51,36 +46,116 @@ class RepoStatus:
                    Extract: "extract",
                    Done: "done"}
 
-    def __init__(self, file_name=None):
-        self.status = RepoStatus.Download
-        self.description = self.status2task[self.status]
-        self.file_name = file_name
-        if None != file_name:
-            self._read_status_from_file_(file_name)
+    task2status = {"download":Download,
+                   "build":Build,
+                   "extract":Extract,
+                   "done": Done}
 
-    def _read_status_from_file_(self, file_name):
-        with open(file_name, "r") as f:
-            data = json.load(f)
-            assert ("status" in data)
-            self.status = data["status"]
-            if "description" in data:
-                self.description = data["description"]
-                # Both the numeric status and the description should be the same
-                # assert(self.description == self.status2task[self.status])
+    tasks_list = ["download", "build", "extract", "done"]
 
-    def set_file_name(self, file_name):
-        self.file_name = file_name
+    """ Keep the whole status of the extraction. """
+    def __init__(self, file_name):
+        self._repo_set = set()
+        self._repo2status = {}
+        self._repo2log = {}
+        self._file_name = file_name
 
-    def write_on_file(self):
-        assert (self.file_name != None)
-        with open(self.file_name, "w") as f:
-            json.dump({"status": self.status, "description" : self.description}, f)
+        if (self._file_name != None):
+            self.load()
+
+    def _get_init_status(self):
+        final_task = ExtractorStatus.tasks_list[0]
+        final_status = ExtractorStatus.task2status[final_task]
+        return final_status
+
+    def _get_final_status(self):
+        first_task = ExtractorStatus.tasks_list[len(ExtractorStatus.tasks_list)-1]
+        first_status = ExtractorStatus.task2status[first_task]
+        return first_status
+
+    def get_status(self, repo):
+        status = None
+        if repo not in self._repo_set:
+            # new repo, insert it
+            self._repo_set.add(repo)
+            status = self._get_init_status()
+            self._repo2status[repo] = status
+        else:
+            status = self._repo2status[repo]
+        return status
+
+    def set_log(self, repo, log):
+        assert repo in self._repo_set
+        self._repo2log[repo] = log
+
+    def next_status(self, repo):
+        repo_status = self._repo2status[repo]
+        last_status = self._get_final_status()
+        if repo_status != last_status:
+            repo_status = repo_status + 1
+            self._repo2status[repo] = repo_status
 
 
-    def next(self):
-        if self.status != RepoStatus.Done:
-            self.status = self.status + 1
-            self.description = self.status2task[self.status]
+    def load(self):
+        """ Load the status """
+        if os.path.isfile(self._file_name):
+            input_file = open(self._file_name,'r')
+            data = json.load(input_file)
+
+            for r in data["repo_list"]:
+                repo = self._read_repo(r)
+                self._repo_set.add(repo)
+
+            for json_status in data["repo_status"]:
+                repo = self._read_repo(json_status)
+                self._repo2status[repo] = json_status["status"]
+
+            for json_status in data["repo_log"]:
+                repo = self._read_repo(json_status)
+                self._repo2log[repo] = json_status["log"]
+
+    def write(self):
+        """ Write the status """
+        repo_list = []
+        for repo in self._repo_set:
+            repo_data = {}
+            self._write_repo(repo_data, repo)
+            repo_list.append(repo_data)
+
+        repo2status = []
+        for repo,status in self._repo2status.iteritems():
+            repo_data = {}
+            self._write_repo(repo_data, repo)
+            repo_data["status"] = status
+            repo2status.append(repo_data)
+
+        repo2log = []
+        for repo,log in self._repo2log.iteritems():
+            repo_data = {}
+            self._write_repo(repo_data, repo)
+            repo_data["log"] = log
+            repo2log.append(repo_data)
+
+        with open(self._file_name, "w") as outfile:
+            json.dump({"repo_list" : repo_list,
+                       "repo_status" : repo2status,
+                       "repo_log" : repo2log},
+                      outfile);
+            outfile.close()
+
+
+    def _read_repo(self, json_data):
+        repo_string = json_data["repo"]
+        splitted = repo_string.split("|")
+        user = splitted[0]
+        repo_name = splitted[1]
+        chash = splitted[2]
+        return (user,repo_name,chash)
+
+    def _write_repo(self, json_data, repo):
+        repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
+        json_data["repo"] = repo_string
+
 
 class ErrorLog:
     """Keeps a list of error messages separated per repo.
@@ -134,7 +209,23 @@ def read_repo(repo_file):
         if ("hash" in repo):
             res.append((repo["user_name"], repo["repo_name"], repo["hash"]))
         else:
-            res.append((repo["user_name"], repo["repo_name"]))
+            # Find the last hash commit in the repo
+            url = RepoProcessor.get_repo_url(repo["user_name"],
+                                             repo["repo_name"])
+            args = ["git", "ls-remote", url]
+
+            p = subprocess.Popen(args, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+
+            repo_hash = None
+            for l in out.split("\n"):
+                if (l.endswith("HEAD")):
+                    repo_hash = l.replace("HEAD", "").strip()
+            if repo_hash == None:
+                logging.warning("Commit hash not found for %s, skipping it " % str(repo))
+            else:
+                print repo_hash
+                res.append((repo["user_name"], repo["repo_name"], repo_hash))
     return res
 
 
@@ -142,7 +233,9 @@ class RepoProcessor:
     """Implements the different phases needed to process the repos
     """
 
-    def __init__(self, in_dir, graph_dir, prov_dir, slice_filter,
+    def __init__(self, in_dir,
+                 graph_dir, prov_dir,
+                 slice_filter,
                  extractor_jar, classpath):
         # Keeps the error log for each repo
         self.log = ErrorLog()
@@ -154,9 +247,13 @@ class RepoProcessor:
         self.extractor_jar = extractor_jar
         self.classpath = classpath
 
+        self.extractor_status = ExtractorStatus("extractor_status.json")
+
         if 'ANDROID_HOME' not in os.environ:
-            self.log.add_error(repo, "ANDROID_HOME path is not set")
-            assert False
+            # DEBUG
+            self.android_home = "/home/sergio/Tools/android-sdk-linux"
+            # logging.error("ANDROID_HOME path is not set")
+            # assert False
         else:
             self.android_home = os.environ['ANDROID_HOME']
 
@@ -171,7 +268,7 @@ class RepoProcessor:
         dir_path is either the input or the output directory.
         """
         if(len(repo) > 2):
-            repo_path = os.path.join(dir_path, repo[0], repo[1],repo[2])
+            repo_path = os.path.join(dir_path, repo[0], repo[1], repo[2])
         else:
             repo_path = os.path.join(dir_path, repo[0], repo[1], "head")
         return repo_path
@@ -422,12 +519,13 @@ class RepoProcessor:
 
     def search_classes(self, repo_dir, gradle_file_path):
         """Looks for the classes.jar file created during the build"""
-        logging.info("Searching main classes %s " + str(gradle_file_path))
+        logging.info("Searching main classes %s " % str(gradle_file_path))
 
         manifest = None
         for root, dirs, files in os.walk(gradle_file_path):
             if "AndroidManifest.xml" in files:
                 manifest = os.path.join(root, "AndroidManifest.xml")
+                break
 
         if None != manifest:
             # get the package name manifest, package
@@ -631,73 +729,74 @@ class RepoProcessor:
 
         except Exception as e:
             # DEBUG
-            logging.debug("Cannot extract the graphs from %s/%s" % (repo[0], repo[1]))
+            logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
             self.log.add_error(repo, e.message)
             return None
 
-        logging.debug("Extraction of graph ended for %s/%s" % (repo[0], repo[1]))
+        logging.debug("Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]))
         return repo
 
 
-    def processFromStep(self, repo_list, step):
+    def processRepoFromStep(self, repo, task_index):
         tasks = {"download": self.download,
                  "build": self.build,
                  "extract" : self.extract}
 
-        assert (step in tasks)
-        assert None != tasks_list
-        index = tasks_list.index(step)
-        steps_to_do = tasks_list[index:]
+        steps_to_do = ExtractorStatus.tasks_list[task_index:]
+
+        # read the status of the repo
+        repo_status = self.extractor_status.get_status(repo)
+
+        if repo_status < MIN_STATUS:
+            logging.warning("Skipping repo %s (repo status %d < min status %d" %
+                            (RepoProcessor.get_repo_name(repo), repo_status,
+                             MIN_STATUS))
+            return
+
+        repo_step_list = []
+        found_status = False
+        currentTask = ExtractorStatus.status2task[repo_status]
+        for l in steps_to_do:
+            if l == currentTask:
+                found_status = True
+            if found_status and l != "done":
+                repo_step_list.append(l)
+
+        # execute the sequence of tasks
+        for task in repo_step_list:
+            logging.info("Executing %s..." % task)
+            f = tasks[task]
+            try:
+                repo = f(repo)
+            except Exception as e:
+                logging.info("Execution broken at %s." % task)
+                traceback.print_exc()
+
+            if repo is None:
+                logging.info("Execution broken at %s." % task)
+                break
+            else:
+                # set the status of the repo
+                self.extractor_status.next_status(repo)
+            self.extractor_status.write()
+
+    def processFromStep(self, repo_list, user_task):
+        assert (user_task in ExtractorStatus.task2status.keys())
+        assert (user_task in ExtractorStatus.tasks_list)
+
+
+        task_index = ExtractorStatus.tasks_list.index(user_task)
+        steps_to_do = ExtractorStatus.tasks_list[task_index:]
 
         repo_index = 1
         tot_repos = len(repo_list)
         for repo in repo_list:
+            print repo
             logging.info("Repo %d/%d..." % (repo_index, tot_repos))
             logging.info("Repo %s" % RepoProcessor.get_repo_name(repo))
-
-            # read the status of the repo
-            repo_folder = RepoProcessor.get_repo_path(self.in_dir, repo)
-            repo_status_fn = get_repo_status_file_name(repo_folder)
-            if (os.path.isfile(repo_status_fn)):
-                logging.debug("Repo status exists for %s" % RepoProcessor.get_repo_name(repo))
-                repoStatus = RepoStatus(repo_status_fn)
-            else:
-                logging.debug("Repo status does NOT exist for %s" % RepoProcessor.get_repo_name(repo))
-                repoStatus = RepoStatus()
-                repoStatus.set_file_name(repo_status_fn)
-
-            if repoStatus.status < MIN_STATUS:
-                logging.warning("Skipping repo %s (repo status %d < min status %d" %
-                                (RepoProcessor.get_repo_name(repo), repoStatus.status, MIN_STATUS))
-                continue
-
-            repo_step_list = []
-            found_status = False
-            currentTask = RepoStatus.status2task[repoStatus.status]
-            for l in steps_to_do:
-                if l == currentTask:
-                    found_status = True
-                if found_status:
-                    repo_step_list.append(l)
-
-            # execute the sequence of tasks
-            for task in repo_step_list:
-                logging.info("Executing %s..." % task)
-                f = tasks[task]
-                try:
-                    repo = f(repo)
-                except Exception as e:
-                    logging.info("Execution broken at %s." % task)
-                    traceback.print_exc()
-
-                if repo is None:
-                    logging.info("Execution broken at %s." % task)
-                    break
-                else:
-                    # set the status of the repo
-                    repoStatus.next()
-                    repoStatus.write_on_file()
+            self.processRepoFromStep(repo, task_index)
             repo_index = repo_index + 1
+
 
     def printErrors(self, out):
         self.log.printErrors(out)
@@ -771,27 +870,31 @@ def main():
                                   opts.extractorjar, opts.classpath)
     repoProcessor.processFromStep(repo_list, opts.step)
 
-    try:
-        for repo in repo_list:
-            if repoProcessor.log.hasError(repo):
-                repo_name = str(repo[0] + "_" + repo[1])
-                repo_name = repo_name.replace("/", "_")
-                commit_hash = repo[2] if (len(repo)>2)  else ""
-                logfile = "repo_log_%s_%s.log" % (repo_name, commit_hash)
+    # DO NOT PRINT THE ERROR LOG FOR EACH REPO
+    # try:
+    #     for repo in repo_list:
+    #         if repoProcessor.log.hasError(repo):
+    #             assert (len(repo) == 3)
+    #             repo_name = str(repo[0] + "_" + repo[1])
+    #             repo_name = repo_name.replace("/", "_")
+    #             commit_hash = repo[2]
 
-                with open(logfile , 'w') as out_file:
-                    repoProcessor.log.printErrorRepo(repo, out_file)
-                    out_file.flush()
-                    out_file.close()
+    #             logfile = "repo_log_%s_%s.log" % (repo_name, commit_hash)
 
-    except Exception as e:
-        traceback.print_exc()
-        sys.exit(1)
+
+    #             with open(logfile , 'w') as out_file:
+    #                 repoProcessor.log.printErrorRepo(repo, out_file)
+    #                 out_file.flush()
+    #                 out_file.close()
+
+    # except Exception as e:
+    #     traceback.print_exc()
+    #     sys.exit(1)
 
 
 if __name__ == '__main__':
     log_name = "extraction_log_" + str(os.getpid())
-    logging.basicConfig(filename = log_name, level=logging.DEBUG)
+    # logging.basicConfig(filename = log_name, level=logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG)
 
     file_to_check = []
