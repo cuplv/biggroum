@@ -1,9 +1,26 @@
-# Example of run of the extraction
-`python run_extractor.py -a ./test.json -i /tmp/in_repo -g /tmp/graph_dir -p /tmp/prov_dir -f android -j /home/sergio/works/projects/muse/repos/FixrGraphExtractor/target/scala-2.10/fixrgraphextractor_2.10-0.1-SNAPSHOT-one-jar.jar -l /home/sergio/works/projects/muse/repos/FixrGraphExtractor/src/test/resources/libs/android-17.jar`
+# Automatic script used to run the extraction
 
-You need a working android sdk in order to perform the extraction.
+# Description
+The script `run_extractor.py` download a list of repos from github (at a specific commit version), tries to compile the android apps in the repos and run the extractor on them.
 
-I will update the README with more information on dependencies.
+
+# Dependencies
+
+- Android SDK: you need a working android sdk in order to perform the extraction (setting the ANDROIDHOME environment variable)
+
+- You need to have build the oneJar for the extractor. In the <path_to_the_extractor> folder run `sbt oneJar`
+
+- Python and pygit2
+
+
+
+# Run the extractor
+Example on how to use the extractor on the smaller set of repos:
+
+Create a directory to store the results: `$> mkdir <path_to_results>`
+
+Run the extraction: ```python run_extractor.py  -a ./examples/smaller.json  -i <paths_to_results>/src_repo -g <paths_to_results>/graphs -p <paths_to_results>/provenance -f android -j <path_to_the_extractor>/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar```
+
 
 
 
