@@ -73,9 +73,10 @@ The graph isomorphism executable is in `./graph_build/src/fixrgraphiso/fixrgraph
 - cd in the FixrGraphIndexer repositories
 
 - Generate the scheduler jobs
-```$> python scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -t 5```
+```$> python <FixrGraphIndexer_absolute_path>/scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -t 5```
 
 The parameters are:
+- <FixrGraphIndexer_absolute_path>: *absolute path* to the FixrGraphIndexer repo
 - `-i /tmp/iso_index.json`: index for the isomorphisms
 - `-g /tmp/graphs`: graphs
 - `-j /tmp/out_jobs`: output folder for the jobs to be executed
