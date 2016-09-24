@@ -69,14 +69,14 @@ $> make
 
 The graph isomorphism executable is in `./graph_build/src/fixrgraphiso/fixrgraphiso`
 
-# 3.2 Creates the jobs (now for Janus)
+# 3.2 Creates the jobs (local or in Janus)
 - cd in the FixrGraphIndexer repositories
 
 - Generate the scheduler jobs
-```$> python <FixrGraphIndexer_absolute_path>/scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -t 5```
+```$> cd FixrGraphIndexer
+$> python scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -t 5```
 
 The parameters are:
-- <FixrGraphIndexer_absolute_path>: *absolute path* to the FixrGraphIndexer repo
 - `-i /tmp/iso_index.json`: index for the isomorphisms
 - `-g /tmp/graphs`: graphs
 - `-j /tmp/out_jobs`: output folder for the jobs to be executed
@@ -93,3 +93,8 @@ $> make -f scheduler_iso_index```
 The scheduler uses make to parallelize the computation of the isomorphisms.
 The isomorphisms are in `/tmp/iso`, the execcution logs of the jobs are in `/tmp/out_jobs`
 
+# 3.4 Collect the isomorphism in the database
+```$> cd FixrGraphIndexer
+$> python scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -j /tmp/out_jobs -n /tmp/out_jobs -g /tmp/graphs -g /tmp/graphs -o /tmp/graphs_db.db```
+
+*WARNING*: the insertion in the db is not idempotent (i.e. run it once!)
