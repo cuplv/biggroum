@@ -87,4 +87,9 @@ The parameters are:
 - `-t 5`: timeout for each single isomorphism
 
 # 3.3 Run the jobs
+```$> cd /tmp/out_jobs
+$> make -f scheduler_iso_index```
+
+The scheduler uses make to parallelize the computation of the isomorphisms.
+The isomorphisms are in `/tmp/iso`, the execcution logs of the jobs are in `/tmp/out_jobs`
 
