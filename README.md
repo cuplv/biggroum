@@ -19,8 +19,9 @@ The graph pipeline consists of the following steps:
 
 ## 1. Extract the graphs
 
-# 1.1. Perform the extraction
+### 1.1. Perform the extraction
 - Download and build the repo:
+
 ```$> git clone https://github.com/cuplv/FixrGraphExtractor
 $> cd FixrGraphExtraction
 $> sbt oneJar```
@@ -34,7 +35,7 @@ The graphs will be extracted in the folder `/tmp` (`/tmp/src_repo`,
 `/tmp/graphs`, `/tmp/provenance` for the repo, the graphs and the
 provenance information respectively)
 
-# 1.2 Populate the db
+### 1.2 Populate the db
 - Download the repo:
 ```$> git clone https://github.com/cuplv/FixrGraphIndexer```
 
@@ -49,7 +50,7 @@ $> cd FixrGraphIndexer
 $> sbt oneJar```
 
 - Create the set of isomorphisms to compute:
-```$> java -jar target/scala-2.11/fixrgraphindexer_2.11-0.1-SNAPSHOT-one-jar.jar -d /tmp/graphs -o /tmp/iso_index.json -m 2 -n 2 -e 2 -i 2 ```
+```$> java -jar target/scala-2.11/fixrgraphindexer_2.11-0.1-SNAPSHOT-one-jar.jar -d /tmp/graphs -o /tmp/iso_index.json -m 2 -n 2 -e 2 -i 2```
 
 The command creates the index file in `/tmp/iso_index.json`
 
@@ -61,7 +62,8 @@ The command creates the index file in `/tmp/iso_index.json`
 ```$> git clone https://github.com/cuplv/FixrGraphIso```
 
 - Build the repo
-```$> mkdir graph_build
+```
+$> mkdir graph_build
 $> cd graph_build
 $> cmake ../FixrGraphIso
 $> make
@@ -69,8 +71,7 @@ $> make
 
 The graph isomorphism executable is in `./graph_build/src/fixrgraphiso/fixrgraphiso`
 
-# 3.2 Creates the jobs (local or in Janus)
-- cd in the FixrGraphIndexer repositories
+### 3.2 Creates the jobs (local or in Janus)
 
 - Generate the scheduler jobs
 ```$> cd FixrGraphIndexer
@@ -86,14 +87,14 @@ The parameters are:
 - `-p scheduler/run_iso.py`: script used to execute the isomorphism
 - `-t 5`: timeout for each single isomorphism
 
-# 3.3 Run the jobs
+### 3.3 Run the jobs
 ```$> cd /tmp/out_jobs
 $> make -f scheduler_iso_index```
 
 The scheduler uses make to parallelize the computation of the isomorphisms.
 The isomorphisms are in `/tmp/iso`, the execcution logs of the jobs are in `/tmp/out_jobs`
 
-# 3.4 Collect the isomorphism in the database
+### 3.4 Collect the isomorphism in the database
 ```$> cd FixrGraphIndexer
 $> python scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -j /tmp/out_jobs -n /tmp/out_jobs -g /tmp/graphs -g /tmp/graphs -o /tmp/graphs_db.db```
 
