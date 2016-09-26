@@ -99,3 +99,9 @@ The isomorphisms are in `/tmp/iso`, the execcution logs of the jobs are in `/tmp
 $> python scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -j /tmp/out_jobs -n /tmp/out_jobs -g /tmp/graphs -g /tmp/graphs -o /tmp/graphs_db.db```
 
 *WARNING*: the insertion in the db is not idempotent (i.e. run it once!)
+
+
+### 3.4 Generate the html pages
+```$> cd FixrGraphIndexer
+$> python gen_html.py  -d /tmp/graphs_db.db -o /tmp/index -g /tmp/graphs -p /tmp/provenance -i /tmp/iso```
+
