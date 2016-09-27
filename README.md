@@ -73,6 +73,8 @@ FixrGraphExtractor repository for an example.
 - `TIMEOUT`: timeout (in seconds) for the isomorphism computation
 - `JOB_SIZE`: number of isomorphism computed by a single job.
 
+Run the script:
+```mkdir <OUT_DIR> && bash full_extraction.bash ```
 
 ## Extraction pipeline - details and manual extraction
 
