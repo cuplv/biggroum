@@ -32,9 +32,10 @@ isomorphisms.
 ```
 $> git clone https://github.com/cuplv/FixrGraphExtractor
 $> cd FixrGraphExtraction
-$> sbt oneJar```
+$> sbt oneJar
+```
 
-- Graph isomorphism computation
+Graph isomorphism computation
 ```
 $> git clone https://github.com/cuplv/FixrGraphIso```
 $> mkdir graph_build
