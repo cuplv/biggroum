@@ -40,7 +40,7 @@ Graph isomorphism computation
 $> git clone https://github.com/cuplv/FixrGraphIso
 $> mkdir graph_build
 $> cd graph_build
-$> cmake ../FixrGraphIso
+$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ../FixrGraphIso
 $> make
 ```
 
@@ -137,7 +137,7 @@ The command creates the index file in `/tmp/iso_index.json`
 $> git clone https://github.com/cuplv/FixrGraphIso
 $> mkdir graph_build
 $> cd graph_build
-$> cmake ../FixrGraphIso
+$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ../FixrGraphIso
 $> make
 ```
 
