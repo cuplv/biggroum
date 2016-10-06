@@ -40,7 +40,7 @@ Graph isomorphism computation
 $> git clone https://github.com/cuplv/FixrGraphIso
 $> mkdir graph_build
 $> cd graph_build
-$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ../FixrGraphIso
+$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ..
 $> make
 ```
 
