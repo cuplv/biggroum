@@ -37,10 +37,11 @@ $> sbt oneJar
 
 Graph isomorphism computation
 ```
+$> sudo apt-get install libprotobuf-dev libglpk-dev protobuf-compiler
 $> git clone https://github.com/cuplv/FixrGraphIso
 $> mkdir graph_build
 $> cd graph_build
-$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ../FixrGraphIso
+$> cmake -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=<PATH TO FixrGraphExtractor> ..
 $> make
 ```
 
