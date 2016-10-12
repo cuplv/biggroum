@@ -95,10 +95,10 @@ $> sbt oneJar
 
 - Run the extraction:
 ```
-bash ./extraction_scripts/run_script.bash /tmp ./extraction_scripts/examples/smaller.json
+bash ./python/fixrgraph/extraction/run_script.bash /tmp ./python/fixrgraph/extraction/examples/smaller.json
 ```
 
-In this case the list of repositories to process is specified in the file `./extraction_scripts/examples/smaller.json`.
+In this case the list of repositories to process is specified in the file `./python/fixrgraph/extraction/examples/smaller.json`.
 
 The graphs will be extracted in the folder `/tmp` (`/tmp/src_repo`,
 `/tmp/graphs`, `/tmp/provenance` for the repo, the graphs and the
@@ -112,7 +112,7 @@ $> git clone https://github.com/cuplv/FixrGraphIndexer
 
 - Fill a database with the graphs
 ```
-python scheduler/process_graphs.py -g /tmp/graphs -d /tmp/graphs_db.db
+python ./python/fixrgraph/scheduler/process_graphs.py -g /tmp/graphs -d /tmp/graphs_db.db
 ```
 
 
@@ -151,7 +151,7 @@ The graph isomorphism executable is in `./graph_build/src/fixrgraphiso/fixrgraph
 - Generate the scheduler jobs
 ```
 $> cd FixrGraphIndexer
-$> python scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -l /tmp -t 5
+$> python ./python/fixrgraph/scheduler/create_jobs.py  -i /tmp/iso_index.json  -g /tmp/graphs -j /tmp/out_jobs -o /tmp/iso -s 2000 -b <path_to_the_isomorphism_executable> -p scheduler/run_iso.py -l /tmp -t 5
 ```
 
 The parameters are:
@@ -176,7 +176,7 @@ The isomorphisms are in `/tmp/iso`, the execcution logs of the jobs are in `/tmp
 #### 3.4 Collect the isomorphism in the database
 ```
 $> cd FixrGraphIndexer
-$> python scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -j /tmp/out_jobs -n /tmp/out_jobs -g /tmp/graphs -g /tmp/graphs -o /tmp/graphs_db.db
+$> python ./python/fixrgraph/scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -j /tmp/out_jobs -n /tmp/out_jobs -g /tmp/graphs -g /tmp/graphs -o /tmp/graphs_db.db
 ```
 
 *WARNING*: the insertion in the db is not idempotent (i.e. run it once!)
@@ -185,6 +185,6 @@ $> python scheduler/process_logs.py  -s /tmp/out_jobs/scheduler_iso_index.make -
 #### 3.4 Generate the html pages
 ```
 $> cd FixrGraphIndexer
-$> python scheduler/gen_html.py  -d /tmp/graphs_db.db -o /tmp/index -g /tmp/graphs -p /tmp/provenance -i /tmp/iso
+$> python ./python/fixrgraph/provenance/gen_html.py  -d /tmp/graphs_db.db -o /tmp/index -g /tmp/graphs -p /tmp/provenance -i /tmp/iso
 ```
 
