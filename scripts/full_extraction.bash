@@ -33,7 +33,8 @@ check_exists "${FIXR_GRAPH_ISO_BIN}" "FixrGraphIso binary"
 check_exists "${OUT_DIR}" "Output directory"
 check_exists "${REPO_LIST}" "List of repositories"
 
-
+FIXR_GRAPH_PYTHON=${FIXR_GRAPH_INDEXER}/scheduler/python/fixrgraph/
+check_exists "${FIXR_GRAPH_PYTHON}" "Python package"
 
 OUT_LOG=${OUT_DIR}/out_log.txt
 
@@ -46,9 +47,8 @@ res=$?
 popd
 check_res "${res}" "Extract graphs of ${REPO_LIST}"
 
-
 echo "Filling graph dbs..."
-python ${FIXR_GRAPH_INDEXER}/scheduler/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}
+python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}
 check_res "$?" "Fill graph db"
 
 # Generate the index
@@ -58,7 +58,7 @@ check_res "$?" "Index generation"
 
 # Compute the isomorphism
 echo "Schedule the isomorphism computation..."
-python ${FIXR_GRAPH_INDEXER}/scheduler/create_jobs.py  -i ${OUT_DIR}/iso_index.json  -g ${OUT_DIR}/graphs -j ${OUT_DIR}/out_jobs -o ${OUT_DIR}/iso -s ${JOB_SIZE} -b ${FIXR_GRAPH_ISO_BIN} -p ${FIXR_GRAPH_INDEXER}/scheduler/run_iso.py -l /tmp -t ${TIMEOUT} &>> ${OUT_LOG}
+python ${FIXR_GRAPH_PYTHON}/scheduler/create_jobs.py  -i ${OUT_DIR}/iso_index.json  -g ${OUT_DIR}/graphs -j ${OUT_DIR}/out_jobs -o ${OUT_DIR}/iso -s ${JOB_SIZE} -b ${FIXR_GRAPH_ISO_BIN} -p ${FIXR_GRAPH_PYTHON}/scheduler/run_iso.py -l /tmp -t ${TIMEOUT} &>> ${OUT_LOG}
 check_res "$?" "Scheduling isomorphisms"
 
 pushd .
@@ -68,10 +68,10 @@ make -f scheduler_iso_index.make &>> ${OUT_LOG}
 popd
 
 echo "Processing logs..."
-python ${FIXR_GRAPH_INDEXER}/scheduler/process_logs.py  -s ${OUT_DIR}/out_jobs/scheduler_iso_index.make -j ${OUT_DIR}/out_jobs -n ${OUT_DIR}/out_jobs -g ${OUT_DIR}/graphs -g ${OUT_DIR}/graphs -o ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}
+python ${FIXR_GRAPH_PYTHON}/db/scripts/process_logs.py  -s ${OUT_DIR}/out_jobs/scheduler_iso_index.make -j ${OUT_DIR}/out_jobs -n ${OUT_DIR}/out_jobs -g ${OUT_DIR}/graphs -g ${OUT_DIR}/graphs -o ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}
 check_res "$?" "Processing logs"
 
 echo "Generating html pages..."
-python ${FIXR_GRAPH_INDEXER}/scheduler/gen_html.py -d ${OUT_DIR}/graphs_db.db -o ${OUT_DIR}/index -g ${OUT_DIR}/graphs -p ${OUT_DIR}/provenance -i ${OUT_DIR}/iso &>> ${OUT_LOG}
+python ${FIXR_GRAPH_PYTHON}/provenance/gen_html.py -d ${OUT_DIR}/graphs_db.db -o ${OUT_DIR}/index -g ${OUT_DIR}/graphs -p ${OUT_DIR}/provenance -i ${OUT_DIR}/iso &>> ${OUT_LOG}
 check_res "$?" "Generating html pages"
 
