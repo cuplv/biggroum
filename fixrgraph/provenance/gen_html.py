@@ -9,7 +9,7 @@ import string
 import collections
 import shutil
 
-from fixrgraph.isodb import IsoDb
+from fixrgraph.db.isodb import IsoDb
 
 import collections
 

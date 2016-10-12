@@ -10,7 +10,7 @@ import logging
 import string
 import collections
 
-from fixrgraph.isodb import IsoDb
+from fixrgraph.db.isodb import IsoDb
 import sqlalchemy
 
 

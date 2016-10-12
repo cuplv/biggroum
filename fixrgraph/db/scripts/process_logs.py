@@ -27,7 +27,7 @@ import logging
 import string
 import collections
 
-from fixrgraph.isodb import IsoDb
+from fixrgraph.db.isodb import IsoDb
 from fixrgraph.scheduler.run_iso import Job
 
 import sqlalchemy
