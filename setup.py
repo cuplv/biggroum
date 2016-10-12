@@ -22,7 +22,7 @@ setup(
             'fixrgraph-scheduler = fixrgraph.scheduler.create_jobs:main',
             'fixrgraph-process-graphs = fixrgraph.scheduler.process_graphs:main',
             'fixrgraph-process-logs = fixrgraph.scheduler.process_logs:main',
-            'fixrgraph-iso-html = fixrgraph.provenance:gen_html:main',
+            'fixrgraph-gen_html = fixrgraph.provenance.gen_html:main',
         ],
     },
 )
