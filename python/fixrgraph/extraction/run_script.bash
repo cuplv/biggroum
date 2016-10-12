@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-    echo "$0 <outputpath> <repolist>"
+    echo "$0 <outputpath> <repolist> <extractor-jar>"
     exit 1
 }
 
@@ -37,11 +37,14 @@ file_exists() {
 
 OUT_BASE="${1}"
 REPO_LIST="${2}"
+EXTRACTOR_JAR="${3}"
 
 is_empty "${OUT_BASE}" "Output path"
 dir_exists "${OUT_BASE}" "Output path"
 is_empty "${REPO_LIST}" "List of repos"
 file_exists "${REPO_LIST}" "List of repos"
+is_empty "${EXTRACTOR_JAR}" "Extractor jar"
+file_exists "${EXTRACTOR_JAR}" "Extractor jar"
 
 is_empty "${ANDROID_HOME}" "Android home"
 dir_exists "${ANDROID_HOME}" "Android home"
@@ -51,7 +54,6 @@ SCRIPTPATH=`cd ${current_dir} && pwd -P`
 
 EXTRACTOR_SCRIPT=${SCRIPTPATH}/run_extractor.py
 file_exists "${EXTRACTOR_SCRIPT}" "Extractor script"
-EXTRACTOR_JAR=${SCRIPTPATH}/../target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar
 file_exists "${EXTRACTOR_JAR}" "Extractor jar"
 
 REPO_PATH=${OUT_BASE}/src_repo

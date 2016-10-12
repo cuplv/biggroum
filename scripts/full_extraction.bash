@@ -21,19 +21,22 @@ check_res() {
     fi
 }
 
-script_dir="$(dirname "$0")"
+rl="$(readlink -f "$0")"
+script_dir="$(dirname "${rl}")"
 config_script="${script_dir}/config.bash"
 check_exists "${config_script}" "config.bash does not exists"
 source ${config_script}
 
+FIXR_GRAPH_EXTRACTOR_JAR="$(readlink -f ${FIXR_GRAPH_EXTRACTOR}/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar)"
 
 check_exists "${FIXR_GRAPH_EXTRACTOR}" "FixrGraphExtractor folder"
+check_exists "${FIXR_GRAPH_EXTRACTOR_JAR}" "FixrGraphExtractor jar does not exist"
 check_exists "${FIXR_GRAPH_INDEXER}" "FixrGraphIndexer folder"
 check_exists "${FIXR_GRAPH_ISO_BIN}" "FixrGraphIso binary"
 check_exists "${OUT_DIR}" "Output directory"
 check_exists "${REPO_LIST}" "List of repositories"
 
-FIXR_GRAPH_PYTHON=${FIXR_GRAPH_INDEXER}/scheduler/python/fixrgraph/
+FIXR_GRAPH_PYTHON="$(readlink -f "${script_dir}/../python/fixrgraph/")"
 check_exists "${FIXR_GRAPH_PYTHON}" "Python package"
 
 OUT_LOG=${OUT_DIR}/out_log.txt
@@ -42,7 +45,7 @@ OUT_LOG=${OUT_DIR}/out_log.txt
 echo "Extracting graphs from ${REPO_LIST}..."
 pushd .
 cd ${OUT_DIR}
-bash ${FIXR_GRAPH_EXTRACTOR}/extraction_scripts/run_script.bash ${OUT_DIR} ${REPO_LIST}  &>> ${OUT_LOG}
+bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} &>> ${OUT_LOG}
 res=$?
 popd
 check_res "${res}" "Extract graphs of ${REPO_LIST}"
