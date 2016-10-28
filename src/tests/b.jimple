@@ -1,0 +1,24 @@
+    public void showBLEData(org.zpcat.ble.data.BLEDataServer$BLEData)
+    {
+        org.zpcat.ble.ui.central.CentralDetailsActivity this;
+        org.zpcat.ble.data.BLEDataServer$BLEData data;
+        android.bluetooth.BluetoothDevice $r0;
+        java.lang.String $r1, $r2;
+        boolean $z0;
+        org.zpcat.ble.ui.central.CentralDetailsActivity$3 $r3;
+
+        this := @this: org.zpcat.ble.ui.central.CentralDetailsActivity;
+        data := @parameter0: org.zpcat.ble.data.BLEDataServer$BLEData;
+        $r0 = data.<org.zpcat.ble.data.BLEDataServer$BLEData: android.bluetooth.BluetoothDevice device>;
+        $r1 = virtualinvoke $r0.<android.bluetooth.BluetoothDevice: java.lang.String getAddress()>();
+        $r2 = this.<org.zpcat.ble.ui.central.CentralDetailsActivity: java.lang.String mDeviceAddress>;
+        $z0 = staticinvoke <java.util.Objects: boolean equals(java.lang.Object,java.lang.Object)>($r1, $r2);
+        if $z0 == 0 goto label0;
+
+        $r3 = new org.zpcat.ble.ui.central.CentralDetailsActivity$3;
+        specialinvoke $r3.<org.zpcat.ble.ui.central.CentralDetailsActivity$3: void <init>(org.zpcat.ble.ui.central.CentralDetailsActivity,org.zpcat.ble.data.BLEDataServer$BLEData)>(this, data);
+        virtualinvoke this.<org.zpcat.ble.ui.central.CentralDetailsActivity: void runOnUiThread(java.lang.Runnable)>($r3);
+
+     label0:
+        return;
+    }
