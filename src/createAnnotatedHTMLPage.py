@@ -56,42 +56,144 @@ class AnnotatedPageContent:
                 if self.debug:
                     print('Line numbers: ', line1, ' <---> ', line2)
 
-    def print_javascript_dictionary(self, outfile):
-        print('<script>', file = outfile)
-        print ('var highlight_mapping = { ', file = outfile)
+    def get_javascript_dictionary(self):
+        str = ''
         for (line1, line2) in self.jimple_a_to_b.items():
-            print('\"line__%d__a__\":\"line__%d__b__\",'%(line1, line2), file = outfile)
-            print('\"line__%d__b__\":\"line__%d__a__\",'%(line2, line1), file = outfile)
-        print ('};', file = outfile)
-        print("""
-        function registerClick(span_id){
-            if (highlight_mapping[span_id]){
-                alt_span_id = highlight_mapping[span_id]
-                var elem;
-                if (document.getElementById) {
-                    if (elem=document.getElementsByClassName(span_id)) {
-                       if (elem[0].style) {
-                           elem[0].style.backgroundColor=\"red\";
-                       }
-                     }
-                     if (elem=document.getElementsByClassName(alt_span_id)) {
-                       if (elem[0].style) {
-                           elem[0].style.backgroundColor=\"yellow\";
-                       }
-                     }   
-                }
-            }
-        }
-        """, file=outfile)
-        print('</script>', file=outfile)
-        
-        
+            str= str + '\"line__%d__a__\":\"line__%d__b__\",'%(line1, line2)
+            str= str + '\"line__%d__b__\":\"line__%d__a__\",'%(line2, line1)
+        return str
+    
+    def construct_template(self, dot_file_str):
+        jscript_str = self.get_javascript_dictionary()
+        templStr= """ <html> <body>
+<!-- BEGIN added stylesheet -->
+<style>
+  .jimpleCode {
+    font-family: \"PT Mono\", monospace;
+  }
+  .identi {
+    display: none;
+  }
+  td {
+    margin: 1em;
+    font-size: .8em;
+  }
+  td span {
+    font-size: 1.25em;
+  }
+  .iso_a {
+    background: #fcc;
+  }
+  .iso_b {
+    background: #ddf;
+  }
+  .iso_a.highlight {
+    background: #f22;
+    color: #fff;
+  }
+  .iso_b.highlight {
+    background: #33f;
+    color: #fff;
+  }
+  .highlight .identi {
+    display: table-caption;
+    background: #000;
+    color: #fff;
+    width: 1em;
+    height: 1em;
+    font-size: .8em;
+    margin-left: 1em;
+    padding: .2em;
+    text-align: center;
+    border-radius: 500px;
+    font-weight: bold;
+  }
+</style>
+<!-- END added stylesheet -->
+<script>
+var highlight_mapping = { 
+%s
+};
+
+/* Everything above untouched;
+ * The rest of this is Rhys's
+ */
+
+var identiDict  = {};
+var identiCount = 0;
+
+function registerClick(event){
+  if (!this.classList.contains("iso")) {
+    return;
+  }
+  var lineName;
+  var altLineName;
+  for (className of this.classList) {
+    if (className.substring(0, 4) == "line") {
+      console.log("Line is " + className);
+      lineName = className;
+      break;
+    }
+  }
+  altLineName = highlight_mapping[lineName];
+  var alt = document.getElementsByClassName(altLineName)[0];
+  this.classList.toggle("highlight");
+  alt.classList.toggle("highlight");
+}
+
+document.addEventListener("DOMContentLoaded", function(event) {
+  for (var element of document.querySelectorAll(".jimpleCode span")) {
+    console.log(element.className);
+    if (highlight_mapping[element.className]) {
+      var identi = element.className;
+      var identiElem = document.createElement('span');
+      // numbering = highlight_mapping.indexOf(element.className);
+      if (element.className[element.className.length - 3] == 'a') {
+        element.className += " iso iso_a";
+      }
+      else {
+        identi = highlight_mapping[element.className];
+        element.className += " iso iso_b";
+      }
+      if (!identiDict[identi]) {
+        identiCount += 1;
+        identiDict[identi] = identiCount;
+      }
+      identi = identiDict[identi]
+      identiElem.className = "identi"
+      identiElem.innerHTML = identi;
+      element.append(identiElem);
+      element.onclick = registerClick;
+    }
+  }
+});
+</script>
+<!-- BEGIN code to load isomorphism -->
+<script src="https://github.com/mdaines/viz.js/releases/download/v1.3.0/viz.js"></script>
+<script>
+var path_to_dot_file= \'%s\';
+// ^ Sriram: you must specify this! It can be relative or absolute. --RBPO
+var isoReq = new XMLHttpRequest();
+isoReq.open('GET', path_to_dot_file, true);
+isoReq.send();
+isoReq.onload = function() {
+  var isoText = isoReq.responseText;
+  var isoContainer = document.getElementById('iso');
+  var iso = Viz(isoText, options={ format: 'svg', engine: 'dot' });
+  isoContainer.innerHTML = iso;
+};
+</script>
+<!-- END code to load isomorphism -->
+"""%(jscript_str,dot_file_str)
+        return templStr
+    
     def print_jimple_as_html(self, outfile_name):
         outfile = open(outfile_name,'w')
         str_list_a = self.jimple_a.to_html_str_list('a', self.jimple_a_to_b)
         str_list_b = self.jimple_b.to_html_str_list('b', self.jimple_b_to_a)
         print('<html> <body>', file = outfile)
-        self.print_javascript_dictionary(outfile)
+        templStr = self.construct_template('')
+        print(templStr, file=outfile)
         print('<table><tbody>', file = outfile)
         print('<col width=\"50%\"> <col width=\"50%\">', file = outfile)
         print('<tr>', file = outfile)

@@ -161,7 +161,7 @@ class JimpleObject:
             print('Fatal: error opening file', file_name)
 
     def to_html_str_list(self, stem, dict):
-        line_template = string.Template('<tr><td> $line_num <td> <span class=\"$span_id\" style=\"background:$line_bg\" onClick=\"registerClick(\'$span_id\')\"> $line_string </span> </td></tr>')
+        line_template = string.Template('<tr><td> $line_num <td> <span class=\"$span_id\"> $line_string </span> </td></tr>')
         str_list = []
         for (lnum, line) in self.line_map.items():
             if lnum in dict:
