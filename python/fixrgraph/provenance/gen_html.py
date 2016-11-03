@@ -1,4 +1,5 @@
-""" Generate a set of html pages to navigate and search the isormorphism
+""" Generate a set of html pages of the isomorphisms and an index to navigate and
+search them.
 """
 
 import sys
@@ -181,6 +182,7 @@ class HtmlCreator(object):
             # This is the isomorphism page
             iso_info = current.key
             assert isinstance(iso_info, IsoInfo)
+            # TODO: make path relative
             prev_pages.append((iso_info.page, iso_info.isoname))
         else:
             # recur on the children
@@ -206,7 +208,6 @@ class HtmlCreator(object):
 
             if (intermediate_index or current == self.index):
                 # write the index
-
                 indexfile = os.path.join(next_path, "index.html")
                 indexfilerel = os.path.join(current.key, "index.html")
 
@@ -268,7 +269,6 @@ class HtmlCreator(object):
         g2name: name of the second graph
         weight: weight of the isomorphism
         """
-
         (isoname, isopath, g1name, g2name, g1path, g2path, weight) = iso
 
         # html page for the isomorphism
@@ -277,34 +277,37 @@ class HtmlCreator(object):
         isohtmlpath = os.path.join(isohtmlpath, html_name)
 
         # Insert the page in the index
-        iso_data = IsoInfo(isoname, html_name, weight)
-
         keys = g1name.split(".")
         html_full_name = os.path.join("/".join(keys), html_name)
-        html_full_name = os.path.join(self.out_dir, html_full_name)
-        keys.append(html_name)
-        self._insert(keys, 0, iso_data, self.index)
 
+        # DEBUG
+        # html_full_name = os.path.join(self.out_dir, html_full_name)
+        html_full_name = os.path.join(self.iso_dir, html_full_name)
+        keys.append(html_name)
+
+        iso_data = IsoInfo(isoname, html_full_name, weight)
+        self._insert(keys, 0, iso_data, self.index)
 
         src_isodot = os.path.join(self.iso_dir,
                                   isopath.replace(".iso.bin", ".dot"))
         isodot = os.path.basename(src_isodot)
         isodot_abs = os.path.join(os.path.dirname(html_full_name), isodot)
-        if not os.path.exists(os.path.dirname(isodot_abs)): os.makedirs(os.path.dirname(isodot_abs))
-        shutil.copyfile(src_isodot, isodot_abs)
+
+        if g1path.startswith("/"): g1path = "." + g1path
+        if g2path.startswith("/"): g2path = "." + g2path
 
         sliced_jimple_1 = os.path.join(self.prov_dir,
                                        g1path.replace(".iso.bin", ".sliced.jimple"))
         sliced_jimple_2 = os.path.join(self.prov_dir,
                                        g2path.replace(".iso.bin", ".sliced.jimple"))
+
         g1page = os.path.join(self.prov_dir,
-                              g2path.replace(".iso.bin", ".html"))
+                              g1path.replace(".acdfg.bin", ".html"))
         g2page = os.path.join(self.prov_dir,
-                              g2path.replace(".iso.bin", ".html"))
+                              g2path.replace(".acdfg.bin", ".html"))
 
         annotatedjimple = self._annotate_jimple(isopath, g1path, g2path,
                                                 sliced_jimple_1, sliced_jimple_2)
-
         html_page = _substitute(iso_page,
                                 {"TITLE" : "",
                                  "ISONAME" : isoname,
@@ -317,8 +320,7 @@ class HtmlCreator(object):
                                  "DOTFILE" : isodot,
                                  "ANNOTATEDJIMPLE" : annotatedjimple})
 
-        self.cache.append((html_full_name,
-                           html_page))
+        self.cache.append((html_full_name, html_page))
         if (len(self.cache) > self.limit):
             self._write_html_pages()
             self.cache = []
@@ -356,7 +358,6 @@ def main():
                        opts.prov_dir, opts.iso_dir)
     for iso in qres:
         i = i + 1
-        if i > 5: break
         html.create_page(iso)
     html.flush()
 

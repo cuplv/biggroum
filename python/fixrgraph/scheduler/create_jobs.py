@@ -139,6 +139,12 @@ class JobCreator():
             graph1_name = pair[0]
             graph2_name = pair[1]
 
+            # We require that the index builds pairs of graphs that are ordered
+            # lexicographically
+            # This is a useful default for finiding an isomorphism from its
+            # composing graphs.
+            assert graph1_name <= graph2_name
+
             # replace the old graph path with the new one
             if (self.old_graphs_prefix is not None):
                 graph1_name = graph1_name.replace(self.old_graphs_prefix, self.graph_dir)

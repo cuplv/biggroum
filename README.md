@@ -48,9 +48,15 @@ $> make
 - Isomorphism computation indexer and scheduler
 ```
 $> cd FixrGraphIndexer
-$> cd FixrGraphIndexer
 $> sbt oneJar
 ```
+
+- FixrCommunityDetection
+```
+$> cd FixrCommunityDetection
+$> sbt assembly
+```
+
 
 ### Running the full pipeline
 
@@ -63,6 +69,7 @@ Edit the file `script/config.bash` setting the following parameters:
 - `FIXR_GRAPH_EXTRACTOR`: path to the FixrGraphExtractor repository
 - `FIXR_GRAPH_INDEXER`: path to the FixrGraphIndexer repository
 - `FIXR_GRAPH_ISO_BIN`: path to the FixrGraphIso *binary*
+- `FIXR_COMMUNITY_DETECTION`: path to the FixrCommunityDetection repository
 - `OUT_DIR`: path to the output directory of the extraction
 - `REPO_LIST`: path to the json file containing the list of repositories 
 See the file `extraction_scripts/examples/smaller.json` in the
@@ -73,6 +80,7 @@ FixrGraphExtractor repository for an example.
 - `MIN_COMMON_METHODS`: minimum number of common methods calls of two graphs required to be considered for an isomorphism
 - `TIMEOUT`: timeout (in seconds) for the isomorphism computation
 - `JOB_SIZE`: number of isomorphism computed by a single job.
+- `SPARK_SUBMIT_PATH`: path to the spark command `spark-submit` (e.g. when downloading and extracting the spark tar.gz, spark-submit is found here `spark-2.0.0-bin-hadoop2.7/bin/spark-submit`)
 
 Run the script:
 ```mkdir <OUT_DIR> && bash full_extraction.bash ```
@@ -187,4 +195,11 @@ $> python ./python/fixrgraph/scheduler/process_logs.py  -s /tmp/out_jobs/schedul
 $> cd FixrGraphIndexer
 $> python ./python/fixrgraph/provenance/gen_html.py  -d /tmp/graphs_db.db -o /tmp/index -g /tmp/graphs -p /tmp/provenance -i /tmp/iso
 ```
+
+### 4. Analyze the community formed by the isomorphisms
+```
+$> cd FixrCommunityDetection
+$> 
+```
+
 
