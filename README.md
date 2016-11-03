@@ -58,7 +58,7 @@ $> sbt assembly
 ```
 
 
-### Running the full pipeline
+### Run the full pipeline
 
 Set up the local configuration:
 ```
@@ -83,7 +83,7 @@ FixrGraphExtractor repository for an example.
 - `SPARK_SUBMIT_PATH`: path to the spark command `spark-submit` (e.g. when downloading and extracting the spark tar.gz, spark-submit is found here `spark-2.0.0-bin-hadoop2.7/bin/spark-submit`)
 
 Run the script:
-```mkdir <OUT_DIR> && bash full_extraction.bash ```
+```bash full_extraction.bash ./script/config.bash```
 
 ## Extraction pipeline - details and manual extraction
 

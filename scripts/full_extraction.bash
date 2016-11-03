@@ -21,10 +21,16 @@ check_res() {
     fi
 }
 
+
 rl="$(readlink -f "$0")"
 script_dir="$(dirname "${rl}")"
-config_script="${script_dir}/config.bash"
-check_exists "${config_script}" "config.bash does not exists"
+
+config_script=$1
+
+#config_script="${script_dir}/config.bash"
+
+check_exists "${config_script}" "config.bash script was not provided!"
+
 source ${config_script}
 
 FIXR_GRAPH_EXTRACTOR_JAR="$(readlink -f ${FIXR_GRAPH_EXTRACTOR}/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar)"
@@ -36,13 +42,18 @@ check_exists "${FIXR_GRAPH_INDEXER}" "FixrGraphIndexer folder"
 check_exists "${FIXR_GRAPH_ISO_BIN}" "FixrGraphIso binary"
 check_exists "${FIXR_COMMUNITY_DETECTION}" "FixrCommunityDetection path"
 check_exists "${FIXR_COMMUNITY_DETECTION_JAR}" "FixrCommunityDetection jar does not exist: did you run sbt assembly there?"
-check_exists "${OUT_DIR}" "Output directory"
 check_exists "${REPO_LIST}" "List of repositories"
 check_exists "${SPARK_SUBMIT_PATH}" "Spark submit executable"
 
 FIXR_GRAPH_PYTHON="$(readlink -f "${script_dir}/../python/fixrgraph/")"
 check_exists "${FIXR_GRAPH_PYTHON}" "Python package"
 
+
+if [ -d "${OUT_DIR}" ] ; then
+    echo "${OUT_DIR} already exists!"
+    exit 1
+fi
+mkdir -p "${OUT_DIR}"
 
 
 OUT_LOG=${OUT_DIR}/out_log.txt
