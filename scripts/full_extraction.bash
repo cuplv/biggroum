@@ -51,6 +51,7 @@ popd
 check_res "${res}" "Extract graphs of ${REPO_LIST}"
 
 echo "Filling graph dbs..."
+echo "python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}"
 python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}
 check_res "$?" "Fill graph db"
 
