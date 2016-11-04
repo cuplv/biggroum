@@ -28,6 +28,14 @@ isomorphisms.
 
 ### Download and build the necessary software
 
+- FixrGraph project
+```
+$> git clone https://github.com/cuplv/FixrGraph
+```
+
+*WARNING* you must add the path to `FixrGraph/python` to the `PYTHONPATH` environment variable.
+
+
 - Graph extractor
 ```
 $> git clone https://github.com/cuplv/FixrGraphExtractor
