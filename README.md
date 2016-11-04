@@ -20,6 +20,10 @@ The graph pipeline consists of the following steps:
 
 4. Analyze the community formed by the isomorphisms
 
+5. Find bugs for an Android application
+
+*WARNING:* this last step is just a mockup of the program that finds bugs in the API usage
+
 
 ## Automatic extraction
 The script `script/full_extraction.bash` automate the full pipeline
@@ -210,4 +214,10 @@ $> cd FixrCommunityDetection
 $> 
 ```
 
+
+### 5. Find bugs 
+
+```
+python ./python/fixrgraph/bugfinding/find_bugs.py -r Appdynamics:ECommerce-Android:47d3ad75ef25da3e3cc7c9b6dc7d9f490e8ebac6 -i /tmp/myout/src_repo -o /tmp/cavallo -j /home/sergio/works/projects/muse/repos/FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar 
+```
 
