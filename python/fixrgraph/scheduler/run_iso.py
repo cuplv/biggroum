@@ -26,7 +26,7 @@ class Job:
         return graph_path
 
     @staticmethod
-    def get_dst_iso_path(out_folder, g1_base, g2_base):
+    def get_dst_iso_path(out_folder, g1_base, g2_base, make_dirs=True):
         if (g1_base < g2_base): gname = g1_base
         else: gname = g2_base
 
@@ -35,7 +35,7 @@ class Job:
         for l in os.path.join(gname_list): path = os.path.join(path,l)
         graph_path = os.path.join(out_folder, path)
 
-        if (not os.path.isdir(graph_path)):
+        if (not os.path.isdir(graph_path) and make_dirs):
             os.makedirs(graph_path)
 
         return graph_path

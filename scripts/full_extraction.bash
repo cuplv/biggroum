@@ -85,7 +85,7 @@ check_res "$?" "Scheduling isomorphisms"
 pushd .
 cd ${OUT_DIR}/out_jobs
 echo "Computing isomorphisms..."
-make -f scheduler_iso_index.make &>> ${OUT_LOG}
+make -j -f scheduler_iso_index.make &>> ${OUT_LOG}
 popd
 
 echo "Processing logs..."
