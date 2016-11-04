@@ -106,7 +106,7 @@ class ProcessLog(object):
             g1id = self.get_graphid(d.graph1)
             g2id = self.get_graphid(d.graph2)
             iso_prefix = "%s_%s" % (d.graph1, d.graph2)
-            isopath = Job.get_dst_iso_path("", d.graph1, d.graph2)
+            isopath = Job.get_dst_iso_path("", d.graph1, d.graph2, False)
             isopath = os.path.join(isopath, iso_prefix + ".iso.bin")
             rec_list.append((g1id, g2id, d.isoname, isopath, d.weight))
 
