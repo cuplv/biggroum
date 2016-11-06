@@ -463,7 +463,7 @@ class RepoProcessor:
         if (log != None):
             log.add_error(repo, msg)
         else:
-            logging.log("%s: %s" % (str(repo), msg))
+            logging.debug("%s: %s" % (str(repo), msg))
 
     @staticmethod
     def getAndroidAppPlugin(log, repo, repo_folder):
