@@ -472,7 +472,7 @@ class RepoProcessor:
         (gradle_build_file, basePath) = RepoProcessor.getGradleInfo(repo, repo_folder)
         if (None == gradle_build_file):
             # Skip if there is no build.gradle
-            write_log(log, repo, "Gradle file found.")
+            RepoProcessor.write_log(log, repo, "Gradle file found.")
             return None
 
         assert (os.path.exists(basePath))
@@ -490,7 +490,7 @@ class RepoProcessor:
         if (len(gradles_for_app) < 1):
             msg = "No builds for app in %s/%s" % (repo[0], repo[1])
             logging.debug(msg)
-            write_log(log, repo, msg)
+            RepoProcessor.write_log(log, repo, msg)
         elif (len(gradles_for_app) > 1):
             gradles_for_app = [l for l in gradles_for_app if not "wear" in l]
             if (len(gradles_for_app) > 1):
@@ -499,7 +499,7 @@ class RepoProcessor:
                 message = "Found more builds for apps for %s/%s" % (repo[0], repo[1])
                 for g in gradles_for_app:
                     message = message + "\n" + g
-                write_log(log, repo, message)
+                RepoProcessor.write_log(log, repo, message)
                 return None
 
         if (len(gradles_for_app) > 0):
