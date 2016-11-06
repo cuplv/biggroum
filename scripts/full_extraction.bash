@@ -100,12 +100,12 @@ check_res "$?" "Generating html pages"
 echo "Running community detection..."
 # Generate the list of isomorphisms
 echo "Extracting isomorphism..."
-python ${FIXR_GRAPH_PYTHON}/db/scripts/filter_isos.py -d ${OUT_DIR}/graphs_db.db -o ${OUT_DIR}/iso_list.txt -w 10
+python ${FIXR_GRAPH_PYTHON}/db/scripts/filter_isos.py -d ${OUT_DIR}/graphs_db.db -o ${OUT_DIR}/iso_list.txt -w 10 &>> ${OUT_LOG}
 check_res "$?" "Extracting isomorphism"
 
 # Run the community detection
 echo "Computing communities..."
 echo "${SPARK_SUBMIT_PATH} --class edu.colorado.plv.fixr.community.Main ${FIXR_COMMUNITY_DETECTION_JAR} -w iso -i ${OUT_DIR}/iso -f ${OUT_DIR}/iso_list.txt -o ${OUT_DIR}/communities"
-${SPARK_SUBMIT_PATH} --class edu.colorado.plv.fixr.community.Main ${FIXR_COMMUNITY_DETECTION_JAR} -w iso -i ${OUT_DIR}/iso -f ${OUT_DIR}/iso_list.txt -o ${OUT_DIR}/communities
+${SPARK_SUBMIT_PATH} --class edu.colorado.plv.fixr.community.Main ${FIXR_COMMUNITY_DETECTION_JAR} -w iso -i ${OUT_DIR}/iso -f ${OUT_DIR}/iso_list.txt -o ${OUT_DIR}/communities &>> ${OUT_LOG}
 check_res "$?" "Community detection"
 
