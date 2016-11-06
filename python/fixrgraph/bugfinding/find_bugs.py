@@ -165,7 +165,7 @@ def main():
     in_dir = opts.indir
 
     if (not opts.outdir): usage("Missing outdir!")
-    if (os.path.exists(opts.outdir)): usage("%s already exists!" % opts.outdir)
+    if (not os.path.exists(opts.outdir)): usage("%s does not exist!" % opts.outdir)
     out_dir = opts.outdir
 
     if (not opts.extractorjar): usage("Missing extractor jar")
@@ -183,10 +183,10 @@ def main():
     else:
         android_home = os.environ['ANDROID_HOME']
 
-    os.mkdir(out_dir)
     graph_dir = os.path.join(out_dir, "graphs")
     prov_dir = os.path.join(out_dir, "provenance")
-    bugs_dir = os.path.join(out_dir, "bugs")
+    suffix = "_".join(repo)
+    bugs_dir = os.path.join(out_dir, suffix)
     os.mkdir(bugs_dir)
 
     # generate the graphs for the input app

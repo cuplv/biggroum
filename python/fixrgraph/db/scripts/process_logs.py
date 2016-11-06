@@ -42,12 +42,6 @@ IsoData = collections.namedtuple("IsoData",
                                  verbose=False,
                                  rename=False)
 
-RUNNING_ISO="Running the isomorphism check on "
-COMPUTED_ISO="Computed isomorphism for "
-EXEC_TIME="Exec time "
-EXEC_TO="Execution timed out for: "
-EXEC_ERROR="Error executing "
-
 
 def find_out_file(bash_script_path):
     """ Find the output file in the log.
@@ -108,10 +102,14 @@ class ProcessLog(object):
             iso_prefix = "%s_%s" % (d.graph1, d.graph2)
             isopath = Job.get_dst_iso_path("", d.graph1, d.graph2, False)
             isopath = os.path.join(isopath, iso_prefix + ".iso.bin")
-            rec_list.append((g1id, g2id, d.isoname, isopath, d.weight))
 
-            log_list.append((d.isoname, d.status, d.runtime, 0,
-                             d.isores))
+            try:
+                weight = float(d.weight)
+            except Exception as e:
+                weight = -1
+
+            rec_list.append((g1id, g2id, d.isoname, isopath, weight))
+            log_list.append((d.isoname, d.status, d.runtime, 0, d.isores))
 
         try:
             print "Adding list of isomorphisms..."
@@ -144,6 +142,22 @@ class ProcessLog(object):
         - result of the iso
         - weight of the iso
         """
+
+        # Strings to match
+        RUNNING_ISO="Running the isomorphism check on "
+        COMPUTED_ISO="Computed isomorphism for "
+        EXEC_TIME_STR="Exec time "
+        EXEC_TO="Execution timed out for: "
+        EXEC_ERROR="Error executing "
+
+
+        # states of the log
+        START = 0
+        RUNNING = 1
+        COMPUTED = 2
+        EXEC_TIME = 3
+        TO = 4
+        DONE = 5
 
         def _get_log_data(line):
             splitted = line.split("=")
@@ -185,9 +199,24 @@ class ProcessLog(object):
                         (res, weight) = (res, l.split(" : ")[1])
             return (res, weight)
 
+        def reset(self_instance, inst_data=None, proper=True):
 
-        logging.info("Processing %s..." % job_output_log)
-        jobout_file = open(job_output_log, 'r')
+            # Insert the isomorphism result as error, if there are
+            # enough information
+            if (inst_data is not None):
+                if (inst_data[0]is not None and
+                    inst_data[1] is not None and
+                    inst_data[6] is not None):
+
+                    isoData = IsoData(inst_data[0], inst_data[1],
+                                      "error", "?", "?", "?",
+                                      inst_data[6])
+                    self.iso_list = self._add_data(self.iso_list, isoData)
+
+            state = START
+            inst_data = [None, None, "?", "?", "?", "?", None]
+            if (not proper): logging.warning("resetting")
+            return (state, inst_data, None, None)
 
         # states
         # 0: start
@@ -196,9 +225,34 @@ class ProcessLog(object):
         # 3: exec time
         # 4: exec to
         # 5: exec time
-        state = 0
-
+        state = START
         inst_data = [None, None, "?", "?", "?", "?", None]
+
+        # A well formed log for a single isomorphisms should contain,
+        # in this order, the lines:
+        #
+        # Running the isomorphism check on ...
+        # Computed isomorphism for...
+        # Exec time...
+        #
+        # or
+        #
+        # Running the isomorphism check on ...
+        # Computed isomorphism for...
+        # Execution timed out for...
+        #
+        # or
+        # Running the isomorphism check on ...
+        # Computed isomorphism for...
+        # Error executing
+        #
+        # We process the log file one by one, matching these three
+        # patterns
+        #
+
+        logging.info("Processing %s..." % job_output_log)
+        jobout_file = open(job_output_log, 'r')
+
         # old, bad state iteration
         linenum = -1
         for line in jobout_file.readlines():
@@ -212,52 +266,50 @@ class ProcessLog(object):
             # Here we have a log, check its kind
 
             if (log_data.startswith(RUNNING_ISO)):
+                # See the run iso message once
                 log_data = log_data[len(RUNNING_ISO):]
+
+                # RESET
                 if state != 0:
-                    state = 0
-                    inst_data = [None, None, "?", "?", "?", "?", None]
-                    logging.warning("resetting")
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
+
                 (g1,g2) = get_graphs_names(self.old_graph_dir, log_data)
                 iso_name = get_iso_name(log_data)
                 inst_data[6] = iso_name
                 inst_data[0] = g1
                 inst_data[1] = g2
-                state = 1
+                state = RUNNING
             elif (log_data.startswith(COMPUTED_ISO)):
                 log_data = log_data[len(COMPUTED_ISO):]
 
                 if state != 1:
-                    state = 0
-                    inst_data = [None, None, "?", "?", "?", "?", None]
-                    logging.warning("resetting")
+                    # RESET - some step was missing...
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
                     continue
 
                 (a,b) = get_graphs_names(self.old_graph_dir, log_data)
 
                 if (g1,g2) != (a,b):
-                    state = 0
-                    inst_data = [None, None, "?", "?", "?", "?", None]
-                    logging.warning("resetting")
+                    # RESET - some step was missing...
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
                     continue
 
                 inst_data[2] = "ok"
-                state = 2
-            elif (log_data.startswith(EXEC_TIME)):
-                log_data = log_data[len(EXEC_TIME):]
+                state = COMPUTED
+            elif (log_data.startswith(EXEC_TIME_STR)):
+                log_data = log_data[len(EXEC_TIME_STR):]
 
-                if inst_data[6] is None:
-                    state = 0
-                    inst_data = [None, None, "?", "?", "?", "?", None]
-                    logging.warning("resetting")
+                if inst_data[6] is None or inst_data[0] is None or inst_data[1] is None:
+                    # did not really
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
                     continue
 
                 stdout = inst_data[6] + ".stdout"
                 stderr = inst_data[6] + ".stderr"
-                if state == 2:
+                if state == COMPUTED:
                     if not (stdout is not None and stderr is not None):
-                        state = 0
-                        inst_data = [None, None, "?", "?", "?", "?", None]
-                        logging.warning("resetting")
+                        # RESET - some step was missing...
+                        (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
                         continue
 
                     stdout = os.path.join(os.path.dirname(job_output_log),
@@ -267,12 +319,16 @@ class ProcessLog(object):
 
                     if (not os.path.isfile(stderr)):
                         logging.error("Cannot read error log %s" % (stderr))
+                        (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
+                        continue
                     else:
                         (user_time, sys_time) = get_user_time_file(stderr)
                         inst_data[3] = user_time
 
                     if (not os.path.isfile(stdout)):
                         logging.error("Cannot read error log %s" % (stdout))
+                        (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
+                        continue
                     else:
                         (res, weight) = get_res(stdout)
                         inst_data[4] = res
@@ -284,39 +340,41 @@ class ProcessLog(object):
                                       inst_data[6])
                     self.iso_list = self._add_data(self.iso_list, isoData)
                     (stdout, stderr) = (None, None)
-                    state = 0
-                elif state == 3:
-                    state == 4
+
+                    (state, inst_data, stdout, stderr) = reset(self, None)
+
+                elif state == EXEC_TIME:
+                    state == DONE
+                else:
+                    # RESET - some step was missing...
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
+                    continue
 
             elif (log_data.startswith(EXEC_TO)):
                 log_data = log_data[len(EXEC_TO):]
                 if state != 1:
-                    state = 0
-                    inst_data = [None, None, "?", "?", "?", "?", None]
-                    logging.warning("resetting")
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
                     continue
 
-#                assert (g1,g2) == get_graphs_names(self.old_graph_dir, log_data)
                 inst_data[2] = "to"
                 inst_data[3] = "?"
-                state = 3
+                inst_data[5] = "?"
+                state = EXEC_TIME
             elif (log_data.startswith(EXEC_ERROR)):
                 # Error goes back to start
                 # Store instance
                 log_data = log_data[len(EXEC_ERROR):]
-                if (state != 3): inst_data[2] = "error"
-                isoData = IsoData(inst_data[0], inst_data[1],
-                                  inst_data[2], inst_data[3],
-                                  inst_data[4], inst_data[5],
-                                  inst_data[6])
-                self.iso_list = self._add_data(self.iso_list, isoData)
-                (stdout, stderr) = (None, None)
-                state = 0
-            # else:
-                # do noting
 
-
-
+                if (state > 1):
+                    inst_data[2] = "error"
+                    isoData = IsoData(inst_data[0], inst_data[1],
+                                      inst_data[2], inst_data[3],
+                                      inst_data[4], "?",
+                                      inst_data[6])
+                    self.iso_list = self._add_data(self.iso_list, isoData)
+                    (state, inst_data, stdout, stderr) = reset(self, None)
+                else:
+                    (state, inst_data, stdout, stderr) = reset(self, inst_data, False)
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
