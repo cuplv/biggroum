@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 import sys
-import proto_acdfg_pb2
+#import proto_acdfg_pb2
+import protobuf.proto_acdfg_pb2
 
 def examineRepoTag(rTag):
     print('Repo Information:')

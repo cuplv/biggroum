@@ -10,13 +10,15 @@ createAnnotatedHTMLPage takes as inputs
 import sys
 import acdfgClass
 import jimpleClass
-import proto_iso
+#import proto_iso
+from protobuf.proto_iso_pb2 import Iso as ProtoIso
 
 def get_iso_class(iso_pbuf_file):
     try:
         f = open(iso_pbuf_file, 'rb')
-        pr_iso = proto_iso.Iso()  # create a new acdfg
-        pr_iso.parse_from_bytes(f.read())
+        pr_iso = ProtoIso()  # create a new acdfg
+        pr_iso.ParseFromString(f.read())
+        #pr_iso.parse_from_bytes(f.read())
         f.close()
         return pr_iso
     except IOError:
@@ -191,27 +193,27 @@ isoReq.onload = function() {
         outfile = open(outfile_name,'w')
         str_list_a = self.jimple_a.to_html_str_list('a', self.jimple_a_to_b)
         str_list_b = self.jimple_b.to_html_str_list('b', self.jimple_b_to_a)
-        print('<html> <body>', file = outfile)
+        outfile.write('<html> <body>\n')
         templStr = self.construct_template('')
-        print(templStr, file=outfile)
-        print('<table><tbody>', file = outfile)
-        print('<col width=\"50%\"> <col width=\"50%\">', file = outfile)
-        print('<tr>', file = outfile)
-        print('<td> <span class=\"jimpleCode\">', file = outfile)
-        print('<table><tbody>', file = outfile)
+        outfile.write(templStr)
+        outfile.write('\n<table><tbody>\n')
+        outfile.write('<col width=\"50%\"> <col width=\"50%\">\n')
+        outfile.write('<tr>\n')
+        outfile.write('<td> <span class=\"jimpleCode\">\n')
+        outfile.write('<table><tbody>\n')
         for hline in str_list_a:
-            print(hline, file = outfile)
-        print('</table>' , file = outfile)
-        print('</span> </td>' , file = outfile)
-        print('<td> <span class=\"jimpleCode\">' , file = outfile)
-        print('<table><tbody>', file = outfile)
+            outfile.write(hline)
+        outfile.write('</table>\n')
+        outfile.write('</span> </td>\n')
+        outfile.write('<td> <span class=\"jimpleCode\">\n')
+        outfile.write('<table><tbody>\n')
         for hline in str_list_b:
-            print(hline, file = outfile)
-        print('</table>', file = outfile)
-        print('</span> </td>', file = outfile)
-        print('</table>', file = outfile)
-        print('</body>', file = outfile)
-        print('</html>', file = outfile)
+            outfile.write(hline)
+        outfile.write('</table>\n')
+        outfile.write('</span> </td>\n')
+        outfile.write('</table>\n')
+        outfile.write('</body>\n')
+        outfile.write('</html>\n')
         outfile.close()
 
     

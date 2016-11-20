@@ -3,8 +3,12 @@ Acdfg class will have the class definitions for loading
 and creating acdfg objects
 '''
 from __future__ import print_function
-from enum import Enum
-import proto_acdfg
+try:
+    from enum import Enum
+except ImportError:
+    from enum34 import Enum
+#import proto_acdfg
+from protobuf.proto_acdfg_pb2 import Acdfg as ProtoAcdfg
 
 
 class NodeType(Enum):
@@ -76,7 +80,10 @@ class MethodNode(Node):
             assert isinstance(a, DataNode)
         if receiver:
             assert isinstance(receiver, DataNode)
-        assert isinstance(name, str)
+
+        print(type(name))
+
+        assert isinstance(name, str) or isinstance(name, unicode)
         print('Method Node:', key, name)
     def get_name(self):
         return self.name
@@ -185,8 +192,9 @@ def get_node_obj_from_ids(acdfg_obj, proto_edge):
 def read_acdfg(filename):
     try:
         f = open(filename, 'rb')
-        acdfg = proto_acdfg.Acdfg()  # create a new acdfg
-        acdfg.parse_from_bytes(f.read())
+        acdfg = ProtoAcdfg()  # create a new acdfg
+        # acdfg.parse_from_bytes(f.read())
+        acdfg.ParseFromString(f.read())
         acdfg_obj = Acdfg(acdfg)
         for dNode in acdfg.data_node:
             data_node_obj = DataNode(int ( getattr(dNode,'id') ) , dNode.name, getattr(dNode,'type'))
