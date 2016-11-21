@@ -56,17 +56,34 @@ class Node:
 
 
 class DataNode(Node):
-    def __init__(self, key, name, data_type):
+    DATA_VAR = 0
+    DATA_CONST = 1
+
+    def __init__(self, key, name, data_type, data_type_type):
         Node.__init__(self, NodeType.data_node, key)
         self.name = name
         self.data_type = data_type
-        logging.debug('DataNode: (%s,%s,%s)' % (str(key), str(name), str(data_type)))
+
+        if ("DATA_VAR" == ProtoAcdfg.DataNode.DataType.Name(data_type_type)):
+            self.data_type_type = DataNode.DATA_VAR
+        elif ("DATA_CONST" == ProtoAcdfg.DataNode.DataType.Name(data_type_type)):
+            self.data_type_type = DataNode.DATA_CONST
+        else:
+            logging.error("Cannot determine the type %s for data node" % (str(data_type_type)))
+            raise Exception("Cannot determine the type %s for data node" % (str(data_type_type)))
+
+        logging.debug('DataNode: (%s,%s,%s,%s)' % (str(key), str(name),
+                                                   str(data_type),
+                                                   str(data_type_type)))
 
     def get_name(self):
         return self.name
 
     def get_data_type(self):
         return self.data_type
+
+    def get_data_type_type(self):
+        return self.data_type_type
 
 
 class MethodNode(Node):
@@ -84,6 +101,7 @@ class MethodNode(Node):
 
         assert isinstance(name, str) or isinstance(name, unicode)
         logging.debug('Method Node: %s,%s' % (str(key), str(name)))
+
     def get_name(self):
         return self.name
 
@@ -196,7 +214,10 @@ def read_acdfg(filename):
         acdfg.ParseFromString(f.read())
         acdfg_obj = Acdfg(acdfg)
         for dNode in acdfg.data_node:
-            data_node_obj = DataNode(int ( getattr(dNode,'id') ) , dNode.name, getattr(dNode,'type'))
+            data_node_obj = DataNode(int ( getattr(dNode,'id') ),
+                                     dNode.name,
+                                     getattr(dNode,'type'),
+                                     dNode.data_type)
             acdfg_obj.add_node(data_node_obj)
         for mNode in acdfg.method_node:
             arg_ids = mNode.argument

@@ -7,8 +7,7 @@ import string
 import re
 import logging
 import acdfgClass
-
-
+from acdfgClass import DataNode
 
 html_escape_table = {
     "&": "&amp;",
@@ -135,6 +134,7 @@ class JimpleObject:
                     rcv = rcv[0:-1] # remove the . at the end
                 call_obj = Invoke(count, invoke_type, class_name, fun_name, rcv, res, args_list)
                 fun_name = class_name + '.'+ fun_name
+
                 if fun_name in self.invoke_idx:
                     lst = self.invoke_idx[fun_name]
                 else:
@@ -190,13 +190,17 @@ class JimpleObject:
         # 1. Match up data nodes to possible declaration
         data_nodes = acdfg.get_data_nodes()
         for (key, data_node_obj) in data_nodes.items():
-            d_name, d_type = data_node_obj.get_name() ,  data_node_obj.get_data_type()
+            d_name, d_type = data_node_obj.get_name(), data_node_obj.get_data_type()
+            d_type_type = data_node_obj.get_data_type_type()
+
+
             # Search for matching node and type
             if d_name in self.decl_idx:
                 (count, decl_type) = self.decl_idx[d_name]
                 #print('Data Node: ' , key , '('+d_name+')',' declaration in line : ', count, ' of type: ' , decl_type)
                 key_linenum_maps[key] = count
-            else:
+            elif (d_type_type != DataNode.DATA_CONST):
+                # ignore constants
                 logging.warning('Data Node: %s (%s) not found ' \
                                 'in jimple.' % (str(key), str(d_name)))
 
@@ -212,7 +216,7 @@ class JimpleObject:
                         key_linenum_maps[key] = inv.get_line_num()
             if key not in key_linenum_maps:
                 logging.debug('Searcing for method: %s' % (meth_node_name))
-                logging.warning('Method node: %s (%s) not found in jimple.' % (str(key), str(meth_node_name)))
+                logging.debug('Method node: %s (%s) not found in jimple.' % (str(key), str(meth_node_name)))
         return key_linenum_maps
 
 

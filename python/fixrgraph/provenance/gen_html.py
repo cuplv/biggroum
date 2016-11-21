@@ -260,9 +260,6 @@ class HtmlCreator(object):
                          sliced_jimple_2):
         # TODO implement
         # Output: html code that shows the jimple association
-
-        print g1path
-
         apc = AnnotatedPageContent(g1path, g2path, sliced_jimple_1,
                                    sliced_jimple_2, isopath)
         apc.matchup_jimples()
@@ -316,17 +313,18 @@ class HtmlCreator(object):
         abs_g1path = os.path.join(self.graph_dir, g1path)
         abs_g2path = os.path.join(self.graph_dir, g2path)
 
-        print "iso " + abs_isopath
-        print "g1 " + abs_g1path
-        print "g2 " + abs_g2path
-        print "jimple 1 " +  sliced_jimple_1
-        print "jimple 1 " + sliced_jimple_2
+        # print "iso " + abs_isopath
+        # print "g1 " + abs_g1path
+        # print "g2 " + abs_g2path
+        # print "jimple 1 " +  sliced_jimple_1
+        # print "jimple 1 " + sliced_jimple_2
 
         (annotatedjimple_body,
          annotatedjimple_head) = self._annotate_jimple(abs_isopath,
                                                        abs_g1path, abs_g2path,
                                                        sliced_jimple_1,
                                                        sliced_jimple_2)
+
         html_page = _substitute(iso_page,
                                 {"TITLE" : "",
                                  "ISONAME" : isoname,
@@ -376,6 +374,8 @@ def main():
     i = 0
     html = HtmlCreator(opts.out_dir, opts.graph_dir,
                        opts.prov_dir, opts.iso_dir)
+
+    logging.info("Processing isos...")
     for iso in qres:
         i = i + 1
         html.create_page(iso)
