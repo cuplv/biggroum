@@ -5,6 +5,7 @@ from __future__ import print_function
 import sys
 import string
 import re
+import logging
 import acdfgClass
 
 
@@ -50,24 +51,25 @@ class Invoke:
         assert isinstance(mnode, acdfgClass.MethodNode), ' Should be called with a method node'
         fname = self.class_name+'.'+self.fun_name
         if fname != mnode.get_name():
-            print('Debug: match failed due to name mismatch: ', fname, mnode.get_name())
+            logging.error('Debug: match failed due to name mismatch: ' \
+                          '%s, %s' % (str(fname), str(mnode.get_name())))
             return False
-        
-        print('Comparing arg list')
+
         # Now compare arguments list
         mnode_args = mnode.get_args()
         if len(mnode_args) != len(self.args_list):
-            print('lengths differ', len(mnode_args), len(self.args_list))
+            logging.error('lengths differ %d, %d' % (len(mnode_args),
+                                                     len(self.args_list)))
             return False
         for anode in mnode_args:
             anode_name = anode.get_name()
             if anode_name != 'this' and anode_name not in self.args_list:
-                print('argument: ', '('+anode_name+')', ' not found')
+                logging.error('argument: (%s) not found' % str(anode_name))
                 return False
-            
+
         return True
-    
-            
+
+
 
 class JimpleObject:
     """ Load a Jimple program from a file and process it."""
@@ -78,7 +80,6 @@ class JimpleObject:
         self.invoke_idx = {} # each invoke is annotated and indexed by the method name and receiver
         self.phase = ParsePhaseEnum.decls
         self.file_name = ''
-        self.debug = True
         self.invoke_re = re.compile('\s*([$ \w]*\s*=)?\s*(\w+)invoke\s*([$ \w]*\.)?<(.*):\s+(.*)\s+([ < > \w]+)\(.*\)>\((.*)\)\s*;')
         self.line_map={}
 
@@ -92,7 +93,7 @@ class JimpleObject:
                 self.phase = ParsePhaseEnum.stmts
         if '=' in line:
             self.phase = ParsePhaseEnum.stmts
-        
+
         if self.phase == ParsePhaseEnum.decls:
             if len(line) > 0:
                 if line[-1] == ';':
@@ -107,13 +108,16 @@ class JimpleObject:
                         if arg == '':
                             continue
                         if arg in self.decl_idx:
-                            print('Warning: @line', count, ' variable ', arg, ' already declared.')
+                            logging.warning('Warning: @line %d variable %s ' \
+                                            'already declared.' % (count, str(arg)))
                             lnum, typ = self.decl_idx[arg]
-                            print('\t line number:', lnum, 'type: ', typ)
+
+                            logging.warning('\t line number: %s type: %s' % (str(lnum), str(typ)))
                         else:
                             self.decl_idx[arg] = (count, decl_type)
-                            if self.debug:
-                                print('D: @line', count, 'variable', '('+arg+')', 'declared with type:', decl_type)
+                            logging.debug('D: @line %s variable (%s) declared ' \
+                                          'with type: %s' % (str(count), str(arg), str(decl_type)))
+
         elif self.phase == ParsePhaseEnum.stmts:
             # Check for an invoke statement
             m = re.match(self.invoke_re, line)
@@ -136,8 +140,10 @@ class JimpleObject:
                 else:
                     lst = []
                     self.invoke_idx[fun_name] = lst
-                if self.debug:
-                    print('D: @line', count, 'call to function:', class_name+'.'+fun_name, ' receiver: ', rcv, ' result: ', res, ' arguments:' , args_list)
+                logging.debug('D: @line %s call to function: %s.%s receiver: %s' \
+                              ' result: %s arguments: %s' % (str(count), str(class_name),
+                                                             str(fun_name), str(rcv),
+                                                             str(res), str(args_list)))
                 lst.append(call_obj)
 
 
@@ -158,7 +164,8 @@ class JimpleObject:
             f.close()
 
         except IOError:
-            print('Fatal: error opening file', file_name)
+            logging.error('Fatal: error opening file %s' % file_name)
+            raise
 
     def to_html_str_list(self, stem, dict):
         line_template = string.Template('<tr><td> $line_num <td> <span class=\"$span_id\"> $line_string </span> </td></tr>')
@@ -168,7 +175,7 @@ class JimpleObject:
                 bgcolor='#ffbbbb'
             else:
                 bgcolor='#ffffff'
-                
+
             values = {'span_id':'line__'+str(lnum)+'__'+stem+'__',
                       'line_num': str(lnum),
                       'line_string': html_escape(line),
@@ -176,7 +183,7 @@ class JimpleObject:
             l_html = line_template.safe_substitute(values)
             str_list.append(l_html)
         return str_list
-            
+
     def matchup_acdfg_nodes(self, acdfg):
         # Return a dictionary that maps key of data node in ACDFG to line number
         key_linenum_maps = {}
@@ -190,23 +197,23 @@ class JimpleObject:
                 #print('Data Node: ' , key , '('+d_name+')',' declaration in line : ', count, ' of type: ' , decl_type)
                 key_linenum_maps[key] = count
             else:
-                print('Data Node: ', key, '('+d_name+')', ' not found in jimple. ')
-        
+                logging.warning('Data Node: %s (%s) not found ' \
+                                'in jimple.' % (str(key), str(d_name)))
+
         # 2. Match up method nodes
         method_nodes = acdfg.get_method_nodes()
         for (key, meth_node_obj) in method_nodes.items():
             meth_node_name = meth_node_obj.get_name()
-            print('Searcing for method:', meth_node_name)
+            logging.debug('Searcing for method: %s' % (meth_node_name))
             if meth_node_name in self.invoke_idx:
                 lst = self.invoke_idx[meth_node_name]
                 for inv in lst:
                     if inv.matchesMethodNode(meth_node_obj):
                         key_linenum_maps[key] = inv.get_line_num()
             if key not in key_linenum_maps:
-                print('Method node:', key, '('+meth_node_name+')', 'Not found in jimple.')
+                logging.debug('Searcing for method: %s' % (meth_node_name))
+                logging.warning('Method node: %s (%s) not found in jimple.' % (str(key), str(meth_node_name)))
         return key_linenum_maps
-
-    
 
 
 def read_jimple_file(file_name):
@@ -221,7 +228,7 @@ if __name__ == '__main__':
         sys.exit(1)
     else:
         j = read_jimple_file(sys.argv[1])
-        
+
     if len(sys.argv) >= 3:
         print('ACDFG file: ', sys.argv[2])
         acdfg = acdfgClass.read_acdfg(sys.argv[2])

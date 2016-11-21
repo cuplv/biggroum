@@ -22,7 +22,7 @@ def examineSourceInfo(sInfo):
     for val in fields:
         if (sInfo.HasField(val)):
             print(val,'=',getattr(sInfo,val))
-    
+
 def examineDataNode(dNode):
     print('Data Node # ',dNode.id, dNode.name,':', dNode.type)
 
@@ -40,14 +40,14 @@ def examineMethodNode(dNode):
 
 def examineEdge(typ, edg):
     print(typ,' edge #',edg.id,':',getattr(edg,'from'),'->',edg.to)
-        
+
 def examine(acdfg):
     if (acdfg.HasField('repo_tag')):
         rTag=acdfg.repo_tag
         examineRepoTag(rTag)
     if (acdfg.HasField('source_info')):
         examineSourceInfo(acdfg.source_info)
-        
+
     for dNode in acdfg.data_node:
         examineDataNode(dNode)
     for mNode in acdfg.method_node:
@@ -55,7 +55,7 @@ def examine(acdfg):
 
     for dEdge in acdfg.def_edge:
         examineEdge('DefEdge ',dEdge)
-        
+
     for uEdge in acdfg.use_edge:
         examineEdge('UseEdge ',uEdge)
 
@@ -64,8 +64,8 @@ def examine(acdfg):
 
     for tEdge in acdfg.trans_edge:
         examineEdge('TransitiveEdge',tEdge)
-        
-        
+
+
 def main(argv):
     if (len(argv) < 2):
         print('Usage: examineACDFG.py <name of what to examine> ')

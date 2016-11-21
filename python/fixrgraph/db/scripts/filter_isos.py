@@ -36,7 +36,7 @@ def main():
     count = 0
     outfile = open(opts.outfile, "w")
     for iso in qres:
-        (isoname, isopath, weight, g1name, g2name) = iso
+        (_, isopath, _, _, _, _, _) = iso
         outfile.write("%s\n" % (isopath))
         count = count + 1
     outfile.close()

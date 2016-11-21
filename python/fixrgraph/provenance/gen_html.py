@@ -11,6 +11,7 @@ import collections
 import shutil
 
 from fixrgraph.db.isodb import IsoDb
+from fixrgraph.annotator.createAnnotatedHTMLPage import AnnotatedPageContent
 
 import collections
 
@@ -53,6 +54,8 @@ isoContainer.innerHTML = iso;
 };
 </script>
 
+${ANNOTATEDJIMPLE_HEAD}
+
 <title>${TITLE}</title>
 <body>
 
@@ -61,9 +64,8 @@ isoContainer.innerHTML = iso;
 <h2>Graph 2: <a href="${G2PAGE}">${G2}</a></h2>
 <h2>Weight: ${WEIGHT}</h2>
 <h2>Iso Bin path: ${ISOPATH}</h2>
-
 <h2 id="iso"></h2>
-
+<h2>${ANNOTATEDJIMPLE_BODY}</h2>
 </body>
 </html>
 """
@@ -258,7 +260,13 @@ class HtmlCreator(object):
                          sliced_jimple_2):
         # TODO implement
         # Output: html code that shows the jimple association
-        return ""
+
+        print g1path
+
+        apc = AnnotatedPageContent(g1path, g2path, sliced_jimple_1,
+                                   sliced_jimple_2, isopath)
+        apc.matchup_jimples()
+        return apc.print_jimple_to_string()
 
 
     def create_page(self, iso):
@@ -279,9 +287,6 @@ class HtmlCreator(object):
         # Insert the page in the index
         keys = g1name.split(".")
         html_full_name = os.path.join("/".join(keys), html_name)
-
-        # DEBUG
-        # html_full_name = os.path.join(self.out_dir, html_full_name)
         html_full_name = os.path.join(self.iso_dir, html_full_name)
         keys.append(html_name)
 
@@ -297,17 +302,31 @@ class HtmlCreator(object):
         if g2path.startswith("/"): g2path = "." + g2path
 
         sliced_jimple_1 = os.path.join(self.prov_dir,
-                                       g1path.replace(".iso.bin", ".sliced.jimple"))
+                                       g1path.replace(".acdfg.bin", ".sliced.jimple"))
         sliced_jimple_2 = os.path.join(self.prov_dir,
-                                       g2path.replace(".iso.bin", ".sliced.jimple"))
+                                       g2path.replace(".acdfg.bin", ".sliced.jimple"))
 
         g1page = os.path.join(self.prov_dir,
                               g1path.replace(".acdfg.bin", ".html"))
         g2page = os.path.join(self.prov_dir,
                               g2path.replace(".acdfg.bin", ".html"))
 
-        annotatedjimple = self._annotate_jimple(isopath, g1path, g2path,
-                                                sliced_jimple_1, sliced_jimple_2)
+
+        abs_isopath = os.path.join(self.iso_dir, isopath)
+        abs_g1path = os.path.join(self.graph_dir, g1path)
+        abs_g2path = os.path.join(self.graph_dir, g2path)
+
+        print "iso " + abs_isopath
+        print "g1 " + abs_g1path
+        print "g2 " + abs_g2path
+        print "jimple 1 " +  sliced_jimple_1
+        print "jimple 1 " + sliced_jimple_2
+
+        (annotatedjimple_body,
+         annotatedjimple_head) = self._annotate_jimple(abs_isopath,
+                                                       abs_g1path, abs_g2path,
+                                                       sliced_jimple_1,
+                                                       sliced_jimple_2)
         html_page = _substitute(iso_page,
                                 {"TITLE" : "",
                                  "ISONAME" : isoname,
@@ -318,7 +337,8 @@ class HtmlCreator(object):
                                  "WEIGHT" : str(weight),
                                  "ISOPATH" : isopath,
                                  "DOTFILE" : isodot,
-                                 "ANNOTATEDJIMPLE" : annotatedjimple})
+                                 "ANNOTATEDJIMPLE_HEAD" : annotatedjimple_head,
+                                 "ANNOTATEDJIMPLE_BODY" : annotatedjimple_body})
 
         self.cache.append((html_full_name, html_page))
         if (len(self.cache) > self.limit):
@@ -329,7 +349,7 @@ class HtmlCreator(object):
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     p = optparse.OptionParser()
     p.add_option('-d', '--db', help="Database with data")
@@ -351,7 +371,7 @@ def main():
 
     # Load the isos from the DB
     db = IsoDb(opts.db)
-    qres = db.get_isos()
+    qres = db.get_isos_by_weight(0)
 
     i = 0
     html = HtmlCreator(opts.out_dir, opts.graph_dir,

@@ -10,8 +10,6 @@ import os
 import logging
 
 class IsoDb(object):
-    logging.basicConfig(level=logging.DEBUG)
-
     def __init__(self, db_path):
         self.dburi = 'sqlite:///' + os.path.abspath(db_path)
         self.engine = sql.create_engine(self.dburi)
@@ -143,8 +141,9 @@ class IsoDb(object):
 
     def get_isos_by_weight(self, weight):
         sql = "select isos.isoname, isos.relfilepath, " \
-              "isos.weight, g1.methodname, g2.methodname " \
-              "from isos " \
+              "g1.methodname, g2.methodname, " \
+              "g1.relfilepath, g2.relfilepath, " \
+              "weight from isos " \
               "join graphs g1 on g1.id = isos.idg1 " \
               "join graphs g2 on g2.id = isos.idg1 " \
               "where isos.weight >= %f" % weight

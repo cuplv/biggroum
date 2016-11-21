@@ -9,7 +9,7 @@ except ImportError:
     from enum34 import Enum
 #import proto_acdfg
 from protobuf.proto_acdfg_pb2 import Acdfg as ProtoAcdfg
-
+import logging
 
 class NodeType(Enum):
     regular_node = 1
@@ -23,7 +23,7 @@ class EdgeType(Enum):
     use_edge = 3
     transitive_edge = 4
     exceptional_edge = 5
-    
+
 
 
 class Node:
@@ -60,8 +60,7 @@ class DataNode(Node):
         Node.__init__(self, NodeType.data_node, key)
         self.name = name
         self.data_type = data_type
-        print('DataNode:',key, name, data_type)
-        
+        logging.debug('DataNode: (%s,%s,%s)' % (str(key), str(name), str(data_type)))
 
     def get_name(self):
         return self.name
@@ -81,10 +80,10 @@ class MethodNode(Node):
         if receiver:
             assert isinstance(receiver, DataNode)
 
-        print(type(name))
+        logging.debug(type(name))
 
         assert isinstance(name, str) or isinstance(name, unicode)
-        print('Method Node:', key, name)
+        logging.debug('Method Node: %s,%s' % (str(key), str(name)))
     def get_name(self):
         return self.name
 
@@ -121,7 +120,7 @@ class UseEdge(Edge):
     def __init__(self, key, src, tgt):
         Edge.__init__(self, EdgeType.use_edge, key, src, tgt)
         assert isinstance(src, DataNode)
-        
+
 
 
 class ControlEdge(Edge):
@@ -165,7 +164,7 @@ class Acdfg:
 
     def get_method_nodes(self):
         return self.method_nodes
-    
+
     def add_edge(self, edge):
         assert isinstance(edge, Edge)
         key = edge.get_id()
@@ -234,4 +233,4 @@ def read_acdfg(filename):
         assert False
 
 
-        
+

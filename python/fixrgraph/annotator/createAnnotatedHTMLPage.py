@@ -10,6 +10,9 @@ createAnnotatedHTMLPage takes as inputs
 import sys
 import acdfgClass
 import jimpleClass
+from cStringIO import StringIO
+import logging
+
 #import proto_iso
 from protobuf.proto_iso_pb2 import Iso as ProtoIso
 
@@ -22,9 +25,9 @@ def get_iso_class(iso_pbuf_file):
         f.close()
         return pr_iso
     except IOError:
-        print('Could not read', iso_pbuf_file)
+        logging.error('Could not read %s' % str(iso_pbuf_file))
         raise
-    
+
 
 
 class AnnotatedPageContent:
@@ -36,7 +39,10 @@ class AnnotatedPageContent:
         self.jimple_a = jimpleClass.read_jimple_file(jimple_file_a)
         self.jimple_b = jimpleClass.read_jimple_file(jimple_file_b)
         self.pr_iso = get_iso_class(iso_file)
-        self.debug = True
+        # Controlled through the logging library
+        # To enable debug logging:
+        # logging.basicConfig(level=logging.DEBUG)
+        # self.debug = False
 
     def matchup_jimples(self):
         key_linenum_map_a = self.jimple_a.matchup_acdfg_nodes(self.acdfg_a)
@@ -50,13 +56,12 @@ class AnnotatedPageContent:
             key1 = int(n_pair.id_1)
             key2 = int(n_pair.id_2)
             if (key1 in key_linenum_map_a) and (key2 in key_linenum_map_b):
-                print('Node keys:', key1 , '<--->', key2)
+                logging.debug('Node keys: %s <---> %s' % (str(key1), str(key2)))
                 line1 = key_linenum_map_a[key1]
                 line2 = key_linenum_map_b[key2]
                 self.jimple_a_to_b[line1] = line2
                 self.jimple_b_to_a[line2] = line1
-                if self.debug:
-                    print('Line numbers: ', line1, ' <---> ', line2)
+                logging.debug('Line numbers: %s <---> %s' % (str(line1), str(line2)))
 
     def get_javascript_dictionary(self):
         str = ''
@@ -64,7 +69,7 @@ class AnnotatedPageContent:
             str= str + '\"line__%d__a__\":\"line__%d__b__\",'%(line1, line2)
             str= str + '\"line__%d__b__\":\"line__%d__a__\",'%(line2, line1)
         return str
-    
+
     def construct_template(self, dot_file_str):
         jscript_str = self.get_javascript_dictionary()
         templStr= """ <html> <body>
@@ -113,7 +118,7 @@ class AnnotatedPageContent:
 </style>
 <!-- END added stylesheet -->
 <script>
-var highlight_mapping = { 
+var highlight_mapping = {
 %s
 };
 
@@ -186,38 +191,76 @@ isoReq.onload = function() {
 };
 </script>
 <!-- END code to load isomorphism -->
-"""%(jscript_str,dot_file_str)
+""" % (jscript_str,dot_file_str)
         return templStr
-    
-    def print_jimple_as_html(self, outfile_name):
-        outfile = open(outfile_name,'w')
+
+    def print_jimple_to_string(self):
+        """ Returns the head and body part of the generated html """
+        head_str = self.construct_template('')
+
         str_list_a = self.jimple_a.to_html_str_list('a', self.jimple_a_to_b)
         str_list_b = self.jimple_b.to_html_str_list('b', self.jimple_b_to_a)
-        outfile.write('<html> <body>\n')
-        templStr = self.construct_template('')
-        outfile.write(templStr)
-        outfile.write('\n<table><tbody>\n')
-        outfile.write('<col width=\"50%\"> <col width=\"50%\">\n')
-        outfile.write('<tr>\n')
-        outfile.write('<td> <span class=\"jimpleCode\">\n')
-        outfile.write('<table><tbody>\n')
+
+        body_stream = StringIO()
+
+        body_stream.write('\n<table><tbody>\n')
+        body_stream.write('<col width=\"50%\"> <col width=\"50%\">\n')
+        body_stream.write('<tr>\n')
+        body_stream.write('<td> <span class=\"jimpleCode\">\n')
+        body_stream.write('<table><tbody>\n')
         for hline in str_list_a:
-            outfile.write(hline)
-        outfile.write('</table>\n')
-        outfile.write('</span> </td>\n')
-        outfile.write('<td> <span class=\"jimpleCode\">\n')
-        outfile.write('<table><tbody>\n')
+            body_stream.write(hline)
+        body_stream.write('</table>\n')
+        body_stream.write('</span> </td>\n')
+        body_stream.write('<td> <span class=\"jimpleCode\">\n')
+        body_stream.write('<table><tbody>\n')
         for hline in str_list_b:
-            outfile.write(hline)
-        outfile.write('</table>\n')
-        outfile.write('</span> </td>\n')
-        outfile.write('</table>\n')
-        outfile.write('</body>\n')
-        outfile.write('</html>\n')
+            body_stream.write(hline)
+        body_stream.write('</table>\n')
+        body_stream.write('</span> </td>\n')
+        body_stream.write('</table>\n')
+        return (head_str, body_stream.getvalue())
+
+    def print_jimple_as_html(self, outfile_name):
+        (head, body) = self.print_jimple_to_string()
+
+        outfile = open(outfile_name,'w')
+        outfile.write('<html> <body>\n')
+        outfile.write(head)
+        outfile.write(body)
+
+        outfile.flush()
         outfile.close()
 
-    
-        
+
+        # str_list_a = self.jimple_a.to_html_str_list('a', self.jimple_a_to_b)
+        # str_list_b = self.jimple_b.to_html_str_list('b', self.jimple_b_to_a)
+        # outfile.write('<html> <body>\n')
+        # templStr = self.construct_template('')
+        # outfile.write(templStr)
+        # outfile.write('\n<table><tbody>\n')
+        # outfile.write('<col width=\"50%\"> <col width=\"50%\">\n')
+        # outfile.write('<tr>\n')
+        # outfile.write('<td> <span class=\"jimpleCode\">\n')
+        # outfile.write('<table><tbody>\n')
+        # for hline in str_list_a:
+        #     outfile.write(hline)
+        # outfile.write('</table>\n')
+        # outfile.write('</span> </td>\n')
+        # outfile.write('<td> <span class=\"jimpleCode\">\n')
+        # outfile.write('<table><tbody>\n')
+        # for hline in str_list_b:
+        #     outfile.write(hline)
+        # outfile.write('</table>\n')
+        # outfile.write('</span> </td>\n')
+        # outfile.write('</table>\n')
+        # outfile.write('</body>\n')
+        # outfile.write('</html>\n')
+        # outfile.close()
+
+
+
+
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
@@ -229,16 +272,17 @@ if __name__ == '__main__':
         args_list=[]
         for line in info_file:
             line = line.strip()
-            print(line)
+            logging.debug(line)
             args_list.append(line)
         info_file.close()
-        
+
     except IOError:
-        print('Could not open:', info_file_name)
+        msg = 'Could not open: %s' % info_file_name
+        logging.error(msg)
         raise
-    
+
     assert (len(args_list) >= 6)
     apc = AnnotatedPageContent(args_list[0], args_list[1], args_list[2], args_list[3], args_list[4])
     apc.matchup_jimples()
     apc.print_jimple_as_html(args_list[5])
-    
+
