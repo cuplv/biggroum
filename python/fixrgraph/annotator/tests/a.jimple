@@ -1,0 +1,76 @@
+    private void updateSelectionMenu__sliced__()
+    {
+        com.mozillaonline.providers.downloads.ui.DownloadList this;
+        int deleteButtonStringId, $i0;
+        android.database.Cursor cursor;
+        java.lang.Throwable l3;
+        java.util.Set $r0;
+        com.mozillaonline.providers.DownloadManager $r1;
+        com.mozillaonline.providers.DownloadManager$Query $r2;
+        long[] $r3;
+        java.util.Iterator $r5;
+        java.lang.Object $r6;
+        java.lang.Long $r7;
+        long $l1;
+        android.widget.Button $r9;
+
+        this := @this: com.mozillaonline.providers.downloads.ui.DownloadList;
+        deleteButtonStringId = 2131034116;
+        $r0 = this.<com.mozillaonline.providers.downloads.ui.DownloadList: java.util.Set mSelectedIds>;
+        $i0 = interfaceinvoke $r0.<java.util.Set: int size()>();
+        if $i0 != 1 goto label7;
+
+        $r1 = this.<com.mozillaonline.providers.downloads.ui.DownloadList: com.mozillaonline.providers.DownloadManager mDownloadManager>;
+        $r3 = newarray (long)[1];
+        $r0 = this.<com.mozillaonline.providers.downloads.ui.DownloadList: java.util.Set mSelectedIds>;
+        $r5 = interfaceinvoke $r0.<java.util.Set: java.util.Iterator iterator()>();
+        $r6 = interfaceinvoke $r5.<java.util.Iterator: java.lang.Object next()>();
+        $r7 = (java.lang.Long) $r6;
+        $l1 = virtualinvoke $r7.<java.lang.Long: long longValue()>();
+        $r3[0] = $l1;
+        $r2 = virtualinvoke $r2.<com.mozillaonline.providers.DownloadManager$Query: com.mozillaonline.providers.DownloadManager$Query setFilterById(long[])>($r3);
+        cursor = virtualinvoke $r1.<com.mozillaonline.providers.DownloadManager: android.database.Cursor query(com.mozillaonline.providers.DownloadManager$Query)>($r2);
+        nop;
+
+     label0:
+        interfaceinvoke cursor.<android.database.Cursor: boolean moveToFirst()>();
+        $i0 = interfaceinvoke cursor.<android.database.Cursor: int getInt(int)>($i0);
+        lookupswitch($i0)
+        {
+            case 1: goto label2;
+            case 2: goto label3;
+            case 4: goto label3;
+            case 16: goto label1;
+            default: goto label4;
+        };
+
+     label1:
+        deleteButtonStringId = 2131034116;
+        goto label4;
+
+     label2:
+        deleteButtonStringId = 2131034159;
+        goto label4;
+
+     label3:
+        deleteButtonStringId = 2131034115;
+
+     label4:
+        interfaceinvoke cursor.<android.database.Cursor: void close()>();
+        goto label7;
+
+     label5:
+        l3 = l3;
+
+     label6:
+        interfaceinvoke cursor.<android.database.Cursor: void close()>();
+        throw l3;
+
+     label7:
+        $r9 = this.<com.mozillaonline.providers.downloads.ui.DownloadList: android.widget.Button mSelectionDeleteButton>;
+        virtualinvoke $r9.<android.widget.Button: void setText(int)>(deleteButtonStringId);
+        nop;
+
+        catch java.lang.Throwable from label0 to label4 with label5;
+        catch java.lang.Throwable from label5 to label6 with label5;
+    }
