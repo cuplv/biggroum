@@ -168,7 +168,7 @@ class JimpleObject:
             raise
 
     def to_html_str_list(self, stem, dict):
-        line_template = string.Template('<tr><td> $line_num <td> <span class=\"$span_id\"> $line_string </span> </td></tr>')
+        line_template = string.Template('<tr><td> $line_num </td> <td> <span class=\"$span_id\"> $line_string </span> </td></tr>')
         str_list = []
         for (lnum, line) in self.line_map.items():
             if lnum in dict:

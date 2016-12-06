@@ -7,6 +7,10 @@ Top-level project for the graph extraction
 - https://github.com/cuplv/FixrGraphIso
 - https://github.com/cuplv/FixrCommunityDetection
 
+# Depedencies
+- python 2.7
+- enum34 python package (`pip install enum34`)
+- protobuf (`pip install protobuf`)
 
 # Steps in the graph pipeline
 
