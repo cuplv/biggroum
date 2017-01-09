@@ -145,7 +145,7 @@ class IsoDb(object):
               "g1.relfilepath, g2.relfilepath, " \
               "weight from isos " \
               "join graphs g1 on g1.id = isos.idg1 " \
-              "join graphs g2 on g2.id = isos.idg1 " \
+              "join graphs g2 on g2.id = isos.idg2 " \
               "where isos.weight >= %f" % weight
         logging.info("Retrieving data...")
         result = self.engine.execute(sql)

@@ -169,29 +169,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
       identi = identiDict[identi]
       identiElem.className = "identi"
       identiElem.innerHTML = identi;
-      element.append(identiElem);
+      element.appendChild(identiElem);
       element.onclick = registerClick;
     }
   }
 });
 </script>
-<!-- BEGIN code to load isomorphism -->
-<script src="https://github.com/mdaines/viz.js/releases/download/v1.3.0/viz.js"></script>
-<script>
-var path_to_dot_file= \'%s\';
-// ^ Sriram: you must specify this! It can be relative or absolute. --RBPO
-var isoReq = new XMLHttpRequest();
-isoReq.open('GET', path_to_dot_file, true);
-isoReq.send();
-isoReq.onload = function() {
-  var isoText = isoReq.responseText;
-  var isoContainer = document.getElementById('iso');
-  var iso = Viz(isoText, options={ format: 'svg', engine: 'dot' });
-  isoContainer.innerHTML = iso;
-};
-</script>
-<!-- END code to load isomorphism -->
-""" % (jscript_str,dot_file_str)
+""" % (jscript_str)
         return templStr
 
     def print_jimple_to_string(self):
@@ -204,21 +188,23 @@ isoReq.onload = function() {
         body_stream = StringIO()
 
         body_stream.write('\n<table><tbody>\n')
-        body_stream.write('<col width=\"50%\"> <col width=\"50%\">\n')
+        body_stream.write('<colgroup>\n')
+        body_stream.write('<col width=\"50%\"/> <col width=\"50%\"/>\n')
+        body_stream.write('</colgroup>\n')
         body_stream.write('<tr>\n')
         body_stream.write('<td> <span class=\"jimpleCode\">\n')
         body_stream.write('<table><tbody>\n')
         for hline in str_list_a:
             body_stream.write(hline)
-        body_stream.write('</table>\n')
+        body_stream.write('</tbody></table>\n')
         body_stream.write('</span> </td>\n')
         body_stream.write('<td> <span class=\"jimpleCode\">\n')
         body_stream.write('<table><tbody>\n')
         for hline in str_list_b:
             body_stream.write(hline)
-        body_stream.write('</table>\n')
-        body_stream.write('</span> </td>\n')
-        body_stream.write('</table>\n')
+        body_stream.write('</tbody></table>\n')
+        body_stream.write('</span> </td> </tr>\n')
+        body_stream.write('</tbody></table>\n')
         return (head_str, body_stream.getvalue())
 
     def print_jimple_as_html(self, outfile_name):

@@ -37,6 +37,37 @@ ${SUBPAGES}
 subpage_element = \
 """<p><a href="${PATH}">${NAME}</a></p>"""
 
+
+iso_page_old = \
+"""<!DOCTYPE html>
+<html>
+<script src="https://github.com/mdaines/viz.js/releases/download/v1.3.0/viz.js"></script>
+
+<script>
+var isoReq = new XMLHttpRequest();
+isoReq.open('GET', './${DOTFILE}', true);
+isoReq.send();
+isoReq.onload = function() {
+var isoText = isoReq.responseText;
+var isoContainer = document.getElementById('iso');
+var iso = Viz(isoText, options={ format: 'svg', engine: 'dot' });
+isoContainer.innerHTML = iso;
+};
+</script>
+
+<title>${TITLE}</title>
+<body>
+
+<h1>Isomorphism ${ISONAME}</h1>
+<h2>Graph 1: <a href="${G1PAGE}">${G1}</a></h2>
+<h2>Graph 2: <a href="${G2PAGE}">${G2}</a></h2>
+<h2>Weight: ${WEIGHT}</h2>
+<h2>Iso Bin path: ${ISOPATH}</h2>
+<h2 id="iso"></h2>
+</body>
+</html>
+"""
+
 iso_page = \
 """<!DOCTYPE html>
 <html>
@@ -319,8 +350,8 @@ class HtmlCreator(object):
         # print "jimple 1 " +  sliced_jimple_1
         # print "jimple 1 " + sliced_jimple_2
 
-        (annotatedjimple_body,
-         annotatedjimple_head) = self._annotate_jimple(abs_isopath,
+        (annotatedjimple_head,
+         annotatedjimple_body) = self._annotate_jimple(abs_isopath,
                                                        abs_g1path, abs_g2path,
                                                        sliced_jimple_1,
                                                        sliced_jimple_2)
