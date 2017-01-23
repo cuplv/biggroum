@@ -1,0 +1,20 @@
+#!/bin/bash
+
+FIXR_GRAPH_EXTRACTOR=/eval/dep/FixrGraphExtractor
+FIXR_GRAPH_INDEXER=/eval/dep/FixrGraphIndexer
+FIXR_GRAPH_ISO_BIN=/eval/dep/FixrGraphIso/graph_build/src/fixrgraphiso/fixrgraphiso
+FIXR_COMMUNITY_DETECTION=/eval/dep/FixrCommunityDetection
+SPARK_SUBMIT_PATH=/eval/dep/spark-2.0.0-bin-hadoop2.7/bin/spark-submit
+
+OUT_DIR=/eval/data/api_usage_test_corpus/extraction
+REPO_LIST=/eval/data/api_usage_test_corpus/test_repo.json
+
+# Index options
+MIN_METHODS=2
+MIN_NODES=2
+MIN_EDGES=3
+MIN_COMMON_METHODS=2
+
+# ISO OPTIONS
+TIMEOUT=5
+JOB_SIZE=5000
