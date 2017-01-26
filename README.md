@@ -88,7 +88,7 @@ Edit the file `script/config.bash` setting the following parameters:
 - `FIXR_COMMUNITY_DETECTION`: path to the FixrCommunityDetection repository
 - `OUT_DIR`: path to the output directory of the extraction
 - `REPO_LIST`: path to the json file containing the list of repositories 
-See the file `extraction_scripts/examples/smaller.json` in the
+See the file `extraction_scripts/python/fixrgraph/extraction/examples/smaller.json` in the
 FixrGraphExtractor repository for an example.
 - `MIN_METHODS`: minimum number of methods required in a graphs to be considered for an isomorphism
 - `MIN_NODES`: minimum number of nodes required in a graphs to be considered for an isomorphism
