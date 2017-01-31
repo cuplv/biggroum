@@ -11,6 +11,8 @@ Top-level project for the graph extraction
 - python 2.7
 - enum34 python package (`pip install enum34`)
 - protobuf (`pip install protobuf`)
+- sql_alchemy for python
+- android sdk (it is needed to compile the repositories)
 
 # Steps in the graph pipeline
 
