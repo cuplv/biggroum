@@ -58,6 +58,9 @@ mkdir -p "${OUT_DIR}"
 
 OUT_LOG=${OUT_DIR}/out_log.txt
 
+# Set environment variable to fail on Git credential prompt
+export GIT_TERMINAL_PROMPT=0
+
 # Extract the graphs
 echo "Extracting graphs from ${REPO_LIST}..."
 pushd .
@@ -116,3 +119,5 @@ echo "${SPARK_SUBMIT_PATH} --class edu.colorado.plv.fixr.community.Main ${FIXR_C
 ${SPARK_SUBMIT_PATH} --class edu.colorado.plv.fixr.community.Main ${FIXR_COMMUNITY_DETECTION_JAR} -w iso -i ${OUT_DIR}/iso -f ${OUT_DIR}/iso_list.txt -o ${OUT_DIR}/communities &>> ${OUT_LOG}
 check_res "$?" "Community detection"
 
+# Unset environment variable to return Git to default behavior
+export GIT_TERMINAL_PROMPT=
