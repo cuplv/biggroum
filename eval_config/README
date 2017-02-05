@@ -1,0 +1,1 @@
+bash /eval/dep/FixrGraph/scripts/full_extraction.bash ./extraction_config
