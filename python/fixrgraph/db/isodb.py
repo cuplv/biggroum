@@ -128,6 +128,10 @@ class IsoDb(object):
                                   rec_list)
         return res
 
+    def get_relfile_graphs(self):
+        sql = "select relfilepath from graphs"
+        result = self.engine.execute(sql)
+        return result
 
     def get_isos(self):
         sql = "select isos.isoname, isos.relfilepath, "\
