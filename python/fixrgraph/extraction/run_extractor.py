@@ -233,10 +233,36 @@ class RepoProcessor:
     """Implements the different phases needed to process the repos
     """
 
+    class BuildInfo:
+        def __init__(self, result_record):
+            apps_prop = result_record["apps"]
+
+            for (key, value) in apps_prop.iteritems():
+                self.apks = []
+                for apk in value["apk"]:
+                    self.apks.append(apk)
+
+                self.classes = []
+                for cls in value["cls"]:
+                    self.classes.append(cls)
+
+                self.jars = []
+                for jar in value["jar"]:
+                    self.jars.append(jar)
+
+                self.src = []
+                for src in value["src"]:
+                    self.src.append(src)
+
+                # TODO: extend to multiple APPS
+                break
+
     def __init__(self, in_dir,
                  graph_dir, prov_dir,
                  slice_filter,
-                 extractor_jar, classpath):
+                 extractor_jar, classpath,
+                 buildable_repos_list = None,
+                 buildable_repos_path = None):
         # Keeps the error log for each repo
         self.log = ErrorLog()
         # Directory where download the repositories
@@ -249,10 +275,29 @@ class RepoProcessor:
 
         self.extractor_status = ExtractorStatus("extractor_status.json")
 
-        if 'ANDROID_HOME' not in os.environ:
-            raise Exception("ANDROID_HOME path is not set")
-        else:
-            self.android_home = os.environ['ANDROID_HOME']
+
+        self.android_home = "/home/sergio/Tools/android-sdk-linux"
+        # if 'ANDROID_HOME' not in os.environ:
+        #     raise Exception("ANDROID_HOME path is not set")
+        # else:
+        #     self.android_home = os.environ['ANDROID_HOME']
+
+        self.built_info = None
+        if (buildable_repos_list is not None):
+            # map from "user|repo|hash" to built info
+            self.built_info = {}
+            # read the buildable status
+            with open(buildable_repos_list, 'rt') as fbuilt:
+                built_data = json.load(fbuilt)
+
+                assert ("results" in built_data)
+
+                for built_repo in built_data["results"]:
+                    key = "%s|%s|%s" % (built_repo["user"], built_repo["repo"], built_repo["hash"])
+                    build_info = RepoProcessor.BuildInfo(built_repo)
+                    self.built_info[key] = build_info
+        self.buildable_repos_path = buildable_repos_path
+
 
     @staticmethod
     def get_repo_url(user_name, repo_name):
@@ -412,7 +457,20 @@ class RepoProcessor:
 
         return (gradle_build_file, gradle_path)
 
-    def build(self, repo):
+
+    def lookup_build(self, repo):
+        try:
+            key = "%s|%s|%s" % (repo[0], repo[1], repo[2])
+            built_info = self.built_info[key]
+            logging.debug("Found repo %s in BuilderFarm " % (key))
+            return built_info
+        except KeyError:
+            return None
+
+
+
+
+    def build_from_sources(self, repo):
         """Build the repo.
         """
         logging.debug("Building %s/%s" % (repo[0], repo[1]))
@@ -457,6 +515,15 @@ class RepoProcessor:
 
         logging.debug("Build end for %s/%s" % (repo[0], repo[1]))
         return repo
+
+    def build(self, repo):
+        """ Try to lookup from the repo, and build otherwise """
+        build_info = self.lookup_build(repo)
+        if build_info is None:
+            assert False
+            return self.build_from_sources(repo)
+        else:
+            return repo
 
     @staticmethod
     def write_log(log, repo, msg):
@@ -666,24 +733,50 @@ class RepoProcessor:
                        graph_dir,
                        prov_dir,
                        classpath,
-                       extractor_jar):
+                       extractor_jar,
+                       build_info,
+                       buildable_repos_path):
 
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
 
-        repo_folder = RepoProcessor.get_repo_path(in_dir, repo)
+        if build_info is None:
+            repo_folder = RepoProcessor.get_repo_path(in_dir, repo)
 
-        app_gradle_file_path = RepoProcessor.getAndroidAppPlugin(log, repo, repo_folder)
-        if None == app_gradle_file_path:
-            # Error, classes.jar not found
-            msg = "Cannot find application build.gradle file for %s/%s" % (repo[0], repo[1])
-            logging.debug(msg)
-            RepoProcessor.write_log(log, repo, msg)
-            return None
+            app_gradle_file_path = RepoProcessor.getAndroidAppPlugin(log, repo, repo_folder)
+            if None == app_gradle_file_path:
+                # Error, classes.jar not found
+                msg = "Cannot find application build.gradle file for %s/%s" % (repo[0], repo[1])
+                logging.debug(msg)
+                RepoProcessor.write_log(log, repo, msg)
+                return None
 
-        app_gradle_file = os.path.join(app_gradle_file_path, "build.gradle")
-        logging.debug("App gradle file is %s" % app_gradle_file)
-        (min_apk, max_apk, version_number) = RepoProcessor.get_version_from_gradle(app_gradle_file)
+            app_gradle_file = os.path.join(app_gradle_file_path, "build.gradle")
+            logging.debug("App gradle file is %s" % app_gradle_file)
+            (min_apk, max_apk, version_number) = RepoProcessor.get_version_from_gradle(app_gradle_file)
+
+            # set the process_dir: we look for the classes.jar file created
+            # during the build.
+            single_dir = RepoProcessor.search_classes(repo_folder, app_gradle_file_path)
+            if single_dir is None:
+                process_dirs = []
+            else:
+                process_dirs = [single_dir]
+        else:
+            repo_folder = os.path.join("/tmp", "%s.%s.%s" % (repo[0], repo[1], repo[2]))
+            version_number = 25
+
+            base_buildable_repo_folder = os.path.join(buildable_repos_path, repo[0], repo[1], repo[2])
+
+            process_dirs = []
+            if len(build_info.jars) > 0:
+                for jar in build_info.jars:
+                    abs_dir = os.path.join(base_buildable_repo_folder,jar)
+                    process_dirs.append(abs_dir)
+            elif len(build_info.classes) > 0:
+                for c in build_info.classes:
+                    abs_dir = os.path.join(base_buildable_repo_folder,c)
+                    process_dirs.append(abs_dir)
 
         # get jar file from the android sdk
         android_jar_path = RepoProcessor.get_android_jar(android_home, version_number)
@@ -693,20 +786,13 @@ class RepoProcessor:
             RepoProcessor.write_log(log, repo, msg)
             return None
 
-        # set the process_dir: we look for the classes.jar file created
-        # during the build.
-        process_dir = RepoProcessor.search_classes(repo_folder, app_gradle_file_path)
-
-        if None == process_dir:
+        if 0 == len(process_dirs):
             # Error, classes.jar not found
             logging.debug("Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
             RepoProcessor.write_log(log, repo, "Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
             return None
 
         # Small try on support libraries
-        # android_support_library_path = self.get_support_library(app_gradle_file, version_number)
-        # for l in android_support_library_path:
-        #     android_jar_path = android_jar_path + ":" + l
         logging.debug("Android jar path: %s for %s/%s" % (android_jar_path, repo[0], repo[1]))
 
         try:
@@ -716,7 +802,10 @@ class RepoProcessor:
             repo_prov_dir = RepoProcessor.get_repo_path(prov_dir, repo)
             if not os.path.isdir(repo_prov_dir): os.makedirs(repo_prov_dir)
 
-            additional_cp = android_jar_path + ":" + process_dir
+            additional_cp = android_jar_path
+            for pd in process_dirs:
+                additional_cp = additional_cp + ":" + pd
+
             if classpath != None:
                 classpath = classpath + ":" + additional_cp
             else:
@@ -729,7 +818,6 @@ class RepoProcessor:
                     "-jar", extractor_jar,
                     "-s", "false", # we read bytecode
                     "-l", classpath,
-                    "-p", process_dir,
                     "-o", repo_graph_dir,
                     "-d", repo_prov_dir,
                     "-j", "true", # enable jphantom
@@ -738,9 +826,15 @@ class RepoProcessor:
                     "-n", repo[0],
                     "-r", repo[1],
                     "-u", repo_url]
+
+            for pd in process_dirs:
+                args.append("-p")
+                args.append(pd)
+
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
+
             is_ok = RepoProcessor._call_sub(log, repo, args)
             if not is_ok:
                 msg = "call_sub ended in error for %s/%s" % (repo[0], repo[1])
@@ -767,6 +861,7 @@ class RepoProcessor:
         prov_dir = self.prov_dir
         classpath = self.classpath
         extractor_jar = self.extractor_jar
+        build_info = self.lookup_build(repo)
 
         return RepoProcessor.extract_static(repo,
                                             self.log,
@@ -775,7 +870,9 @@ class RepoProcessor:
                                             self.graph_dir,
                                             self.prov_dir,
                                             self.classpath,
-                                            self.extractor_jar)
+                                            self.extractor_jar,
+                                            build_info,
+                                            self.buildable_repos_path)
 
 
     def processRepoFromStep(self, repo, task_index):
@@ -825,7 +922,6 @@ class RepoProcessor:
         assert (user_task in ExtractorStatus.task2status.keys())
         assert (user_task in ExtractorStatus.tasks_list)
 
-
         task_index = ExtractorStatus.tasks_list.index(user_task)
         steps_to_do = ExtractorStatus.tasks_list[task_index:]
 
@@ -854,6 +950,9 @@ def main():
     p.add_option('-f', '--filter', help="Comma separated list of packages that will be used as seeds in the slicing")
     p.add_option('-j', '--extractorjar', help="Jar file of the extractor (it must contain ALL the dependencies)")
     p.add_option('-l', '--classpath', help="Comma separated classpath used by the extractor - (i.e. add the android jar here)")
+
+    p.add_option('-b', '--buildable_repos_list', help="JSON file containing the list of all the buildable repos")
+    p.add_option('-r', '--buildable_repos_path', help="Path to the buildable repos")
 
     p.add_option('-s', '--step', type='choice',
                  choices=["download", "build", "extract"],
@@ -886,6 +985,19 @@ def main():
             if not os.path.exists(jarfile):
                 usage("The jar file %s specified in the classpath does not exists!" % jarfile)
 
+    if (opts.buildable_repos_list or opts.buildable_repos_path):
+        if (not opts.buildable_repos_list): usage("Missing JSON file with buildable info")
+        if (not opts.buildable_repos_path): usage("Missing PATH to buildable files")
+
+        if (not os.path.exists(opts.buildable_repos_list)): usage("%s  does not exist" % opts.buildable_repos_list)
+        if (not os.path.isdir(opts.buildable_repos_path)): usage("%s  does not exist" % opts.buildable_repos_path)
+
+        buildable_repos_list =opts.buildable_repos_list
+        buildable_repos_path = opts.buildable_repos_path
+    else:
+        buildable_repos_list = None
+        buildable_repos_path = None
+
     # end of parameter validation
 
     # create the indir, graphdir and provdir if they do not exist
@@ -908,7 +1020,9 @@ def main():
     # process the repos
     repoProcessor = RepoProcessor(opts.indir, opts.graphdir,
                                   opts.provdir, opts.filter,
-                                  opts.extractorjar, opts.classpath)
+                                  opts.extractorjar, opts.classpath,
+                                  buildable_repos_list,
+                                  buildable_repos_path)
     repoProcessor.processFromStep(repo_list, opts.step)
 
     # DO NOT PRINT THE ERROR LOG FOR EACH REPO
