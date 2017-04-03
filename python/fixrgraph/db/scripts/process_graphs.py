@@ -35,6 +35,7 @@ def main():
                 relpath = os.path.join(root.replace(opts.graph_dir, ""), name)
                 name = name[:-len(".acdfg.bin")]
                 try:
+                    print "ADDING " + name
                     db.add_graph(name, relpath)
                 except sqlalchemy.exc.IntegrityError as e:
                     logging.warn("Duplicate entry %s (%s)" % (name, relpath))

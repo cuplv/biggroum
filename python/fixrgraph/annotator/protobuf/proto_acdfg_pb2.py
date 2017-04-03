@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='proto_acdfg.proto',
   package='edu.colorado.plv.fixr.protobuf',
-  serialized_pb=_b('\n\x11proto_acdfg.proto\x12\x1e\x65\x64u.colorado.plv.fixr.protobuf\"\xc7\x0e\n\x05\x41\x63\x64\x66g\x12\x41\n\tdata_node\x18\x01 \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.DataNode\x12\x41\n\tmisc_node\x18\x02 \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.MiscNode\x12\x45\n\x0bmethod_node\x18\x03 \x03(\x0b\x32\x30.edu.colorado.plv.fixr.protobuf.Acdfg.MethodNode\x12G\n\x0c\x63ontrol_edge\x18\x04 \x03(\x0b\x32\x31.edu.colorado.plv.fixr.protobuf.Acdfg.ControlEdge\x12?\n\x08\x64\x65\x66_edge\x18\x05 \x03(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.DefEdge\x12?\n\x08use_edge\x18\x06 \x03(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.UseEdge\x12\x43\n\ntrans_edge\x18\x07 \x03(\x0b\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.TransEdge\x12V\n\x10\x65xceptional_edge\x18\x0c \x03(\x0b\x32<.edu.colorado.plv.fixr.protobuf.Acdfg.ExceptionalControlEdge\x12\x43\n\x0b\x65\x64ge_labels\x18\x0b \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.LabelMap\x12?\n\x08repo_tag\x18\x08 \x01(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.RepoTag\x12\x45\n\x0bsource_info\x18\n \x01(\x0b\x32\x30.edu.colorado.plv.fixr.protobuf.Acdfg.SourceInfo\x12\x43\n\nmethod_bag\x18\t \x01(\x0b\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.MethodBag\x1a\xa8\x01\n\x08\x44\x61taNode\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0c\n\x04type\x18\x03 \x02(\t\x12J\n\tdata_type\x18\x04 \x01(\x0e\x32\x37.edu.colorado.plv.fixr.protobuf.Acdfg.DataNode.DataType\"(\n\x08\x44\x61taType\x12\x0c\n\x08\x44\x41TA_VAR\x10\x00\x12\x0e\n\nDATA_CONST\x10\x01\x1a\x16\n\x08MiscNode\x12\n\n\x02id\x18\x01 \x02(\x04\x1a[\n\nMethodNode\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x10\n\x08\x61ssignee\x18\x05 \x01(\x04\x12\x0f\n\x07invokee\x18\x02 \x01(\x04\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x10\n\x08\x61rgument\x18\x04 \x03(\x04\x1a\x33\n\x0b\x43ontrolEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a/\n\x07\x44\x65\x66\x45\x64ge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a/\n\x07UseEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a\x31\n\tTransEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1aR\n\x16\x45xceptionalControlEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x12\x12\n\nexceptions\x18\x04 \x03(\t\x1a\\\n\x08LabelMap\x12\x0f\n\x07\x65\x64ge_id\x18\x01 \x02(\x04\x12?\n\x06labels\x18\x02 \x03(\x0e\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.EdgeLabel\x1aQ\n\x07RepoTag\x12\x11\n\trepo_name\x18\x01 \x01(\t\x12\x11\n\tuser_name\x18\x02 \x01(\t\x12\x0b\n\x03url\x18\x03 \x01(\t\x12\x13\n\x0b\x63ommit_hash\x18\x04 \x01(\t\x1a\x1b\n\tMethodBag\x12\x0e\n\x06method\x18\x01 \x03(\t\x1a\xbc\x01\n\nSourceInfo\x12\x14\n\x0cpackage_name\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x13\n\x0bmethod_name\x18\x03 \x01(\t\x12\x19\n\x11\x63lass_line_number\x18\x04 \x01(\r\x12\x1a\n\x12method_line_number\x18\x05 \x01(\r\x12\x19\n\x11source_class_name\x18\x06 \x01(\t\x12\x1d\n\x15\x61\x62s_source_class_name\x18\x07 \x01(\t\",\n\tEdgeLabel\x12\x0c\n\x08\x44OMINATE\x10\x00\x12\x11\n\rPOSTDOMINATED\x10\x01')
+  serialized_pb=_b('\n\x11proto_acdfg.proto\x12\x1e\x65\x64u.colorado.plv.fixr.protobuf\"\xe0\x0e\n\x05\x41\x63\x64\x66g\x12\x41\n\tdata_node\x18\x01 \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.DataNode\x12\x41\n\tmisc_node\x18\x02 \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.MiscNode\x12\x45\n\x0bmethod_node\x18\x03 \x03(\x0b\x32\x30.edu.colorado.plv.fixr.protobuf.Acdfg.MethodNode\x12G\n\x0c\x63ontrol_edge\x18\x04 \x03(\x0b\x32\x31.edu.colorado.plv.fixr.protobuf.Acdfg.ControlEdge\x12?\n\x08\x64\x65\x66_edge\x18\x05 \x03(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.DefEdge\x12?\n\x08use_edge\x18\x06 \x03(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.UseEdge\x12\x43\n\ntrans_edge\x18\x07 \x03(\x0b\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.TransEdge\x12V\n\x10\x65xceptional_edge\x18\x0c \x03(\x0b\x32<.edu.colorado.plv.fixr.protobuf.Acdfg.ExceptionalControlEdge\x12\x43\n\x0b\x65\x64ge_labels\x18\x0b \x03(\x0b\x32..edu.colorado.plv.fixr.protobuf.Acdfg.LabelMap\x12?\n\x08repo_tag\x18\x08 \x01(\x0b\x32-.edu.colorado.plv.fixr.protobuf.Acdfg.RepoTag\x12\x45\n\x0bsource_info\x18\n \x01(\x0b\x32\x30.edu.colorado.plv.fixr.protobuf.Acdfg.SourceInfo\x12\x17\n\x0fprovenance_path\x18\r \x01(\t\x12\x43\n\nmethod_bag\x18\t \x01(\x0b\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.MethodBag\x1a\xa8\x01\n\x08\x44\x61taNode\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04name\x18\x02 \x02(\t\x12\x0c\n\x04type\x18\x03 \x02(\t\x12J\n\tdata_type\x18\x04 \x01(\x0e\x32\x37.edu.colorado.plv.fixr.protobuf.Acdfg.DataNode.DataType\"(\n\x08\x44\x61taType\x12\x0c\n\x08\x44\x41TA_VAR\x10\x00\x12\x0e\n\nDATA_CONST\x10\x01\x1a\x16\n\x08MiscNode\x12\n\n\x02id\x18\x01 \x02(\x04\x1a[\n\nMethodNode\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x10\n\x08\x61ssignee\x18\x05 \x01(\x04\x12\x0f\n\x07invokee\x18\x02 \x01(\x04\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x10\n\x08\x61rgument\x18\x04 \x03(\x04\x1a\x33\n\x0b\x43ontrolEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a/\n\x07\x44\x65\x66\x45\x64ge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a/\n\x07UseEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1a\x31\n\tTransEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x1aR\n\x16\x45xceptionalControlEdge\x12\n\n\x02id\x18\x01 \x02(\x04\x12\x0c\n\x04\x66rom\x18\x02 \x02(\x04\x12\n\n\x02to\x18\x03 \x02(\x04\x12\x12\n\nexceptions\x18\x04 \x03(\t\x1a\\\n\x08LabelMap\x12\x0f\n\x07\x65\x64ge_id\x18\x01 \x02(\x04\x12?\n\x06labels\x18\x02 \x03(\x0e\x32/.edu.colorado.plv.fixr.protobuf.Acdfg.EdgeLabel\x1aQ\n\x07RepoTag\x12\x11\n\trepo_name\x18\x01 \x01(\t\x12\x11\n\tuser_name\x18\x02 \x01(\t\x12\x0b\n\x03url\x18\x03 \x01(\t\x12\x13\n\x0b\x63ommit_hash\x18\x04 \x01(\t\x1a\x1b\n\tMethodBag\x12\x0e\n\x06method\x18\x01 \x03(\t\x1a\xbc\x01\n\nSourceInfo\x12\x14\n\x0cpackage_name\x18\x01 \x01(\t\x12\x12\n\nclass_name\x18\x02 \x01(\t\x12\x13\n\x0bmethod_name\x18\x03 \x01(\t\x12\x19\n\x11\x63lass_line_number\x18\x04 \x01(\r\x12\x1a\n\x12method_line_number\x18\x05 \x01(\r\x12\x19\n\x11source_class_name\x18\x06 \x01(\t\x12\x1d\n\x15\x61\x62s_source_class_name\x18\x07 \x01(\t\",\n\tEdgeLabel\x12\x0c\n\x08\x44OMINATE\x10\x00\x12\x11\n\rPOSTDOMINATED\x10\x01')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -41,8 +41,8 @@ _ACDFG_DATANODE_DATATYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1031,
-  serialized_end=1071,
+  serialized_start=1056,
+  serialized_end=1096,
 )
 _sym_db.RegisterEnumDescriptor(_ACDFG_DATANODE_DATATYPE)
 
@@ -63,8 +63,8 @@ _ACDFG_EDGELABEL = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1873,
-  serialized_end=1917,
+  serialized_start=1898,
+  serialized_end=1942,
 )
 _sym_db.RegisterEnumDescriptor(_ACDFG_EDGELABEL)
 
@@ -116,8 +116,8 @@ _ACDFG_DATANODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=903,
-  serialized_end=1071,
+  serialized_start=928,
+  serialized_end=1096,
 )
 
 _ACDFG_MISCNODE = _descriptor.Descriptor(
@@ -145,8 +145,8 @@ _ACDFG_MISCNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1073,
-  serialized_end=1095,
+  serialized_start=1098,
+  serialized_end=1120,
 )
 
 _ACDFG_METHODNODE = _descriptor.Descriptor(
@@ -202,8 +202,8 @@ _ACDFG_METHODNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1097,
-  serialized_end=1188,
+  serialized_start=1122,
+  serialized_end=1213,
 )
 
 _ACDFG_CONTROLEDGE = _descriptor.Descriptor(
@@ -245,8 +245,8 @@ _ACDFG_CONTROLEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1190,
-  serialized_end=1241,
+  serialized_start=1215,
+  serialized_end=1266,
 )
 
 _ACDFG_DEFEDGE = _descriptor.Descriptor(
@@ -288,8 +288,8 @@ _ACDFG_DEFEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1243,
-  serialized_end=1290,
+  serialized_start=1268,
+  serialized_end=1315,
 )
 
 _ACDFG_USEEDGE = _descriptor.Descriptor(
@@ -331,8 +331,8 @@ _ACDFG_USEEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1292,
-  serialized_end=1339,
+  serialized_start=1317,
+  serialized_end=1364,
 )
 
 _ACDFG_TRANSEDGE = _descriptor.Descriptor(
@@ -374,8 +374,8 @@ _ACDFG_TRANSEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1341,
-  serialized_end=1390,
+  serialized_start=1366,
+  serialized_end=1415,
 )
 
 _ACDFG_EXCEPTIONALCONTROLEDGE = _descriptor.Descriptor(
@@ -424,8 +424,8 @@ _ACDFG_EXCEPTIONALCONTROLEDGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1392,
-  serialized_end=1474,
+  serialized_start=1417,
+  serialized_end=1499,
 )
 
 _ACDFG_LABELMAP = _descriptor.Descriptor(
@@ -460,8 +460,8 @@ _ACDFG_LABELMAP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1476,
-  serialized_end=1568,
+  serialized_start=1501,
+  serialized_end=1593,
 )
 
 _ACDFG_REPOTAG = _descriptor.Descriptor(
@@ -510,8 +510,8 @@ _ACDFG_REPOTAG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1570,
-  serialized_end=1651,
+  serialized_start=1595,
+  serialized_end=1676,
 )
 
 _ACDFG_METHODBAG = _descriptor.Descriptor(
@@ -539,8 +539,8 @@ _ACDFG_METHODBAG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1653,
-  serialized_end=1680,
+  serialized_start=1678,
+  serialized_end=1705,
 )
 
 _ACDFG_SOURCEINFO = _descriptor.Descriptor(
@@ -610,8 +610,8 @@ _ACDFG_SOURCEINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1683,
-  serialized_end=1871,
+  serialized_start=1708,
+  serialized_end=1896,
 )
 
 _ACDFG = _descriptor.Descriptor(
@@ -699,7 +699,14 @@ _ACDFG = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='method_bag', full_name='edu.colorado.plv.fixr.protobuf.Acdfg.method_bag', index=11,
+      name='provenance_path', full_name='edu.colorado.plv.fixr.protobuf.Acdfg.provenance_path', index=11,
+      number=13, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='method_bag', full_name='edu.colorado.plv.fixr.protobuf.Acdfg.method_bag', index=12,
       number=9, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -718,7 +725,7 @@ _ACDFG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=54,
-  serialized_end=1917,
+  serialized_end=1942,
 )
 
 _ACDFG_DATANODE.fields_by_name['data_type'].enum_type = _ACDFG_DATANODE_DATATYPE

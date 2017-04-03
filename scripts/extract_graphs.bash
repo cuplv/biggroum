@@ -45,6 +45,9 @@ check_exists "${FIXR_COMMUNITY_DETECTION_JAR}" "FixrCommunityDetection jar does 
 check_exists "${REPO_LIST}" "List of repositories"
 check_exists "${SPARK_SUBMIT_PATH}" "Spark submit executable"
 
+check_exists "${BUILDABLE_REPOS_LIST}" "List of buildable repos"
+check_exists "${BUILDABLE_REPOS_PATH}" "Path to the built repos"
+
 FIXR_GRAPH_PYTHON="$(readlink -f "${script_dir}/../python/fixrgraph/")"
 check_exists "${FIXR_GRAPH_PYTHON}" "Python package"
 
@@ -62,14 +65,14 @@ OUT_LOG=${OUT_DIR}/out_log.txt
 echo "Extracting graphs from ${REPO_LIST}..."
 pushd .
 cd ${OUT_DIR}
-echo "bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} &>> ${OUT_LOG}" &>> ${OUT_LOG}
-bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} &>> ${OUT_LOG}
+echo "bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} &>> ${OUT_LOG}" &>> ${OUT_LOG}
+bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} &>> ${OUT_LOG}
 res=$?
 popd
 check_res "${res}" "Extract graphs of ${REPO_LIST}"
 
 echo "Filling graph dbs..."
-echo "python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG}"   &>> ${OUT_LOG}
+echo "python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db" &>> ${OUT_LOG}
 python ${FIXR_GRAPH_PYTHON}/db/scripts/process_graphs.py -g ${OUT_DIR}/graphs -d ${OUT_DIR}/graphs_db.db &>> ${OUT_LOG} 
 check_res "$?" "Fill graph db"
-
+echo "Filled graph dbs..."

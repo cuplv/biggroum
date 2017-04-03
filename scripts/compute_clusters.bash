@@ -30,16 +30,19 @@ check_exists "${config_script}" "config.bash script was not provided!"
 source ${config_script}
 
 
+echo ${FIXR_GRAPH_ISO}
 check_exists "${FIXR_GRAPH_ISO}" "FixrGraphIso binary"
 FIXR_GRAPH_FREQUENTITEMSET_BIN="$(readlink -f ${FIXR_GRAPH_ISO}/build/src/fixrgraphiso/frequentitemsets)"
 echo "${FIXR_GRAPH_FREQUENTITEMSET_BIN}"
 FIXR_GRAPH_FREQUENTSUBGRAPHS_BIN="$(readlink -f ${FIXR_GRAPH_ISO}/build/src/fixrgraphiso/frequentsubgraphs)"
 FIXR_GRAPH_PROCESS_CLUSTERS="$(readlink -f ${FIXR_GRAPH_ISO}/scripts/processClusters.py)"
+FIXR_GRAPH_GATHER_RESULTS="$(readlink -f ${FIXR_GRAPH_ISO}/scripts/gatherResults.py)"
 FIXR_GRAPH_PYTHON="$(readlink -f "${script_dir}/../python/fixrgraph/")"
 
 check_exists "${FIXR_GRAPH_FREQUENTITEMSET_BIN}" "FIXR_GRAPH_FREQUENTITEMSET_BIN"
 check_exists "${FIXR_GRAPH_FREQUENTSUBGRAPHS_BIN}" "FIXR_GRAPH_FREQUENTSUBGRAPHS_BIN"
 check_exists "${FIXR_GRAPH_PROCESS_CLUSTERS}" "FIXR_GRAPH_PROCESS_CLUSTERS"
+check_exists "${FIXR_GRAPH_GATHER_RESULTS}" "FIXR_GRAPH_GATHER_RESULTS"
 check_exists "${FIXR_GRAPH_PYTHON}" "FIXR_GRAPH_PYTHON"
 
 if [ ! -d "${OUT_DIR}" ] ; then
@@ -75,8 +78,8 @@ check_res "$?" "Find acdfg"
 
 # B. Run frequent itemset
 # 40
-FREQ_CUTOFF=2 
-MIN_METH=3
+FREQ_CUTOFF=2
+MIN_METH=2
 echo "2/${total} Compute the frequent itemset..."
 echo "${FIXR_GRAPH_FREQUENTITEMSET_BIN} -f ${FREQ_CUTOFF} -m ${MIN_METH}  -o ${CLUSTER_FILE} ${ITEMSET_FILE}"
 ${FIXR_GRAPH_FREQUENTITEMSET_BIN} -f ${FREQ_CUTOFF} -m ${MIN_METH} -o ${CLUSTER_FILE} ${ITEMSET_FILE}
@@ -84,17 +87,28 @@ ${FIXR_GRAPH_FREQUENTITEMSET_BIN} -f ${FREQ_CUTOFF} -m ${MIN_METH} -o ${CLUSTER_
 
 # C. Create clusters
 echo "3/${total} Compute the clusters (it may take a while)..."
-
-nclusters=`cat ${CLUSTER_FILE}  | grep "I:" | wc -l` && nclusters=$((nclusters+1)); echo $nclusters
-for ((i = 1; i < ${nclusters}; i++)); do
+nclusters=`cat ${CLUSTER_FILE}  | grep "I:" | wc -l` && nclusters=$((nclusters)); echo $nclusters
+for ((i = 1; i <= ${nclusters}; i++)); do
     echo "Processing cluster ${i}/${nclusters}..."
-    echo "python ${FIXR_GRAPH_PROCESS_CLUSTERS} -f ${FIXR_GRAPH_ISO} -n -a ${i} -b $((i+1))"
 
     pushd .
+    echo "cd ${CLUSTER_DIR}"
     cd ${CLUSTER_DIR}
-    python ${FIXR_GRAPH_PROCESS_CLUSTERS} -f ${FIXR_GRAPH_ISO} -n -a ${i} -b $((i+1)) &> /dev/null
+    echo "python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i}"
+    python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i} &> /dev/null
+
     check_res "$?" "Computing cluster ${i}/${nclusters}" 
     popd
 done
 echo "Computed clusters"
+
+echo "Compute the html output"
+pushd ${CLUSTER_DIR}
+mkdir html_files
+echo "python ${FIXR_GRAPH_GATHER_RESULTS}  -a 1 -b ${nclusters} -o html_files -i all_clusters -p ${OUT_DIR}/provenance"
+python ${FIXR_GRAPH_GATHER_RESULTS}  -a 1 -b ${nclusters} -o html_files -i all_clusters -p ${OUT_DIR}/provenance
+
+echo "Generating png files"
+for f in `find . -name "*.dot"`; do app=`echo ${f} | sed "s:\.dot:.png:"`; dot -Tpng -o$app $f; done
+popd
 
