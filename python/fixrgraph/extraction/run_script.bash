@@ -38,6 +38,8 @@ file_exists() {
 OUT_BASE="${1}"
 REPO_LIST="${2}"
 EXTRACTOR_JAR="${3}"
+BUILDABLE_REPOS_LIST="${4}"
+BUILDABLE_REPOS_PATH="${5}"
 
 is_empty "${OUT_BASE}" "Output path"
 dir_exists "${OUT_BASE}" "Output path"
@@ -45,6 +47,12 @@ is_empty "${REPO_LIST}" "List of repos"
 file_exists "${REPO_LIST}" "List of repos"
 is_empty "${EXTRACTOR_JAR}" "Extractor jar"
 file_exists "${EXTRACTOR_JAR}" "Extractor jar"
+
+is_empty "${BUILDABLE_REPOS_LIST}" "Buildable repo list"
+file_exists "${BUILDABLE_REPOS_LIST}" "Buildable repo list"
+
+is_empty "${BUILDABLE_REPOS_PATH}" "Buildable repo path"
+dir_exists "${BUILDABLE_REPOS_PATH}" "Buildable repo path"
 
 is_empty "${ANDROID_HOME}" "Android home"
 dir_exists "${ANDROID_HOME}" "Android home"
@@ -67,6 +75,6 @@ mkdir -p ${PROVENANCE_PATH}
 # OTHERWISE THE EXTRACTION HANGS
 export GIT_TERMINAL_PROMPT=0
 
-python ${EXTRACTOR_SCRIPT} -a ${REPO_LIST} -i ${REPO_PATH} -g ${GRAPHS_PATH} -p ${PROVENANCE_PATH} -f android -j ${EXTRACTOR_JAR}
+python ${EXTRACTOR_SCRIPT} -a ${REPO_LIST} -i ${REPO_PATH} -g ${GRAPHS_PATH} -p ${PROVENANCE_PATH} -f android -j ${EXTRACTOR_JAR} -b ${BUILDABLE_REPOS_LIST} -r ${BUILDABLE_REPOS_PATH}
 
 exit $?

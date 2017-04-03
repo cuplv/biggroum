@@ -520,8 +520,9 @@ class RepoProcessor:
         """ Try to lookup from the repo, and build otherwise """
         build_info = self.lookup_build(repo)
         if build_info is None:
-            assert False
-            return self.build_from_sources(repo)
+            logging.debug("Skipping repo not built by service!")
+            # assert False
+            # return self.build_from_sources(repo)
         else:
             return repo
 
@@ -803,6 +804,19 @@ class RepoProcessor:
             if not os.path.isdir(repo_prov_dir): os.makedirs(repo_prov_dir)
 
             additional_cp = android_jar_path
+
+            def get_class_path(full_classes_path):
+                class_path = []
+                for p in full_classes_path.split("/"):
+                    class_path.append(p)
+                    print p
+                    if p == "classes":
+                        break
+                return "/".join(class_path)
+            process_dirs_paths = set()
+            for pd in process_dirs:
+                process_dirs_paths.add(get_class_path(pd))
+            process_dirs = process_dirs_paths
             for pd in process_dirs:
                 additional_cp = additional_cp + ":" + pd
 
@@ -827,9 +841,8 @@ class RepoProcessor:
                     "-r", repo[1],
                     "-u", repo_url]
 
-            for pd in process_dirs:
-                args.append("-p")
-                args.append(pd)
+            args.append("-p")
+            args.append(":".join(process_dirs))
 
             if len(repo) > 2:
                 args.append("-h")

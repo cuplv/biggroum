@@ -78,8 +78,8 @@ check_res "$?" "Find acdfg"
 
 # B. Run frequent itemset
 # 40
-FREQ_CUTOFF=3
-MIN_METH=3
+FREQ_CUTOFF=2
+MIN_METH=2
 echo "2/${total} Compute the frequent itemset..."
 echo "${FIXR_GRAPH_FREQUENTITEMSET_BIN} -f ${FREQ_CUTOFF} -m ${MIN_METH}  -o ${CLUSTER_FILE} ${ITEMSET_FILE}"
 ${FIXR_GRAPH_FREQUENTITEMSET_BIN} -f ${FREQ_CUTOFF} -m ${MIN_METH} -o ${CLUSTER_FILE} ${ITEMSET_FILE}
@@ -94,8 +94,8 @@ for ((i = 1; i <= ${nclusters}; i++)); do
     pushd .
     echo "cd ${CLUSTER_DIR}"
     cd ${CLUSTER_DIR}
-    echo "python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -n -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i}"
-    python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -n -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i} &> /dev/null
+    echo "python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i}"
+    python3 ${FIXR_GRAPH_PROCESS_CLUSTERS} -p ${FIXR_GRAPH_ISO} -c ./clusters.txt -d ./all_clusters -a ${i} -b ${i} &> /dev/null
 
     check_res "$?" "Computing cluster ${i}/${nclusters}" 
     popd
