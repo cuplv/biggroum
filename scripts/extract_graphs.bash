@@ -38,12 +38,12 @@ FIXR_COMMUNITY_DETECTION_JAR="$(readlink -f ${FIXR_COMMUNITY_DETECTION}/target/s
 
 check_exists "${FIXR_GRAPH_EXTRACTOR}" "FixrGraphExtractor folder"
 check_exists "${FIXR_GRAPH_EXTRACTOR_JAR}" "FixrGraphExtractor jar does not exist: did you run sbt oneJar there?"
-check_exists "${FIXR_GRAPH_INDEXER}" "FixrGraphIndexer folder"
-check_exists "${FIXR_GRAPH_ISO_BIN}" "FixrGraphIso binary"
-check_exists "${FIXR_COMMUNITY_DETECTION}" "FixrCommunityDetection path"
-check_exists "${FIXR_COMMUNITY_DETECTION_JAR}" "FixrCommunityDetection jar does not exist: did you run sbt assembly there?"
+#check_exists "${FIXR_GRAPH_INDEXER}" "FixrGraphIndexer folder"
+#check_exists "${FIXR_GRAPH_ISO_BIN}" "FixrGraphIso binary"
+#check_exists "${FIXR_COMMUNITY_DETECTION}" "FixrCommunityDetection path"
+#check_exists "${FIXR_COMMUNITY_DETECTION_JAR}" "FixrCommunityDetection jar does not exist: did you run sbt assembly there?"
 check_exists "${REPO_LIST}" "List of repositories"
-check_exists "${SPARK_SUBMIT_PATH}" "Spark submit executable"
+#check_exists "${SPARK_SUBMIT_PATH}" "Spark submit executable"
 
 check_exists "${BUILDABLE_REPOS_LIST}" "List of buildable repos"
 check_exists "${BUILDABLE_REPOS_PATH}" "Path to the built repos"
@@ -52,21 +52,30 @@ FIXR_GRAPH_PYTHON="$(readlink -f "${script_dir}/../python/fixrgraph/")"
 check_exists "${FIXR_GRAPH_PYTHON}" "Python package"
 
 
-if [ -d "${OUT_DIR}" ] ; then
-    echo "${OUT_DIR} already exists!"
+if [ "${EXTRACTOR_STATUS_FILE}X" == "X" ]; then
+    echo "EXTRACTOR_STATUS_FILE not set"
     exit 1
 fi
-mkdir -p "${OUT_DIR}"
 
+if [ -d "${OUT_DIR}" ] ; then
+    echo "Warning: ${OUT_DIR} already exists. Data will be duplicated"
+else
+    mkdir -p "${OUT_DIR}"
+fi
 
 OUT_LOG=${OUT_DIR}/out_log.txt
+if [ -f "${OUT_LOG}" ]; then
+    OUT_LOG_OLD=${OUT_LOG}
+    OUT_LOG="${OUT_DIR}/out_log_$$.txt"
+    echo "Warning: ${OUT_LOG_OLD} already exists. Log file is ${OUT_LOG}"
+fi
 
 # Extract the graphs
 echo "Extracting graphs from ${REPO_LIST}..."
 pushd .
 cd ${OUT_DIR}
-echo "bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} &>> ${OUT_LOG}" &>> ${OUT_LOG}
-bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} &>> ${OUT_LOG}
+echo "bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} ${EXTRACTOR_STATUS_FILE} &>> ${OUT_LOG}" &>> ${OUT_LOG}
+bash ${FIXR_GRAPH_PYTHON}/extraction/run_script.bash ${OUT_DIR} ${REPO_LIST} ${FIXR_GRAPH_EXTRACTOR_JAR} ${BUILDABLE_REPOS_LIST} ${BUILDABLE_REPOS_PATH} ${EXTRACTOR_STATUS_FILE} &>> ${OUT_LOG}
 res=$?
 popd
 check_res "${res}" "Extract graphs of ${REPO_LIST}"

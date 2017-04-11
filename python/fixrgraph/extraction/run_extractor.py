@@ -29,13 +29,12 @@ import string
 from xml.dom.minidom import parse, parseString
 
 MIN_STATUS = 0
+#MIN_HEAP_SIZE="256m"
+# MAX_HEAP_SIZE="256m"
 MIN_HEAP_SIZE="1024m"
 MAX_HEAP_SIZE="4096m"
 TIMEOUT="60"
 
-
-def get_repo_status_file_name(repo_path):
-    return os.path.join(repo_path, "repo_status.json")
 
 
 class ExtractorStatus:
@@ -262,7 +261,8 @@ class RepoProcessor:
                  slice_filter,
                  extractor_jar, classpath,
                  buildable_repos_list = None,
-                 buildable_repos_path = None):
+                 buildable_repos_path = None,
+                 extractor_status=None):
         # Keeps the error log for each repo
         self.log = ErrorLog()
         # Directory where download the repositories
@@ -273,14 +273,17 @@ class RepoProcessor:
         self.extractor_jar = extractor_jar
         self.classpath = classpath
 
-        self.extractor_status = ExtractorStatus("extractor_status.json")
+        if extractor_status is None:
+            extractor_statis = "extractor_status.json"
+#        self.extractor_status = ExtractorStatus("extractor_status.json")
+        self.extractor_status = ExtractorStatus(extractor_status)
 
 
         self.android_home = "/home/sergio/Tools/android-sdk-linux"
-        # if 'ANDROID_HOME' not in os.environ:
-        #     raise Exception("ANDROID_HOME path is not set")
-        # else:
-        #     self.android_home = os.environ['ANDROID_HOME']
+        if 'ANDROID_HOME' not in os.environ:
+            raise Exception("ANDROID_HOME path is not set")
+        else:
+            self.android_home = os.environ['ANDROID_HOME']
 
         self.built_info = None
         if (buildable_repos_list is not None):
@@ -809,7 +812,7 @@ class RepoProcessor:
                 class_path = []
                 for p in full_classes_path.split("/"):
                     class_path.append(p)
-                    print p
+                    # print p
                     if p == "classes":
                         break
                 return "/".join(class_path)
@@ -826,7 +829,9 @@ class RepoProcessor:
                 classpath = additional_cp
 
             repo_url = RepoProcessor.get_repo_url(repo[0], repo[1])
-            args = ["java",
+            args = ["runlim",
+                    "--time-limit=600",
+                    "java",
                     "-Xms%s" % MIN_HEAP_SIZE,
                     "-Xmx%s" % MAX_HEAP_SIZE,
                     "-jar", extractor_jar,
@@ -842,7 +847,18 @@ class RepoProcessor:
                     "-u", repo_url]
 
             args.append("-p")
-            args.append(":".join(process_dirs))
+
+            # remove google support libraries from the thing to
+            # process
+            new_process_dirs = []
+            ignore = ["/com.google.android.", "/com.android.",
+                      "/android."]
+            for p in process_dirs:
+                for i in ignore:
+                   if i in p:
+                       continue
+                new_process_dirs.append(p)
+            args.append(":".join(new_process_dirs))
 
             if len(repo) > 2:
                 args.append("-h")
@@ -941,7 +957,6 @@ class RepoProcessor:
         repo_index = 1
         tot_repos = len(repo_list)
         for repo in repo_list:
-            print repo
             logging.info("Repo %d/%d..." % (repo_index, tot_repos))
             logging.info("Repo %s" % RepoProcessor.get_repo_name(repo))
             self.processRepoFromStep(repo, task_index)
@@ -966,6 +981,7 @@ def main():
 
     p.add_option('-b', '--buildable_repos_list', help="JSON file containing the list of all the buildable repos")
     p.add_option('-r', '--buildable_repos_path', help="Path to the buildable repos")
+    p.add_option('-o', '--extractor_status', help="Extractor status")
 
     p.add_option('-s', '--step', type='choice',
                  choices=["download", "build", "extract"],
@@ -982,8 +998,8 @@ def main():
     # parameter validation
 
     opts, args = p.parse_args()
-    required = [opts.applist, opts.indir, opts.graphdir, opts.step]
-    required_desc = ["--applist", "--indir", "--graphdir", "--step"]
+    required = [opts.applist, opts.indir, opts.graphdir, opts.step, opts.extractor_status]
+    required_desc = ["--applist", "--indir", "--graphdir", "--step", "--extractor_status"]
     assert (len(required_desc) == len(required))
     for i in range(len(required)):
         if not required[i]: usage("Missing option %s" % required_desc[i])
@@ -1030,12 +1046,15 @@ def main():
         traceback.print_exc()
         sys.exit(1)
 
+
+    extractor_status = os.path.join(opts.graphdir,opts.extractor_status)
     # process the repos
     repoProcessor = RepoProcessor(opts.indir, opts.graphdir,
                                   opts.provdir, opts.filter,
                                   opts.extractorjar, opts.classpath,
                                   buildable_repos_list,
-                                  buildable_repos_path)
+                                  buildable_repos_path,
+                                  extractor_status)
     repoProcessor.processFromStep(repo_list, opts.step)
 
     # DO NOT PRINT THE ERROR LOG FOR EACH REPO
