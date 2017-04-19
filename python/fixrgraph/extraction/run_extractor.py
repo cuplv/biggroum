@@ -830,7 +830,7 @@ class RepoProcessor:
 
             repo_url = RepoProcessor.get_repo_url(repo[0], repo[1])
             args = ["runlim",
-                    "--time-limit=600",
+                    "--time-limit=1200",
                     "java",
                     "-Xms%s" % MIN_HEAP_SIZE,
                     "-Xmx%s" % MAX_HEAP_SIZE,
