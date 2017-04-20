@@ -44,7 +44,7 @@ def main():
         if msg:
             print "----%s----\n" % msg
         p.print_help()
-        print "Example of usage %s" % ("python import_graphs.py  "
+        print "Example of usage %s" % ("python import_clusters.py  "
                                        "-c /tmp/testextraction/clusters "
                                        "-s  'http://localhost:8983/solr/groums'")
         sys.exit(1)
