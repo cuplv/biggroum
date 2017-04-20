@@ -39,6 +39,8 @@ def main():
                     db.add_graph(name, relpath)
                 except sqlalchemy.exc.IntegrityError as e:
                     logging.warn("Duplicate entry %s (%s)" % (name, relpath))
+                except sqlalchemy.exc.ProgrammingError as e:
+                    logging.warn("Programming error %s (%s)" % (name, relpath))
 
 if __name__ == '__main__':
     main()
