@@ -9,27 +9,30 @@ import string
 import collections
 
 from fixrgraph.annotator.protobuf import proto_acdfg_pb2
+from fixrgraph.solr.common import MissingProtobufField
+from fixrgraph.solr.common import upload_pool
+
 import pysolr
 
-class MissingProtobufField(Exception):
-    def __init__(self, value):
-        self.parameter = value
-    def __str__(self):
-        return repr(self.parameter)
+
+
+def get_id(repo_sni, hash_sni, class_name_t, method_name_t):
+    key = "%s/%s/%s/%s" % (repo_sni, hash_sni, class_name_t, method_name_t)
+    return key
+
+def check_field(proto, field):
+    if not proto.HasField(field):
+        raise MissingProtobufField("Missing field %s in "
+                                   "the protobuffer file" % field)
+
+def get_repo_sni(user_name, repo_name):
+    repo_sni = "%s/%s" % (user_name, repo_name)
+    return repo_sni
+
 
 def _create_groum_doc(acdfg_path, provenance_path):
-    def get_id(repo_sni, class_name_t, method_name_t):
-        key = "%s/%s/%s" % (repo_sni, class_name_t, method_name_t)
-        return key
 
-    def get_repo_sni(user_name, repo_name):
-        repo_sni = "%s/%s" % (user_name, repo_name)
-        return repo_sni
 
-    def check_field(proto, field):
-        if not proto.HasField(field):
-            raise MissingProtobufField("Missing field %s in "
-                                       "the protobuffer file" % field)
 
     def fill_from_acdfg(groum_doc, acdfg_path):
         with open(acdfg_path, "rb") as acdfg_file:
@@ -113,18 +116,13 @@ def _create_groum_doc(acdfg_path, provenance_path):
         jimple_file.close()
 
     groum_doc["id"] = get_id(groum_doc["repo_sni"],
+                             groum_doc["hash_sni"],
                              groum_doc["class_name_t"],
                              groum_doc["method_name_t"])
 
     return groum_doc
 
 
-def upload_pool(solr, threshold, doc_pool):
-    if (len(doc_pool) >= threshold):
-        logging.info("Uploading solr docs...")
-        solr.add(doc_pool)
-        doc_pool = []
-    return doc_pool
 
 
 def main():
