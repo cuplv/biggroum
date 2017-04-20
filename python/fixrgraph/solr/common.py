@@ -1,3 +1,5 @@
+import logging
+
 class MissingProtobufField(Exception):
     def __init__(self, value):
         self.parameter = value

@@ -15,7 +15,7 @@ class PatternInfo(object):
 
 
 
-def parseInfoFile(cluster_info_stream):
+def parse_cluster_info(cluster_info_stream):
     """ Parse the cluster_n_info.txt file to get a list of pattern info objects
     """
     patterns = []
@@ -32,7 +32,7 @@ def parseInfoFile(cluster_info_stream):
     match_frequency_2 = re.compile('Frequency\s*:\s*(\d+)(.*)$')
     match_groum = re.compile('(.*)\.acdfg\.bin')
 
-    for line in cluster_n_info:
+    for line in cluster_info_stream:
         line = line.strip()
 
         m = match_bin.match(line)
@@ -41,7 +41,7 @@ def parseInfoFile(cluster_info_stream):
                 pattern = PatternInfo(pattern_id,
                                       pattern_type,
                                       pattern_frequency,
-                                      groum_list
+                                      groum_list,
                                       dot_filename)
                 patterns.append(pattern)
 
@@ -57,7 +57,7 @@ def parseInfoFile(cluster_info_stream):
 
         m = match_dot.match(line)
         if m:
-            dot_file_name = m.group(1)
+            dot_filename = m.group(1)
             continue
 
 
@@ -73,16 +73,16 @@ def parseInfoFile(cluster_info_stream):
             groum_list.append(m.group(2))
             continue
 
-       m = match_groum.match(line)
-       if m:
-           groum_list.append(line)
-           continue
+        m = match_groum.match(line)
+        if m:
+            groum_list.append(line)
+            continue
 
     if (pattern_id >= 0):
         pattern = PatternInfo(pattern_id,
                               pattern_type,
                               pattern_frequency,
-                              groum_list
+                              groum_list,
                               dot_filename)
         patterns.append(pattern)
 
