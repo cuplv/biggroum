@@ -23,12 +23,34 @@ def _get_cluster_key(cluster_id):
     key = "%s" % (cluster_id)
     return key
 
+def _get_groum_key_from_bin(acdfg_path):
+    with open(acdfg_path, "rb") as acdfg_file:
+        acdfg = proto_acdfg_pb2.Acdfg()
+        acdfg.ParseFromString(acdfg_file.read())
+
+        check_field(acdfg.repo_tag, "repo_name")
+        check_field(acdfg.repo_tag, "user_name")
+        check_field(acdfg.repo_tag, "commit_hash")
+
+        repo_name = acdfg.repo_tag.repo_name
+        user_name = acdfg.repo_tag.user_name
+        class_name = acdfg.source_info.class_name
+        method_name = acdfg.source_info.method_name
+        hash_sni = acdfg.repo_tag.commit_hash
+
+        repo_sni = get_repo_sni(user_name, repo_name)
+        groum_key = get_groum_key(repo_sni, hash_sni, class_name, method_name)
+
+        acdfg_file.close()
+
+        return groum_key
+
 def _create_pattern_docs(current_path, cluster_info_path):
     pattern_doc_list = []
 
     cluster_id_re= re.match(r".*cluster_(\d+)$",current_path)
     if cluster_id_re is not None:
-        cluster_id = cluster_id_re.groups(1)
+        cluster_id = cluster_id_re.group(1)
     else:
         logging.warn("Cannot find cluster id from %s" % current_path)
         cluster_id = -1
@@ -40,6 +62,7 @@ def _create_pattern_docs(current_path, cluster_info_path):
 
     for pattern_info in pattern_info_list:
         pattern_doc = {}
+        pattern_doc["doc_type_sni"] = "pattern"
         pattern_doc["id"] = _get_pattern_key(cluster_id,
                                              pattern_info.id,
                                              pattern_info.type)
@@ -50,23 +73,7 @@ def _create_pattern_docs(current_path, cluster_info_path):
         groum_keys_list = []
         for groum in pattern_info.groum_files_list:
             acdfg_path = os.path.join(current_path, groum)
-            with open(acdfg_path, "rb") as acdfg_file:
-                acdfg = proto_acdfg_pb2.Acdfg()
-                acdfg.ParseFromString(acdfg_file.read())
-
-            check_field(acdfg.repo_tag, "repo_name")
-            check_field(acdfg.repo_tag, "user_name")
-            check_field(acdfg.repo_tag, "commit_hash")
-
-
-            repo_name = acdfg.repo_tag.repo_name
-            user_name = acdfg.repo_tag.user_name
-            class_name = acdfg.source_info.class_name
-            method_name = acdfg.source_info.method_name
-            hash_sni = acdfg.repo_tag.commit_hash
-
-            repo_sni = get_repo_sni(user_name, repo_name)
-            groum_key = get_groum_key(repo_sni, hash_sni, class_name, method_name)
+            groum_key = _get_groum_key_from_bin(acdfg_path)
             groum_keys_list.append(groum_key)
 
         pattern_doc["groum_keys_t"] = groum_keys_list
@@ -106,7 +113,6 @@ def main():
                                             "not exist!" % (msg,path))
 
     solr = pysolr.Solr(opts.solr_url)
-
     doc_pool = []
     threshold = 10000
 
@@ -119,18 +125,18 @@ def main():
                 pattern_id = res_match.group(1)
                 cluster_info_path = os.path.join(root, name)
 
-#                try:
-                current_path = os.path.dirname(cluster_info_path)
-                pattern_docs = _create_pattern_docs(current_path,
-                                                    cluster_info_path)
-                doc_pool.extend(pattern_docs)
-                # except MissingProtobufField as e:
-                #     logging.warn("Missing field for %s (%s)" % (name, relpath))
-                # except IOError as e:
-                #     logging.warn("Error reading file %s" % (e.filename))
+                try:
+                    current_path = os.path.dirname(cluster_info_path)
+                    pattern_docs = _create_pattern_docs(current_path,
+                                                        cluster_info_path)
+                    doc_pool.extend(pattern_docs)
+                except MissingProtobufField as e:
+                    logging.warn("Missing field for %s (%s)" % (name, relpath))
+                except IOError as e:
+                    logging.warn("Error reading file %s" % (e.filename))
 
                 doc_pool = upload_pool(solr, threshold, doc_pool)
-    doc_pool = upload_pool(solr, 0, doc_pool)
+    doc_pool = upload_pool(solr, -1, doc_pool)
 
 if __name__ == '__main__':
     main()

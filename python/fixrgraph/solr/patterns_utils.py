@@ -13,7 +13,13 @@ class PatternInfo(object):
         self.groum_files_list = groum_list
         self.dot_name = dot_filename
 
-
+class ClusterInfo(object):
+    def __init__(self, cluster_id,
+                 methods_list,
+                 groum_list):
+        self.id = cluster_id
+        self.methods_list = methods_list
+        self.groum_files_list = groum_list
 
 def parse_cluster_info(cluster_info_stream):
     """ Parse the cluster_n_info.txt file to get a list of pattern info objects
@@ -87,3 +93,49 @@ def parse_cluster_info(cluster_info_stream):
         patterns.append(pattern)
 
     return patterns
+
+def parse_clusters(cluster_file_stream):
+    """ Parse the clusters.txt file to collect the list of clusters"""
+    clusters_list = []
+
+    cluster_id = 0
+    methods_list = []
+    groum_list = []
+
+    match_cluster_start = re.compile('^I:\s*(.*)\(\s*\d+\s*\)$')
+    match_cluster_file = re.compile('^F:\s*(.*)$')
+    match_cluster_end = re.compile('^E\s*$')
+
+    for line in cluster_file_stream:
+        line = line.strip()
+
+        m = match_cluster_start.match(line)
+        if m:
+            cluster_id += 1
+            methods_list_str = m.group(1)
+            methods_list_app = methods_list_str.split(",")
+            methods_list = []
+            for m in methods_list_app:
+                methods_list.append(m.strip())
+            continue
+
+        m = match_cluster_file.match(line)
+        if m:
+            groum_list.append(m.group(1))
+            continue
+
+        m = match_cluster_end.match(line)
+        if m:
+            cluster = ClusterInfo(cluster_id,
+                                  methods_list,
+                                  groum_list)
+            clusters_list.append(cluster)
+            methods_list = []
+            groum_list = []
+            continue
+
+    if (len(methods_list) != 0 or len(groum_list) != 0):
+        raise Exception("The cluster file is truncated!")
+
+    return clusters_list
+

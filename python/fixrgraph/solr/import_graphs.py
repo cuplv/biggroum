@@ -80,6 +80,7 @@ def _create_groum_doc(acdfg_path, provenance_path):
     groum_doc["id"] = ""
 
     # From the acdfg.bin
+    groum_doc["doc_type_sni"] = "groum"
     groum_doc["repo_sni"] = ""
     groum_doc["hash_sni"] = ""
     groum_doc["github_url_sni"] = ""
@@ -173,7 +174,7 @@ def main():
                     logging.warn("Error reading file %s" % (e.filename))
 
                 doc_pool = upload_pool(solr, threshold, doc_pool)
-    doc_pool = upload_pool(solr, 0, doc_pool)
+    doc_pool = upload_pool(solr, -1, doc_pool)
 
 if __name__ == '__main__':
     main()

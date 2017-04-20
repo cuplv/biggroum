@@ -7,8 +7,8 @@ class MissingProtobufField(Exception):
         return repr(self.parameter)
 
 def upload_pool(solr, threshold, doc_pool):
-    if (len(doc_pool) >= threshold):
-        logging.info("Uploading solr docs...")
+    if (len(doc_pool) >= threshold | threshold < 0):
+        logging.info("Uploading %d documents to Solr..." % len(doc_pool))
         solr.add(doc_pool)
         doc_pool = []
     return doc_pool
