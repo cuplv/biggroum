@@ -17,8 +17,7 @@ class MissingProtobufField(Exception):
     def __str__(self):
         return repr(self.parameter)
 
-
-def _create_groum_doc(acdfg_path, dot_path, jimple_path):
+def _create_groum_doc(acdfg_path, provenance_path):
     def get_id(repo_sni, class_name_t, method_name_t):
         key = "%s/%s/%s" % (repo_sni, class_name_t, method_name_t)
         return key
@@ -96,6 +95,23 @@ def _create_groum_doc(acdfg_path, dot_path, jimple_path):
 
     fill_from_acdfg(groum_doc, acdfg_path)
 
+    prefix = "%s_%s" % (groum_doc["class_name_t"],
+                        groum_doc["method_name_t"])
+    project_path = os.path.join(provenance_path,
+                                groum_doc["repo_sni"],
+                                groum_doc["hash_sni"])
+    assert os.path.isdir(project_path)
+
+    dot_file_name = os.path.join(project_path, "%s.acdfg.dot" % prefix)
+    with open(dot_file_name, "r") as dot_file:
+        groum_doc["groum_dot_sni"] = dot_file.read()
+        dot_file.close()
+
+    jimple_file_name = os.path.join(project_path, "%s.sliced.jimple" % prefix)
+    with open(jimple_file_name, "r") as jimple_file:
+        groum_doc["jimple_sni"] = jimple_file.read()
+        jimple_file.close()
+
     groum_doc["id"] = get_id(groum_doc["repo_sni"],
                              groum_doc["class_name_t"],
                              groum_doc["method_name_t"])
@@ -115,9 +131,10 @@ def main():
         if msg:
             print "----%s----\n" % msg
         p.print_help()
-        print "Example of usage %s:" % ("python import_graphs.py  -g "
-                                        "/tmp/testextraction/graphs -s 123 "
-                                        "-p /tmp/testextraction/provenance/")
+        print "Example of usage %s" % ("python import_graphs.py  "
+                                       "-g /tmp/testextraction/graphs "
+                                       "-s  'http://localhost:8983/solr/groums'"
+                                       "-p /tmp/testextraction/provenance/")
         sys.exit(1)
     opts, args = p.parse_args()
 
@@ -140,12 +157,12 @@ def main():
                 # insert the graph
                 real_path = os.path.join(root, name)
                 try:
-                    groum_doc = _create_groum_doc(real_path, None, None)
-
+                    groum_doc = _create_groum_doc(real_path, opts.provenance_dir)
                     solr.add([groum_doc])
-
                 except MissingProtobufField as e:
                     logging.warn("Missing field for %s (%s)" % (name, relpath))
+                except IOError as e:
+                    logging.warn("Error reading file %s" % (e.filename))
 
 if __name__ == '__main__':
     main()
