@@ -39,5 +39,8 @@ Third: Make the following edits.
   This allows us to store text fields in our documents that are not analyzed or indexed but are stored so that they can later be retrieved. We only want these fields so we can display them as the result of a query but we are not going to be searching on their content.
 
 
+# Del all docs
+http://localhost:8983/solr/groums/update?commit=true&stream.body=%3Cdelete%3E%3Cquery%3E*%3A*%3C/query%3E%3C/delete%3E
+
 # Configure Solr to run as its own user
 See Ken's guide https://github.com/kenbod/sysadmin/blob/master/solr.md

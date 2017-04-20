@@ -119,6 +119,14 @@ def _create_groum_doc(acdfg_path, provenance_path):
     return groum_doc
 
 
+def upload_pool(solr, threshold, doc_pool):
+    if (len(doc_pool) >= threshold):
+        logging.info("Uploading solr docs...")
+        solr.add(doc_pool)
+        doc_pool = []
+    return doc_pool
+
+
 def main():
     logging.basicConfig(level=logging.DEBUG)
 
@@ -151,6 +159,8 @@ def main():
     solr = pysolr.Solr(opts.solr_url)
 
     # Loop through the graph directory
+    doc_pool = []
+    threshold = 10000
     for root, dirs, files in os.walk(opts.graph_dir):
         for name in files:
             if name.endswith(".acdfg.bin"):
@@ -158,11 +168,14 @@ def main():
                 real_path = os.path.join(root, name)
                 try:
                     groum_doc = _create_groum_doc(real_path, opts.provenance_dir)
-                    solr.add([groum_doc])
+                    doc_pool.append(groum_doc)
                 except MissingProtobufField as e:
                     logging.warn("Missing field for %s (%s)" % (name, relpath))
                 except IOError as e:
                     logging.warn("Error reading file %s" % (e.filename))
+
+                doc_pool = upload_pool(solr, threshold, doc_pool)
+    doc_pool = upload_pool(solr, 0, doc_pool)
 
 if __name__ == '__main__':
     main()
