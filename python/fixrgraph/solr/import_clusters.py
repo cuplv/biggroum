@@ -72,8 +72,6 @@ def main():
 
         try:
             for cluster_info in clusters_info_list:
-                # TODO: search for patterns in the cluster
-
                 current_path = os.path.join(opts.cluster_dir,
                                             "all_clusters",
                                             "cluster_%d" % cluster_info.id)
