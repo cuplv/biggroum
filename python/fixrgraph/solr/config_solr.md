@@ -44,3 +44,9 @@ http://localhost:8983/solr/groums/update?commit=true&stream.body=%3Cdelete%3E%3C
 
 # Configure Solr to run as its own user
 See Ken's guide https://github.com/kenbod/sysadmin/blob/master/solr.md
+
+# Get a solr document by key
+Enable this: https://cwiki.apache.org/confluence/display/solr/RealTime+Get
+
+Get a document by id:
+```http://localhost:8983/solr/groums/get?id=1```
