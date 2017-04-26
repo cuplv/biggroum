@@ -76,11 +76,15 @@ def parse_cluster_info(cluster_info_stream):
         m = match_frequency_2.match(line)
         if m:
             pattern_frequency = m.group(1)
-            groum_list.append(m.group(2))
+            groum_file_app = m.group(2)
+            if "acdfg" in groum_file_app:
+                groum_list.append(groum_file_app)
             continue
 
         m = match_groum.match(line)
         if m:
+            if "Bin: " in line:
+                continue
             groum_list.append(line)
             continue
 

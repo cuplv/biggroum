@@ -159,10 +159,12 @@ def main():
 
     # Loop through the graph directory
     doc_pool = []
-    threshold = 10000
+    threshold = 5000
+    tot_inserted = 0
     for root, dirs, files in os.walk(opts.graph_dir):
         for name in files:
             if name.endswith(".acdfg.bin"):
+                # logging.info("Processing: %s" % name)
                 # insert the graph
                 real_path = os.path.join(root, name)
                 try:
@@ -173,7 +175,10 @@ def main():
                 except IOError as e:
                     logging.warn("Error reading file %s" % (e.filename))
 
+                before = len(doc_pool)
                 doc_pool = upload_pool(solr, threshold, doc_pool)
+                if len(doc_pool) == 0:
+                    tot_inserted = tot_inserted + before
     doc_pool = upload_pool(solr, -1, doc_pool)
 
 if __name__ == '__main__':
