@@ -83,19 +83,4 @@ class Pipeline(object):
         repoProcessor.processFromStep(repo_list,
                                       Pipeline.ExtractConfig.default_step)
         
-        
-def main():
-    # TODO: move in a test file
-    config = Pipeline.ExtractConfig("/Users/sergiomover/works/projects/muse/repos/FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar",
-                                    "/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/repo_list.json",
-                                    "/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/buildable_small.json",
-                                    "/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/build-data",
-                                    "/tmp/tmp_extraction")
-    Pipeline.extractGraphs(config)
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-
-    main()
 
