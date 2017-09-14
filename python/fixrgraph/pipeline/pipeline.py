@@ -51,8 +51,15 @@ class Pipeline(object):
     Extract the graphs from the android projects.
 
     Input: see ExtractConfig
-    Output [TODO]:
-      - 
+    Output:
+      - creates the output directory config.output_path containing:
+        - a graphs directory containing the binary format of the
+          acdfgs (.acdfg.bin extension). The graphs are structured as
+         user_name/repo_name/hash/<method_name>.bin.acdfg
+        - a provenance directory containing the human readable
+         representation of the extracted graphs (html and dot files
+         for different graphs created for the process, like the cdfg,
+         the sliced cdfg...)     
     """
     @staticmethod
     def extractGraphs(config):
