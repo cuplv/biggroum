@@ -2,8 +2,10 @@
 
  """
 
-from fixrgraph.pipeline import Pipeline
+from fixrgraph.pipeline.pipeline import Pipeline
+import fixrgraph
 
+import shutil
 import logging
 import unittest
 import sys
@@ -18,20 +20,44 @@ except ImportError:
 class TestPipeLine(unittest.TestCase):
 
     def test_graph_extraction(self):
-        test_data_path = os.path.join(os.path.dirname(fixrgraph.test.__file__), "test_data")
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+
+        extractor_path = os.path.join(test_path, os.pardir)
+        extractor_path = os.path.join(extractor_path, os.pardir)
+        extractor_path = os.path.join(extractor_path, os.pardir)
+        extractor_path = os.path.join(extractor_path, os.pardir)
+        extractor_path = os.path.abspath(extractor_path)
+        extractor_path = os.path.join(extractor_path,
+                                      "FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar")
 
         repo_list = os.path.join(test_data_path, "repo_list.json")
         buildable_list = os.path.join(test_data_path, "buildable_small.json")
         build_data = os.path.join(test_data_path, "build-data")
         out_path = os.path.join(test_data_path, "output")
 
-        config = Pipeline.ExtractConfig("/Users/sergiomover/works/projects/muse/repos/FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar",
+        fixrgraph_jar = os.path.join(test_data_path, "repo_list.json")
+
+        config = Pipeline.ExtractConfig(extractor_path,
                                         repo_list, buildable_list, build_data, out_path)
-        # TODO: check results
         Pipeline.extractGraphs(config)
 
+        # some files that must have been created by running the test
+        created_files = ["graphs/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.acdfg.bin",
+                        "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.acdfg.dot",
+                         "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.cdfg.dot",
+                         "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.cfg.dot",
+                         "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.html",
+                         "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.jimple",
+                         "provenance/learning-android/Yamba/46795d3c4a1f56416f88a18b708d9db36a429025/com.marakana.android.yamba.YambaWidget_onReceive.sliced.jimple"]
 
-        # TODO: cleanup 
+        for f in created_files:
+            f_path = os.path.join(os.path.join(test_data_path, out_path), f)
+            self.assertTrue(os.path.exists(f_path))
+                         
+        # cleanup 
+        if os.path.exists(out_path):
+            shutil.rmtree(out_path)
 
 
 
