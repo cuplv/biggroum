@@ -119,7 +119,7 @@ class RepoProcessor:
     
     @staticmethod
     def extract_graph_from_repo_version():
-        
+        raise NotImplementedError
 
     @staticmethod
     def extract_static(repo,
@@ -253,7 +253,4 @@ class RepoProcessor:
         logging.debug("Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]))
         return repo
 
-
-
-    logging.debug("Found repo %s in BuilderFarm " % (key))
 
