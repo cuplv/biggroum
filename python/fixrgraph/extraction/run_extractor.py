@@ -411,7 +411,9 @@ class RepoProcessor:
 
     @staticmethod
     def get_version_from_gradle(gradle_build_file):
-
+        """ Returns the value of the attributes:
+        (minSdkVersion, maxSdkVersion, compileSdkVersion
+        """
         def getLimit(current, new, is_min):
             if (is_min and new != None and
                     (new < current or current == None)):
