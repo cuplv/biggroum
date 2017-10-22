@@ -17,7 +17,7 @@ except ImportError:
     import unittest
 
 
-class TestPipeLine(unittest.TestCase):
+class TestPipeline(unittest.TestCase):
 
     def test_graph_extraction(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
@@ -58,6 +58,58 @@ class TestPipeLine(unittest.TestCase):
         # cleanup 
         if os.path.exists(out_path):
             shutil.rmtree(out_path)
+
+
+    def test_graph_extraction(self):
+        # Set the paths
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+        groums_path = os.path.join(test_data_path, "groums")
+
+        # Set the path of the itemset computator
+        fixrgraphiso_path = os.path.join(test_path, os.pardir)
+        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
+        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
+        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
+        fixrgraphiso_path = os.path.abspath(fixrgraphiso_path)
+        fixrgraphiso_path = os.path.join(fixrgraphiso_path,
+                                         "FixrGraphIso/build/src/fixrgraphiso/frequentitemsets")
+        
+        cluster_path = os.path.join(test_data_path, "clusters")
+        os.mkdir(cluster_path)
+        cluster_file_path = os.path.join(cluster_path, "clusters.txt")
+
+        # get list of groums
+        groum_files_path = os.path.join(cluster_path, "groums_list.txt")
+        groums_list = []
+        for fname in os.listdir(groums_path):
+            if fname.endswith(".bin"):
+                groums_list.append(os.path.join(groums_path, fname))
+        with open(groum_files_path, "w") as gfile:
+            for g in groums_list:
+                gfile.write("%s\n" % g)
+        gfile.close()        
+
+        config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
+                                            2,
+                                            1,
+                                            groum_files_path,
+                                            cluster_file_path)
+        Pipeline.computeItemsets(config)
+
+
+        # Check results
+        self.assertTrue(cluster_file_path)
+        cf = open(cluster_file_path, 'r')
+        cf_lines = cf.readlines()
+        self.assertTrue(cf_lines[0].startswith("I:"))
+        for i in range(6):
+            self.assertTrue(cf_lines[i+1].startswith("F:"))
+        self.assertTrue(cf_lines[7].startswith("E"))
+                         
+        # cleanup 
+        if os.path.exists(cluster_path):
+            shutil.rmtree(cluster_path)
 
 
 
