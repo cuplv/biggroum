@@ -60,7 +60,7 @@ class TestPipeline(unittest.TestCase):
             shutil.rmtree(out_path)
 
 
-    def test_graph_extraction(self):
+    def test_itemset_computation(self):
         # Set the paths
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         test_data_path = os.path.join(test_path, "test_data")
