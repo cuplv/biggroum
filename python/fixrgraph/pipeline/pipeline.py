@@ -13,9 +13,6 @@ graph extraction to the bigglue pipeline.
 """
 
 class Pipeline(object):
-    
-
-
     """
     Configure the extraction process.
 
