@@ -126,31 +126,37 @@ class TestPipeline(unittest.TestCase):
         groums_path = os.path.join(test_data_path, "groums")
 
         # Set the path of the itemset computator
-        process_cluster_script_path = os.path.join(test_path, os.pardir)
-        process_cluster_script_path = os.path.join(process_cluster_script_path,
+        frequentsubgraphs_path = os.path.join(test_path, os.pardir)
+        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
                                                    os.pardir)
-        process_cluster_script_path = os.path.join(process_cluster_script_path,
+        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
                                                    os.pardir)
-        process_cluster_script_path = os.path.join(process_cluster_script_path,
+        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
                                                    os.pardir)
-        process_cluster_script_path = os.path.abspath(process_cluster_script_path)
-        process_cluster_script_path = os.path.join(process_cluster_script_path,
-                                                   "FixrGraphIso",
-                                                   "scripts",
-                                                   "processClusters.py")
-        
+        frequentsubgraphs_path = os.path.abspath(frequentsubgraphs_path)     
+        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
+                                              "FixrGraphIso",
+                                              "build",
+                                              "src",
+                                              "fixrgraphiso",
+                                              "frequentsubgraphs")    
         cluster_path = os.path.join(test_data_path, "clusters_data")
-        os.mkdir(cluster_path)
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
 
-        config = ComputePatternsConfig(groums_path,
-                                       cluster_path,
-                                       cluster_file_path,
-                                       10,
-                                       process_cluster_script_path):
+        config = Pipeline.ComputePatternsConfig(groums_path,
+                                                cluster_path,
+                                                cluster_file_path,
+                                                10,
+                                                frequentsubgraphs_path)
 
-        computePatterns(config)
+        Pipeline.computePatterns(config)
+
+        cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
+        created = [os.path.join(cluster_path, "makefile"),
+                   os.path.join(cluster_1_path, "methods_1.txt"),
+                   os.path.join(cluster_1_path, "run1.err.out"),
+                   os.path.join(cluster_1_path, "run1.out")]
 
         
         # # cleanup 

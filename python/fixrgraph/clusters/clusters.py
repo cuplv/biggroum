@@ -3,40 +3,12 @@ Handles the computation of clusters and patterns
 """
 
 import os
+import string
 
 class Clusters:
 
-    CMD_GRAPHISO="""
-    #!/bin/bash
-
-    rl="$(readlink -f "$0")"
-    script_dir="$(dirname "${rl}")"
-
-    if [ "${START_RANGE}X" == "X" ]; then
-      echo "START_RANGE variable not set"
-      exit 1
-    fi
-
-    if [ "${END_RANGE}X" == "X" ]; then
-      echo "END_RANGE variable not set"
-      exit 1
-    fi
-
-
-    date
-    pushd .
-    cd ${script_dir}/../../
-
-    echo "time -p (ulimit -t ${TIMEOUT}; python3 ${PROCESS_CLUSTER_SCRIPT} -n -c ./clusters.txt -d ./all_clusters -a ${START_RANGE} -b ${END_RANGE} -p ${GRAPH_ISO_PATH})"
-
-    time -p (ulimit -t ${TIMEOUT}; python3 ${PROCESS_CLUSTER_SCRIPT} -n -c ./clusters.txt -d ./all_clusters -a ${START_RANGE} -b ${END_RANGE} -p ${GRAPH_ISO_PATH})
-
-    popd
-
-    date
-
-    """
-
+    CMD_FOR_MAKE="""time -p (ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt *.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out)
+"""
     
     """
     Read the cluster file and returns a list of clusters.
@@ -48,7 +20,6 @@ class Clusters:
     list of methods in the cluster, the length of the acdfg list in
     the cluster, the list of acdfgs. 
     """
-
     @staticmethod
     def read_clusters(cluster_file):
         cluster_list = []
@@ -86,19 +57,18 @@ class Clusters:
         return cluster_list
 
     """
-    Generate a makefile to run the pattern computation
+    Generate a makefile to run the pattern computation inside the
+    base_cluster_path.
 
-    - makefile: path to the makefile to be created
     - base_cluster_path: path to the clusters directory
     - timeout: timeout for the compuatation of a single cluster
     - graphisopath: path to the FixrGraphIso project
     """
     @staticmethod
-    def gen_make(makefile,
-                 base_cluster_path,
+    def gen_make(base_cluster_path,
                  timeout, # timeout to compute the patter for a cluster
                  graphisopath, # path 
-                 processcluster):
+                 frequentsubgraph_path):
         def get_cluster_list(base_cluster_path):
             cluster_path = os.path.join(base_cluster_path, "all_clusters")
             clusters = []
@@ -114,6 +84,7 @@ class Clusters:
             suffix = "_%s" % (to)
             return suffix
 
+        makefile = os.path.join(base_cluster_path, "makefile")
         suffix = get_suffix_name(timeout)
         with open(makefile, "w") as f:
             clusters = get_cluster_list(base_cluster_path)
@@ -123,24 +94,16 @@ class Clusters:
 
             for (cluster,clusterid) in clusters:
                 params = {"TIMEOUT" : timeout,
-                          "CLUSTER_BASE_FOLDER" : base_cluster_path,
-                          "PROCESS_CLUSTER_SCRIPT" : processcluster,
-                          "GRAPH_ISO_PATH" : graphisopath,
-                          "START_RANGE" : str(clusterid),
-                          "END_RANGE" : str(clusterid)}
-                script_data = _substitute(Clusters.CMD_GRAPHISO, params)
-                script_file = os.path.join(base_cluster_path, cluster, "run_graph_%ss.bash" % (suffix))
+                          "FREQUENCY" : 20,
+                          "CLUSTER_PATH" : os.path.join(base_cluster_path,
+                                                        "all_clusters",
+                                                        "cluster_%s" % clusterid),
+                          "CLUSTER_ID" : str(clusterid),
+                          "FIXRGRAPHISOBIN" : frequentsubgraph_path}
 
-                with open(script_file, "w") as fs:
-                    fs.write("%s" % script_data)
-                    fs.close()
-
+                comp_cmd = string.Template(Clusters.CMD_FOR_MAKE).safe_substitute(params)
                 target_name = "cluster_%s" % clusterid
-                rel_script_file = os.path.join(base_cluster_path.split("/")[-1], cluster, os.path.basename(script_file))
-
-                output = rel_script_file + ".out"
-
-                f.write("%s: \n\tbash './%s'\n\n" % (target_name, rel_script_file))
+                f.write("%s:\n\t%s\n\n" % (target_name, comp_cmd))
             f.close()
 
 

@@ -127,10 +127,11 @@ class Pipeline(object):
             self.frequent_itemset_bin = frequent_itemset_bin
             self.frequency_cutoff = frequency_cutoff
             self.min_methods_in_itemset = min_methods_in_itemset
+
             self.groum_files_list = groum_files_list
+
             self.cluster_path = cluster_path
             self.cluster_file = cluster_file
-
 
     """ Compute the frequent itemset for a set of graphs.
     
@@ -163,15 +164,45 @@ class Pipeline(object):
         # Creates the cluster directories
         Clusters.generate_graphiso_clusters(config.cluster_path,
                                             config.cluster_file)
-
-        # Creates the makefiles
-        
-        
+            
 
 
+    """
+    Configuration for the computation of the patterns.
+    """
+    class ComputePatternsConfig(object):
+        def __init__(self,
+                     groums_path,
+                     cluster_path,
+                     cluster_file,
+                     timeout,
+                     frequentsubgraphs_path):
+            self.groums_path = groums_path
+            self.cluster_path = cluster_path
+            self.cluster_file = cluster_file
+            self.timeout = timeout
+            self.frequentsubgraphs_path = frequentsubgraphs_path
+
+    """
+    Run the computation of the of the cluster using make
+    """
     @staticmethod
-    def computePatterns(config):
-        raise NotImplementedError
+    def computePatterns(config):        
+
+        # Generate the makefile
+        makefile_path = os.path.join(config.cluster_path, "makefile")
+        Clusters.gen_make(config.cluster_path,
+                          config.timeout,
+                          config.groums_path,
+                          config.frequentsubgraphs_path)
+
+        # Run make
+        args = ["make", "-f", makefile_path]
+        success = Pipeline._call_sub(args)
+
+        if not success:
+            raise Exception("Error computing the patterns")
+
 
     def computeHtmls(config):
         raise NotImplementedError
