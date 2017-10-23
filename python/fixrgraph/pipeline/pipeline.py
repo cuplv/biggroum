@@ -2,6 +2,7 @@
 """
 
 from fixrgraph.extraction.run_extractor import RepoProcessor
+from fixrgraph.clusters.clusters import Clusters
 
 import logging
 import os
@@ -103,7 +104,7 @@ class Pipeline(object):
         
 
     """
-    Configure the itemset computation.
+    Configuration for the itemset computation.
 
     - freqeunt_itemset_bin: absolute path to the executable that
       computes the frequent itemsets
@@ -121,11 +122,13 @@ class Pipeline(object):
                      frequency_cutoff,
                      min_methods_in_itemset,
                      groum_files_list,
+                     cluster_path,
                      cluster_file):
             self.frequent_itemset_bin = frequent_itemset_bin
             self.frequency_cutoff = frequency_cutoff
             self.min_methods_in_itemset = min_methods_in_itemset
             self.groum_files_list = groum_files_list
+            self.cluster_path = cluster_path
             self.cluster_file = cluster_file
 
 
@@ -156,6 +159,14 @@ class Pipeline(object):
         #
         # if (not success):
         #     raise Exception("Error computing the frequent itemsets")
+
+        # Creates the cluster directories
+        Clusters.generate_graphiso_clusters(config.cluster_path,
+                                            config.cluster_file)
+
+        # Creates the makefiles
+        
+        
 
 
     @staticmethod

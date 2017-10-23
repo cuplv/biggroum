@@ -94,9 +94,9 @@ class TestPipeline(unittest.TestCase):
                                             2,
                                             1,
                                             groum_files_path,
+                                            cluster_path,
                                             cluster_file_path)
         Pipeline.computeItemsets(config)
-
 
         # Check results
         self.assertTrue(cluster_file_path)
@@ -107,9 +107,9 @@ class TestPipeline(unittest.TestCase):
             self.assertTrue(cf_lines[i+1].startswith("F:"))
         self.assertTrue(cf_lines[7].startswith("E"))
                          
-        # cleanup 
-        if os.path.exists(cluster_path):
-            shutil.rmtree(cluster_path)
+        # # cleanup 
+        # if os.path.exists(cluster_path):
+        #     shutil.rmtree(cluster_path)
 
 
 
