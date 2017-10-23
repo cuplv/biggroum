@@ -98,20 +98,64 @@ class TestPipeline(unittest.TestCase):
                                             cluster_file_path)
         Pipeline.computeItemsets(config)
 
-        # Check results
-        self.assertTrue(cluster_file_path)
+        # Check the itemset computation
+        self.assertTrue(config.cluster_file)
         cf = open(cluster_file_path, 'r')
         cf_lines = cf.readlines()
         self.assertTrue(cf_lines[0].startswith("I:"))
         for i in range(6):
             self.assertTrue(cf_lines[i+1].startswith("F:"))
         self.assertTrue(cf_lines[7].startswith("E"))
-                         
+
+        # Check the creation of the cluster folders
+        acdfg_link = os.path.join(config.cluster_path,
+                                  "all_clusters",
+                                  "cluster_1",
+                                  "tv.acfun.a63.DonateActivity_showErrorDialog.acdfg.bin")
+        self.assertTrue(os.path.exists(acdfg_link))
+
+        # cleanup 
+        if os.path.exists(cluster_path):
+            shutil.rmtree(cluster_path)
+
+
+    def test_pattern_computation(self):
+        # Set the paths
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+        groums_path = os.path.join(test_data_path, "groums")
+
+        # Set the path of the itemset computator
+        process_cluster_script_path = os.path.join(test_path, os.pardir)
+        process_cluster_script_path = os.path.join(process_cluster_script_path,
+                                                   os.pardir)
+        process_cluster_script_path = os.path.join(process_cluster_script_path,
+                                                   os.pardir)
+        process_cluster_script_path = os.path.join(process_cluster_script_path,
+                                                   os.pardir)
+        process_cluster_script_path = os.path.abspath(process_cluster_script_path)
+        process_cluster_script_path = os.path.join(process_cluster_script_path,
+                                                   "FixrGraphIso",
+                                                   "scripts",
+                                                   "processClusters.py")
+        
+        cluster_path = os.path.join(test_data_path, "clusters_data")
+        os.mkdir(cluster_path)
+        cluster_file_path = os.path.join(cluster_path, "clusters.txt")
+
+
+        config = ComputePatternsConfig(groums_path,
+                                       cluster_path,
+                                       cluster_file_path,
+                                       10,
+                                       process_cluster_script_path):
+
+        computePatterns(config)
+
+        
         # # cleanup 
         # if os.path.exists(cluster_path):
         #     shutil.rmtree(cluster_path)
-
-
 
 
         
