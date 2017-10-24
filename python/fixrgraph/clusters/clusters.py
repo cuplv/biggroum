@@ -7,7 +7,7 @@ import string
 
 class Clusters:
 
-    CMD_FOR_MAKE="""time -p (ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt *.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out)
+    CMD_FOR_MAKE="""time -p (ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out)
 """
     
     """
@@ -34,7 +34,8 @@ class Clusters:
                     assert method_list is None
                     assert acdfg_list is None
                     method_line = line[len("I:"):].strip()
-                    method_list = method_line[:method_line.index("(")]
+                    method_s = method_line[:method_line.index("(")]
+                    method_list = [s.strip() for s in method_s.split(",")]
                     total_methods = method_line[method_line.index("("):]
                     total_methods = total_methods.replace("( ","")
                     total_methods = total_methods.replace(" )","")
@@ -67,6 +68,7 @@ class Clusters:
     @staticmethod
     def gen_make(base_cluster_path,
                  timeout, # timeout to compute the patter for a cluster
+                 frequency_cutoff,
                  graphisopath, # path 
                  frequentsubgraph_path):
         def get_cluster_list(base_cluster_path):
@@ -94,7 +96,7 @@ class Clusters:
 
             for (cluster,clusterid) in clusters:
                 params = {"TIMEOUT" : timeout,
-                          "FREQUENCY" : 20,
+                          "FREQUENCY" : frequency_cutoff,
                           "CLUSTER_PATH" : os.path.join(base_cluster_path,
                                                         "all_clusters",
                                                         "cluster_%s" % clusterid),
@@ -116,12 +118,24 @@ class Clusters:
     @staticmethod
     def generate_graphiso_clusters(graphiso_cluster_path,
                                    cluster_file):
-        # read each cluster, creating a folder for each of them
+        # read each cluster, creating a folder for each of them and the methods file
         for (cluster_id, method_list, tot, acdfg_list) in Clusters.read_clusters(cluster_file):
+
+            # Create the destination directory
             dst_path = os.path.join(graphiso_cluster_path, "all_clusters",
                                     "cluster_%d" % cluster_id)
             os.makedirs(dst_path)
-            for acdfg in acdfg_list:
+
+            # Create a symlink to all the groums
+            for acdfg in acdfg_list:            
                 dst_file = os.path.join(dst_path, os.path.basename(acdfg))
                 os.symlink(acdfg, dst_file)
+
+            # Create the methods file
+            method_file = os.path.join(dst_path, 'methods_%d.txt' % cluster_id)
+            with open(method_file, 'wt') as method_f:
+                for s in method_list:
+                    method_f.write("%s\n" % s)
+                method_f.close()
     
+

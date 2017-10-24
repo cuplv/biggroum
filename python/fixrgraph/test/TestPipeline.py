@@ -114,6 +114,12 @@ class TestPipeline(unittest.TestCase):
                                   "tv.acfun.a63.DonateActivity_showErrorDialog.acdfg.bin")
         self.assertTrue(os.path.exists(acdfg_link))
 
+        methods_file = os.path.join(config.cluster_path,
+                                    "all_clusters",
+                                    "cluster_1",
+                                    "methods_1.txt")
+        self.assertTrue(os.path.exists(methods_file))
+
         # cleanup 
         if os.path.exists(cluster_path):
             shutil.rmtree(cluster_path)
@@ -148,20 +154,28 @@ class TestPipeline(unittest.TestCase):
                                                 cluster_path,
                                                 cluster_file_path,
                                                 10,
+                                                2,
                                                 frequentsubgraphs_path)
 
         Pipeline.computePatterns(config)
 
         cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
         created = [os.path.join(cluster_path, "makefile"),
-                   os.path.join(cluster_1_path, "methods_1.txt"),
                    os.path.join(cluster_1_path, "run1.err.out"),
-                   os.path.join(cluster_1_path, "run1.out")]
+                   os.path.join(cluster_1_path, "run1.out"),
+                   os.path.join(cluster_1_path, "cluster_1_info.txt"),
+                   os.path.join(cluster_1_path, "pop_1.acdfg.bin"),
+                   os.path.join(cluster_1_path, "pop_2.acdfg.bin"),
+                   os.path.join(cluster_1_path, "anom_1.acdfg.bin"),
+                   os.path.join(cluster_1_path, "pop_1.dot"),
+                   os.path.join(cluster_1_path, "pop_2.dot"),
+                   os.path.join(cluster_1_path, "anom_1.dot")]
 
+        for c in created:
+            self.assertTrue(os.path.exists(c))
+            # cleanup
+            os.remove(c)
         
-        # # cleanup 
-        # if os.path.exists(cluster_path):
-        #     shutil.rmtree(cluster_path)
 
 
         

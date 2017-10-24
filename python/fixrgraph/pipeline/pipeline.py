@@ -154,12 +154,8 @@ class Pipeline(object):
 
         success = Pipeline._call_sub(args)
 
-        # The frequent itemset computation always return 1 as exit
-        # code.
-        # See: https://github.com/cuplv/FixrGraphIso/issues/13
-        #
-        # if (not success):
-        #     raise Exception("Error computing the frequent itemsets")
+        if (not success):
+            raise Exception("Error computing the frequent itemsets")
 
         # Creates the cluster directories
         Clusters.generate_graphiso_clusters(config.cluster_path,
@@ -176,11 +172,13 @@ class Pipeline(object):
                      cluster_path,
                      cluster_file,
                      timeout,
+                     frequency_cutoff,
                      frequentsubgraphs_path):
             self.groums_path = groums_path
             self.cluster_path = cluster_path
             self.cluster_file = cluster_file
             self.timeout = timeout
+            self.frequency_cutoff = frequency_cutoff
             self.frequentsubgraphs_path = frequentsubgraphs_path
 
     """
@@ -193,6 +191,7 @@ class Pipeline(object):
         makefile_path = os.path.join(config.cluster_path, "makefile")
         Clusters.gen_make(config.cluster_path,
                           config.timeout,
+                          config.frequency_cutoff,
                           config.groums_path,
                           config.frequentsubgraphs_path)
 
