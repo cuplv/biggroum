@@ -203,8 +203,34 @@ class Pipeline(object):
             raise Exception("Error computing the patterns")
 
 
-    def computeHtmls(config):
-        raise NotImplementedError
+    """
+    Configuration for the computation of the html pages.
+    """
+    class ComputeHtmlConfig(object):
+        def __init__(self,
+                     cluster_path,
+                     cluster_count,
+                     gather_results_path):
+            self.cluster_path = cluster_path
+            self.cluster_count = cluster_count
+            self.gather_results_path = gather_results_path
+
+    @staticmethod
+    def computeHtml(config):
+        html_files_path = os.path.join(config.cluster_path, "html_files")
+        os.mkdir(html_files_path)
+
+        args = ["python",
+                config.gather_results_path,
+                "-a", "1",
+                "-b", config.cluster_count,
+                "-i", "all_clusters",
+                "-o", "html_files"]
+
+        success = Pipeline._call_sub(args, config.cluster_path)
+
+        if not success:
+            raise Exception("Error computing the html pages")
 
 
         

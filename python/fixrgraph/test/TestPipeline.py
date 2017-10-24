@@ -175,7 +175,44 @@ class TestPipeline(unittest.TestCase):
             self.assertTrue(os.path.exists(c))
             # cleanup
             os.remove(c)
-        
 
+
+    def test_create_html(self):
+        # Set the paths
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+
+        # Set the path of the html creator
+        gather_results_path = os.path.join(test_path, os.pardir)
+        gather_results_path = os.path.join(gather_results_path,
+                                           os.pardir)
+        gather_results_path = os.path.join(gather_results_path,
+                                           os.pardir)
+        gather_results_path = os.path.join(gather_results_path,
+                                           os.pardir)
+        gather_results_path = os.path.abspath(gather_results_path)     
+        gather_results_path = os.path.join(gather_results_path,
+                                           "FixrGraphIso",
+                                           "scripts",
+                                           "gatherResults.py")
+        cluster_path = os.path.join(test_data_path, "clusters_data_html")
+        html_path = os.path.join(cluster_path, "html_files")
+
+        config = Pipeline.ComputeHtmlConfig(cluster_path,
+                                            "1",
+                                            gather_results_path)
+
+        Pipeline.computeHtml(config)
+
+        created = ["cluster_1.html",
+                   "cluster_1_anom_1.dot",
+                   "cluster_1_pop_1.dot",
+                   "cluster_1_pop_2.dot",
+                   "index.html"]
+        created = [os.path.join(html_path, s) for s in created]
+        for c in created:
+            self.assertTrue(os.path.exists(c))
+            os.remove(c)
+        shutil.rmtree(html_path)
 
         
