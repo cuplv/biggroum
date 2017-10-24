@@ -1,0 +1,13 @@
+android.app.AlertDialog$Builder.<init>
+android.app.AlertDialog$Builder.setIcon
+android.app.AlertDialog$Builder.setMessage
+android.app.AlertDialog$Builder.setNegativeButton
+android.app.AlertDialog$Builder.setPositiveButton
+android.app.AlertDialog$Builder.setTitle
+android.app.AlertDialog$Builder.show
+android.content.res.AssetManager.open
+android.graphics.drawable.Drawable.createFromStream
+android.graphics.drawable.Drawable.getIntrinsicHeight
+android.graphics.drawable.Drawable.getIntrinsicWidth
+android.graphics.drawable.Drawable.setBounds
+android.support.v7.app.ActionBarActivity.getAssets

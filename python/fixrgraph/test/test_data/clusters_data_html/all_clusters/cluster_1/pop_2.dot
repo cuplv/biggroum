@@ -1,0 +1,33 @@
+digraph isoX {
+ node[shape=box,style="filled,rounded",penwidth=2.0,fontsize=13,]; 
+  edge[ arrowhead=onormal,penwidth=2.0,]; 
+
+"n_4" [shape=ellipse,color=red,style=dashed,label="DataNode #4: android.app.AlertDialog$Builder  $r0"];
+"n_23" [ shape=box, style=filled, color=lightgray, label=" android.app.AlertDialog$Builder.show[#4]()"];
+"n_13" [shape=ellipse,color=red,style=dashed,label="DataNode #13: java.lang.String  \'\u8bf7\u91cd\u65b0\u8f93\u5165\uff01\'"];
+"n_14" [ shape=box, style=filled, color=lightgray, label=" android.app.AlertDialog$Builder.setMessage[#4](#13)"];
+"n_1" [shape=ellipse,color=red,style=dashed,label="DataNode #1: tv.acfun.a63.SettingsActivity  this"];
+"n_7" [ shape=box, style=filled, color=lightgray, label=" android.app.AlertDialog$Builder.<init>[#4](#1)"];
+"n_9" [shape=ellipse,color=red,style=dashed,label="DataNode #9: java.lang.String  \'\u4f4d\u7f6e\u65e0\u6548\'"];
+"n_10" [ shape=box, style=filled, color=lightgray, label=" android.app.AlertDialog$Builder.setTitle[#4](#9)"];
+"n_17" [shape=ellipse,color=red,style=dashed,label="DataNode #17: java.lang.String  \'\u597d\'"];
+"n_18" [shape=ellipse,color=red,style=dashed,label="DataNode #18: null_type  null"];
+"n_19" [ shape=box, style=filled, color=lightgray, label=" android.app.AlertDialog$Builder.setNegativeButton[#4](#17, #18)"];
+"n_19" -> "n_4"[color=blue, penwidth=2];
+"n_14" -> "n_4"[color=blue, penwidth=2];
+"n_10" -> "n_4"[color=blue, penwidth=2];
+"n_1" -> "n_7"[color=green, penwidth=2];
+"n_4" -> "n_19"[color=green, penwidth=2];
+"n_9" -> "n_10"[color=green, penwidth=2];
+"n_4" -> "n_10"[color=green, penwidth=2];
+"n_17" -> "n_19"[color=green, penwidth=2];
+"n_4" -> "n_14"[color=green, penwidth=2];
+"n_4" -> "n_7"[color=green, penwidth=2];
+"n_18" -> "n_19"[color=green, penwidth=2];
+"n_4" -> "n_23"[color=green, penwidth=2];
+"n_13" -> "n_14"[color=green, penwidth=2];
+"n_10" -> "n_14"[color=black, penwidth=3];
+"n_7" -> "n_10"[color=black, penwidth=3];
+"n_19" -> "n_23"[color=black, penwidth=3];
+"n_14" -> "n_19"[color=black, penwidth=3];
+ } 
