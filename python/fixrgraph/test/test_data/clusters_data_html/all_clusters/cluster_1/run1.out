@@ -1,0 +1,22 @@
+Info will be dumped to : /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/cluster_1_info.txt
+Loading methods
+	 Adding :android.app.AlertDialog$Builder.<init>
+	 Adding :android.app.AlertDialog$Builder.setIcon
+	 Adding :android.app.AlertDialog$Builder.setMessage
+	 Adding :android.app.AlertDialog$Builder.setNegativeButton
+	 Adding :android.app.AlertDialog$Builder.setPositiveButton
+	 Adding :android.app.AlertDialog$Builder.setTitle
+	 Adding :android.app.AlertDialog$Builder.show
+	 Adding :android.content.res.AssetManager.open
+	 Adding :android.graphics.drawable.Drawable.createFromStream
+	 Adding :android.graphics.drawable.Drawable.getIntrinsicHeight
+	 Adding :android.graphics.drawable.Drawable.getIntrinsicWidth
+	 Adding :android.graphics.drawable.Drawable.setBounds
+	 Adding :android.support.v7.app.ActionBarActivity.getAssets
+Output patterns will be dumped in: /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1
+9--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.DonateActivity_showErrorDialog.acdfg.bin
+10--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.MainActivity_setUserInfo.acdfg.bin
+11--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.MainActivity_showLastPublicReleaseAlert.acdfg.bin
+12--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.SettingsActivity_showPathChangeDialog.acdfg.bin
+13--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.SettingsActivity_showPathInvalidateDialog.acdfg.bin
+14--> /Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.base.BaseWebViewActivity_showErrorDialog.acdfg.bin

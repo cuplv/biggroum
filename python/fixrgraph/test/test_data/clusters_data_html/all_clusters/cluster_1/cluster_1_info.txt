@@ -1,0 +1,30 @@
+Popular Bins: 
+Popular Bin # 1
+Dot: pop_1.dot
+Bin: pop_1.acdfg.bin
+Frequency: 1, 2
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.DonateActivity_showErrorDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.base.BaseWebViewActivity_showErrorDialog.acdfg.bin
+Popular Bin # 2
+Dot: pop_2.dot
+Bin: pop_2.acdfg.bin
+Frequency: 1, 3
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.SettingsActivity_showPathInvalidateDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.SettingsActivity_showPathChangeDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.base.BaseWebViewActivity_showErrorDialog.acdfg.bin
+Anomalous Bin # 1
+Dot: anom_1.dot
+Bin: anom_1.acdfg.bin
+Frequency: 2
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.MainActivity_setUserInfo.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/clusters_data/all_clusters/cluster_1/tv.acfun.a63.MainActivity_showLastPublicReleaseAlert.acdfg.bin
+Total Time (s): 0
+# Graphs : 6
+Average # of nodes: 16
+Average # of edges: 52
+Max. # of nodes : 28
+Max. # of edges : 115
+# Subsumption checks: 44
+
+# SAT calls: 9
+# satSolverTime (ms): 46

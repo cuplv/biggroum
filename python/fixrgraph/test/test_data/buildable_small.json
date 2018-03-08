@@ -1,0 +1,53 @@
+{
+  "results": [
+    {
+      "_id": "57c8078c9876954c7c5f253a", 
+      "apps": {
+        "bin": {
+          "apk": [
+            "bin/MainActivity-debug.apk", 
+            "bin/MainActivity-debug-unaligned.apk"
+          ], 
+          "cls": [
+            "bin/classes/com/marakana/android/yamba"
+          ], 
+          "jar": [], 
+          "src": []
+        }
+      }, 
+      "builds": [
+        {
+          "builder": "tim", 
+          "dt_created": 1472982832, 
+          "fix_applied": [
+            "ECP_FIX_1"
+          ], 
+          "snippet": "Ant build success for learning-android/Yamba", 
+          "stat": "PS"
+        }, 
+        {
+          "builder": "bob", 
+          "dt_created": 1472899264, 
+          "fix_applied": [], 
+          "snippet": "Gradle file not found found.", 
+          "stat": "SK"
+        }, 
+        {
+          "builder": "tris", 
+          "dt_created": 1472726925, 
+          "fix_applied": [], 
+          "snippet": "Gradle file not found found.", 
+          "stat": "SK"
+        }
+      ], 
+      "dt_committed": 1391866531, 
+      "dt_created": 1472726924, 
+      "dt_modified": 1472982832,
+      "hash": "46795d3c4a1f56416f88a18b708d9db36a429025", 
+      "ptype": "ECP", 
+      "repo": "Yamba", 
+      "store": 0, 
+      "user": "learning-android"
+    }
+  ] 
+}
