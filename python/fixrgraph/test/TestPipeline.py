@@ -29,14 +29,47 @@ class TestPipeline(unittest.TestCase):
 
         return repo_path
 
+    @staticmethod
+    def get_extractor_path():
+        repo_path = TestPipeline.get_repo_path()
+        extractor_path = os.path.join(repo_path,
+                                      "FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar")
+        return extractor_path
+
+    @staticmethod
+    def get_fixrgraphiso_path():
+        # Set the path of the itemset computator
+        repo_path = TestPipeline.get_repo_path()
+        fixrgraphiso_path = os.path.join(repo_path,
+                                         "FixrGraphIso/build/src/fixrgraphiso/frequentitemsets")
+        return fixrgraphiso_path
+
+    @staticmethod
+    def get_frequentsubgraphs_path():
+        repo_path = TestPipeline.get_repo_path()
+        frequentsubgraphs_path = os.path.join(repo_path,
+                                              "FixrGraphIso",
+                                              "build",
+                                              "src",
+                                              "fixrgraphiso",
+                                              "frequentsubgraphs")
+        return frequentsubgraphs_path
+
+    @staticmethod
+    def get_gather_results_path():
+        repo_path = TestPipeline.get_repo_path()
+        gather_results_path = os.path.join(repo_path,
+                                           "FixrGraphIso",
+                                           "scripts",
+                                           "gatherResults.py")
+        return gather_results_path
+
 
     def test_graph_extraction(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         test_data_path = os.path.join(test_path, "test_data")
 
-        repo_path = TestPipeline.get_repo_path()
-        extractor_path = os.path.join(repo_path,
-                                      "FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar")
+        extractor_path = TestPipeline.get_extractor_path()
 
         repo_list = os.path.join(test_data_path, "repo_list.json")
         buildable_list = os.path.join(test_data_path, "buildable_small.json")
@@ -74,9 +107,7 @@ class TestPipeline(unittest.TestCase):
         groums_path = os.path.join(test_data_path, "groums")
 
         # Set the path of the itemset computator
-        repo_path = TestPipeline.get_repo_path()
-        fixrgraphiso_path = os.path.join(repo_path,
-                                         "FixrGraphIso/build/src/fixrgraphiso/frequentitemsets")
+        fixrgraphiso_path = TestPipeline.get_fixrgraphiso_path()
 
         cluster_path = os.path.join(test_data_path, "clusters")
         os.mkdir(cluster_path)
@@ -135,16 +166,9 @@ class TestPipeline(unittest.TestCase):
         groums_path = os.path.join(test_data_path, "groums")
 
         # Set the path of the itemset computator
-        repo_path = TestPipeline.get_repo_path()
-        frequentsubgraphs_path = os.path.join(repo_path,
-                                              "FixrGraphIso",
-                                              "build",
-                                              "src",
-                                              "fixrgraphiso",
-                                              "frequentsubgraphs")
+        frequentsubgraphs_path = TestPipeline.get_frequentsubgraphs_path()
         cluster_path = os.path.join(test_data_path, "clusters_data")
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
-
 
         config = Pipeline.ComputePatternsConfig(groums_path,
                                                 cluster_path,
@@ -179,11 +203,7 @@ class TestPipeline(unittest.TestCase):
         test_data_path = os.path.join(test_path, "test_data")
 
         # Set the path of the html creator
-        repo_path = TestPipeline.get_repo_path()
-        gather_results_path = os.path.join(repo_path,
-                                           "FixrGraphIso",
-                                           "scripts",
-                                           "gatherResults.py")
+        gather_results_path = TestPipeline.get_gather_results_path()
         cluster_path = os.path.join(test_data_path, "clusters_data_html")
         html_path = os.path.join(cluster_path, "html_files")
 
