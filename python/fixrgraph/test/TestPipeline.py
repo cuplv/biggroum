@@ -54,7 +54,7 @@ class TestPipeline(unittest.TestCase):
         for f in created_files:
             f_path = os.path.join(os.path.join(test_data_path, out_path), f)
             self.assertTrue(os.path.exists(f_path))
-                         
+
         # cleanup 
         if os.path.exists(out_path):
             shutil.rmtree(out_path)
@@ -74,7 +74,7 @@ class TestPipeline(unittest.TestCase):
         fixrgraphiso_path = os.path.abspath(fixrgraphiso_path)
         fixrgraphiso_path = os.path.join(fixrgraphiso_path,
                                          "FixrGraphIso/build/src/fixrgraphiso/frequentitemsets")
-        
+
         cluster_path = os.path.join(test_data_path, "clusters")
         os.mkdir(cluster_path)
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
@@ -139,13 +139,13 @@ class TestPipeline(unittest.TestCase):
                                                    os.pardir)
         frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
                                                    os.pardir)
-        frequentsubgraphs_path = os.path.abspath(frequentsubgraphs_path)     
+        frequentsubgraphs_path = os.path.abspath(frequentsubgraphs_path)
         frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
                                               "FixrGraphIso",
                                               "build",
                                               "src",
                                               "fixrgraphiso",
-                                              "frequentsubgraphs")    
+                                              "frequentsubgraphs")
         cluster_path = os.path.join(test_data_path, "clusters_data")
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
@@ -190,7 +190,7 @@ class TestPipeline(unittest.TestCase):
                                            os.pardir)
         gather_results_path = os.path.join(gather_results_path,
                                            os.pardir)
-        gather_results_path = os.path.abspath(gather_results_path)     
+        gather_results_path = os.path.abspath(gather_results_path)
         gather_results_path = os.path.join(gather_results_path,
                                            "FixrGraphIso",
                                            "scripts",
@@ -215,4 +215,3 @@ class TestPipeline(unittest.TestCase):
             os.remove(c)
         shutil.rmtree(html_path)
 
-        
