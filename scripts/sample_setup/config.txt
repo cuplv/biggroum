@@ -1,0 +1,13 @@
+[extraction]
+repo_list=repo_list.json
+buildable_list=buildable.json
+build_data=
+out_path=out
+
+[itemset]
+frequency_cutoff=2
+min_methods_in_itemset=1
+
+[pattern]
+timeout=10
+frequency_cutoff=2

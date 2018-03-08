@@ -21,6 +21,7 @@ submodules.
 1. Follow the README files in the `FixrGraphExtractor` and
    `FixrGraphIso` to check the required dependencies of both tools.
 
+
 To build the `FixrGraphExtractor`:
 ```
 $> cd FixrGraphExtractor
@@ -44,6 +45,9 @@ $> make
 - sql_alchemy for python
 
 
+- android SDK
+Remember to set the android SDK home
+
 3. To test if your environment is set-up correctly, you can run the tests.
 ```
 $> cd python/fixrgraph/test
@@ -57,15 +61,60 @@ You need to have `nose` installed on your system to run the tests automatically.
 
 # Run the graph extraction and mining process
 
-The graph pipeline consists of the following steps:
+You need to include the python package in your `PYTHON_PATH`.
+You can execute the following command from the repository path:
+```
+repo_path=`pwd`
+export PYTHONPATH="${repo_path}/python":${PYTHONPATH}
+```
 
-## Set-up the extraction
 
-## Set-up the mining process
+
+## Set-up the extraction step:
+
+The file `scripts/sample_setup/config.txt` shows an example of parameters that can be used to setup the extraction and mining process.
+
+Note that the file paths in the configiration file must be absolute or relative to the path where the script is executed.
+
+### repo_list
+Path to a json file containing the name of the github repository that must be processed (see the file `scripts/sample_setup/repo_list.json`)
+
+### buildable_list
+Path to a json file describing where the github repositories have been already built.
+
+See the file `buildable_small.json` file to see the information that must be provided.
+
+### build_data
+Path to the directory that contains the built repositories.
+
+Each repository must be built in a folder called `<github-username>/<github-repo-name>/<github-commit-hash>`.
+
+### out_path
+Output directory for all the produced data (you have to create the folder `out` under `scripts/sample_setup` it to run the tool on the example setup).
+
+### frequency_cutoff
+The minimum frequency of an itemset (i.e., number of graphs that support that itemset) that will be considered by the itemset computation.
+
+### min_methods_in_itemset
+The minimum number of methods that an itemset must have
+
+[pattern]
+### timeout
+The timeout (in seconds) for the computation of the patterns of a single cluster
+
+### frequency_cutoff
+The minimum frequency (number of graphs) that a pattern must have to be considered frequent.
+
 
 ## Run the whole process
+```
+$> cd scripts/sample_setup
+$> python run_mining.py -c config.txt
+```
+
 
 ## Description of the output
+
 
 
 # References and experiments

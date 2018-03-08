@@ -64,6 +64,20 @@ class TestPipeline(unittest.TestCase):
                                            "gatherResults.py")
         return gather_results_path
 
+    @staticmethod
+    def create_groums_file(groums_path, groum_files_path):
+        groums_list = []
+        for root, subFolder, files in os.walk(groums_path):
+            for item in files:
+                if item.endswith(".bin") :
+                    file_name_path = str(os.path.join(root,item))
+                    groums_list.append(file_name_path)
+
+        with open(groum_files_path, "w") as gfile:
+            for g in groums_list:
+                gfile.write("%s\n" % g)
+        gfile.close()
+
 
     def test_graph_extraction(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
@@ -115,14 +129,7 @@ class TestPipeline(unittest.TestCase):
 
         # get list of groums
         groum_files_path = os.path.join(cluster_path, "groums_list.txt")
-        groums_list = []
-        for fname in os.listdir(groums_path):
-            if fname.endswith(".bin"):
-                groums_list.append(os.path.join(groums_path, fname))
-        with open(groum_files_path, "w") as gfile:
-            for g in groums_list:
-                gfile.write("%s\n" % g)
-        gfile.close()        
+        TestPipeline.create_groums_file(groums_path, groum_files_path)
 
         config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
                                             2,

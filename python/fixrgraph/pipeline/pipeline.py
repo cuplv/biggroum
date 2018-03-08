@@ -101,7 +101,6 @@ class Pipeline(object):
                                       extractor_status_file)
         repoProcessor.processFromStep(repo_list,
                                       Pipeline.ExtractConfig.default_step)
-        
 
     """
     Configuration for the itemset computation.
@@ -199,8 +198,8 @@ class Pipeline(object):
         args = ["make", "-f", makefile_path]
         success = Pipeline._call_sub(args)
 
-        if not success:
-            raise Exception("Error computing the patterns")
+        # if not success:
+        #     raise Exception("Error computing the patterns")
 
 
     """
