@@ -19,16 +19,23 @@ except ImportError:
 
 class TestPipeline(unittest.TestCase):
 
+    @staticmethod
+    def get_repo_path():
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        repo_path = os.path.join(test_path, os.pardir)
+        repo_path = os.path.join(repo_path, os.pardir)
+        repo_path = os.path.join(repo_path, os.pardir)
+        repo_path = os.path.abspath(repo_path)
+
+        return repo_path
+
+
     def test_graph_extraction(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         test_data_path = os.path.join(test_path, "test_data")
 
-        extractor_path = os.path.join(test_path, os.pardir)
-        extractor_path = os.path.join(extractor_path, os.pardir)
-        extractor_path = os.path.join(extractor_path, os.pardir)
-        extractor_path = os.path.join(extractor_path, os.pardir)
-        extractor_path = os.path.abspath(extractor_path)
-        extractor_path = os.path.join(extractor_path,
+        repo_path = TestPipeline.get_repo_path()
+        extractor_path = os.path.join(repo_path,
                                       "FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar")
 
         repo_list = os.path.join(test_data_path, "repo_list.json")
@@ -67,12 +74,8 @@ class TestPipeline(unittest.TestCase):
         groums_path = os.path.join(test_data_path, "groums")
 
         # Set the path of the itemset computator
-        fixrgraphiso_path = os.path.join(test_path, os.pardir)
-        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
-        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
-        fixrgraphiso_path = os.path.join(fixrgraphiso_path, os.pardir)
-        fixrgraphiso_path = os.path.abspath(fixrgraphiso_path)
-        fixrgraphiso_path = os.path.join(fixrgraphiso_path,
+        repo_path = TestPipeline.get_repo_path()
+        fixrgraphiso_path = os.path.join(repo_path,
                                          "FixrGraphIso/build/src/fixrgraphiso/frequentitemsets")
 
         cluster_path = os.path.join(test_data_path, "clusters")
@@ -132,15 +135,8 @@ class TestPipeline(unittest.TestCase):
         groums_path = os.path.join(test_data_path, "groums")
 
         # Set the path of the itemset computator
-        frequentsubgraphs_path = os.path.join(test_path, os.pardir)
-        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
-                                                   os.pardir)
-        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
-                                                   os.pardir)
-        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
-                                                   os.pardir)
-        frequentsubgraphs_path = os.path.abspath(frequentsubgraphs_path)
-        frequentsubgraphs_path = os.path.join(frequentsubgraphs_path,
+        repo_path = TestPipeline.get_repo_path()
+        frequentsubgraphs_path = os.path.join(repo_path,
                                               "FixrGraphIso",
                                               "build",
                                               "src",
@@ -183,15 +179,8 @@ class TestPipeline(unittest.TestCase):
         test_data_path = os.path.join(test_path, "test_data")
 
         # Set the path of the html creator
-        gather_results_path = os.path.join(test_path, os.pardir)
-        gather_results_path = os.path.join(gather_results_path,
-                                           os.pardir)
-        gather_results_path = os.path.join(gather_results_path,
-                                           os.pardir)
-        gather_results_path = os.path.join(gather_results_path,
-                                           os.pardir)
-        gather_results_path = os.path.abspath(gather_results_path)
-        gather_results_path = os.path.join(gather_results_path,
+        repo_path = TestPipeline.get_repo_path()
+        gather_results_path = os.path.join(repo_path,
                                            "FixrGraphIso",
                                            "scripts",
                                            "gatherResults.py")
