@@ -22,12 +22,6 @@ def run_extraction(config):
     frequentsubgraphs_path = TestPipeline.get_frequentsubgraphs_path()
     gather_results_path = TestPipeline.get_gather_results_path()
 
-
-    # Missing:
-    # repo_list,
-    # buildable_list,
-    # build_data,
-    # out_path
     out_path = os.path.join(config.get("extraction", "out_path"))
     extract_config = Pipeline.ExtractConfig(extractor_path,
                                             config.get("extraction", "repo_list"),
@@ -57,10 +51,6 @@ def run_extraction(config):
                                                     frequentsubgraphs_path)
 
     html_path = os.path.join(cluster_path, "html_files")
-    # Missing: cluster number, to get automatically
-    html_config = Pipeline.ComputeHtmlConfig(cluster_path,
-                                             "1",
-                                             gather_results_path)
 
     # Extract the graphs
     Pipeline.extractGraphs(extract_config)
@@ -72,7 +62,23 @@ def run_extraction(config):
     Pipeline.computePatterns(pattern_config)
 
     # Render the HTML results
-    Pipeline.computeHtml(html_config)
+    cluster_folders = os.path.join(cluster_path, "all_clusters")
+    max_cluster = -1
+    for path in os.listdir(cluster_folders):
+        if path.startswith("cluster_"):
+            n_str = path[8:]
+            try:
+                n = int(n_str)
+                if n > max_cluster:
+                    max_cluster = n
+            except:
+                pass
+    # Missing: cluster number, to get automatically
+    for i in range(n):
+        html_config = Pipeline.ComputeHtmlConfig(cluster_path,
+                                                 i+1,
+                                                 gather_results_path)
+        Pipeline.computeHtml(html_config)
 
 
 def main():
