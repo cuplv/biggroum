@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "_id": "57c8078c9876954c7c5f253a",
+      "apps": {
+        "bin": {
+          "apk": [
+            "bin/MainActivity-debug.apk",
+            "bin/MainActivity-debug-unaligned.apk"
+          ],
+          "cls": [
+            "bin/classes/com/marakana/android/yamba"
+          ],
+          "jar": [],
+          "src": []
+        }
+      },
+      "hash": "46795d3c4a1f56416f88a18b708d9db36a429025",
+      "repo": "Yamba",
+      "user": "learning-android"
+    }
+  ]
+}

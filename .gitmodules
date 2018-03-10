@@ -1,0 +1,8 @@
+[submodule "FixrGraphExtractor"]
+	path = FixrGraphExtractor
+	url = https://github.com/cuplv/FixrGraphExtractor
+	branch = master
+[submodule "FixrGraphIso"]
+	path = FixrGraphIso
+	url = https://github.com/cuplv/FixrGraphIso
+	branch = master

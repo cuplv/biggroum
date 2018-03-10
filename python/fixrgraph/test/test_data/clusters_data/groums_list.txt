@@ -1,0 +1,6 @@
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.base.BaseWebViewActivity_showErrorDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.DonateActivity_showErrorDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.MainActivity_setUserInfo.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.MainActivity_showLastPublicReleaseAlert.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.SettingsActivity_showPathChangeDialog.acdfg.bin
+/Users/sergiomover/works/projects/muse/repos/FixrGraph/python/fixrgraph/test/test_data/groums/tv.acfun.a63.SettingsActivity_showPathInvalidateDialog.acdfg.bin

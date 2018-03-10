@@ -411,7 +411,9 @@ class RepoProcessor:
 
     @staticmethod
     def get_version_from_gradle(gradle_build_file):
-
+        """ Returns the value of the attributes:
+        (minSdkVersion, maxSdkVersion, compileSdkVersion
+        """
         def getLimit(current, new, is_min):
             if (is_min and new != None and
                     (new < current or current == None)):
@@ -829,9 +831,24 @@ class RepoProcessor:
                 classpath = additional_cp
 
             repo_url = RepoProcessor.get_repo_url(repo[0], repo[1])
-            args = ["runlim",
-                    "--time-limit=1200",
-                    "java",
+            # args = ["runlim",
+            #         "--time-limit=1200",
+            #         "java",
+            #         "-Xms%s" % MIN_HEAP_SIZE,
+            #         "-Xmx%s" % MAX_HEAP_SIZE,
+            #         "-jar", extractor_jar,
+            #         "-s", "false", # we read bytecode
+            #         "-l", classpath,
+            #         "-o", repo_graph_dir,
+            #         "-d", repo_prov_dir,
+            #         "-j", "true", # enable jphantom
+            #         "-z", repo_folder,
+            #         "-t", TIMEOUT,
+            #         "-n", repo[0],
+            #         "-r", repo[1],
+            #         "-u", repo_url]
+
+            args = ["java",
                     "-Xms%s" % MIN_HEAP_SIZE,
                     "-Xmx%s" % MAX_HEAP_SIZE,
                     "-jar", extractor_jar,
@@ -845,6 +862,7 @@ class RepoProcessor:
                     "-n", repo[0],
                     "-r", repo[1],
                     "-u", repo_url]
+
 
             args.append("-p")
 
@@ -967,6 +985,27 @@ class RepoProcessor:
         self.log.printErrors(out)
 
 
+    @staticmethod
+    def init_extraction(indir, graphdir, provdir, applist):
+        # create the indir, graphdir and provdir if they do not exist
+        new_dir = [indir,graphdir,provdir]
+        for d in new_dir:
+            if not os.path.isdir(d):
+                os.mkdir(d)
+
+        # read the list of repositories
+        with open(applist, 'r') as app_list_file:
+            repo_list = read_repo(app_list_file)
+        return repo_list
+
+    @staticmethod
+    def get_out_paths(output_dir):
+        indir = os.path.join(output_dir, "src_repo")
+        graphdir  = os.path.join(output_dir, "graphs")
+        provdir = os.path.join(output_dir, "provenance")
+        return (indir, graphdir, provdir)
+        
+
 def main():
     p = optparse.OptionParser()
     p.add_option('-a', '--applist', help="List of android app")
@@ -1021,7 +1060,7 @@ def main():
         if (not os.path.exists(opts.buildable_repos_list)): usage("%s  does not exist" % opts.buildable_repos_list)
         if (not os.path.isdir(opts.buildable_repos_path)): usage("%s  does not exist" % opts.buildable_repos_path)
 
-        buildable_repos_list =opts.buildable_repos_list
+        buildable_repos_list = opts.buildable_repos_list
         buildable_repos_path = opts.buildable_repos_path
     else:
         buildable_repos_list = None
@@ -1040,8 +1079,10 @@ def main():
                 sys.exit(1)
 
     try:
-        with open(opts.applist, 'r') as app_list_file:
-            repo_list = read_repo(app_list_file)
+        repo_list = RepoProcessor.init_extraction(opts.indir,
+                                                  opts.graphdir,
+                                                  opts.provdir,
+                                                  app_list_file)
     except Exception as e:
         traceback.print_exc()
         sys.exit(1)
@@ -1050,7 +1091,8 @@ def main():
     extractor_status = os.path.join(opts.graphdir,opts.extractor_status)
     # process the repos
     repoProcessor = RepoProcessor(opts.indir, opts.graphdir,
-                                  opts.provdir, opts.filter,
+                                  opts.provdir,
+                                  opts.filter,
                                   opts.extractorjar, opts.classpath,
                                   buildable_repos_list,
                                   buildable_repos_path,
