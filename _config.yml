@@ -1,3 +1,5 @@
+theme: minima
+
 plugins:
    - jekyll-mentions
    - jemoji
