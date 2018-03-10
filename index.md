@@ -21,6 +21,6 @@ IEEE International Conference on Software Analysis, Evolution and Reengineering,
 
 A copy of a pre-print of the paper is available in the doc folder.
 
-In the paper we used the `BigGroum` tool to extract and mine patterns from 500 Android applications. The results are available [https://goo.gl/r1VAgc](here)
+In the paper we used the `BigGroum` tool to extract and mine patterns from 500 Android applications. The results are available [here](https://goo.gl/r1VAgc)
 
 
