@@ -7,7 +7,7 @@ BigGroum is a programming pattern-mining tool for finding patterns conserved acr
 
 Frameworks like Android expose rich functionality through a complex, object-oriented application-programming interface (API). How to properly use API methods is rarely fully documented and so app developers may guess incorrectly. BigGroum reifies in a mining tool the intuitive approach of looking for examples of how others use the API. The underlying assumption is that a “popular” way of using the API probably works, and code that is slightly off from a popular pattern is suspicious. To accurately capture API usage patterns, BigGroum mines graph-based object usage models (groums) that simultaneously describe control flow and data dependencies between methods of multiple interacting object types.
 
-The repository for the BigGroum tool can be found [here](http://github.com/cuplv/biggroum/settings)
+The repository for the BigGroum tool can be found [here](http://github.com/cuplv/biggroum)
 
 
 ## References and experiments {#references-and-experiments}
