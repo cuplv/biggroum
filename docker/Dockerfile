@@ -16,7 +16,7 @@ FROM ubuntu:16.04
 
 # 1. openssh-server, gcc, make, sudo, cmake, apt-transport-https
 RUN apt-get update
-RUN apt-get install -y openssh-server gcc make sudo cmake apt-transport-https software-properties-common
+RUN apt-get install -y openssh-server gcc make sudo cmake apt-transport-https software-properties-common binutils g++
 
 # 2. Oracle Java Jdk 8
 RUN \
@@ -36,24 +36,83 @@ RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E4
 RUN sudo apt-get update
 RUN sudo apt-get install -y sbt
 
-# 4. Android SDK
 
 # 5. Python 2
+RUN sudo apt-get install -y python
+RUN sudo apt-get install -y python-pip
+RUN sudo apt-get install -y python-sqlalchemy
+RUN sudo pip install protobuf
 
 # 6. Google protobuffer
+RUN sudo apt-get install curl unzip
+RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+RUN unzip protoc-3.3.0-linux-x86_64.zip -d protoc3
+RUN sudo mv protoc3/bin/* /usr/local/bin/
+RUN sudo mv protoc3/include/* /usr/local/include/
 
 # 7. Microsoft z3
 
+ENV Z3_VERSION "4.5.0"
+# install debian packages
+RUN apt-get update -qq -y \
+ && apt-get install binutils g++ make ant -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+#
+# download, compile and install Z3
+ && Z3_DIR="$(mktemp -d)" \
+ && cd "$Z3_DIR" \
+ && wget -qO- https://github.com/Z3Prover/z3/archive/z3-${Z3_VERSION}.tar.gz | tar xz --strip-components=1 \
+ && python scripts/mk_make.py --java \
+ && cd build \
+ && make \
+ && sudo make install \
+ && cd / \
+ && rm -rf "$Z3_DIR"
+
 ################################################################################
 # Set up user
+#
+# Run everything in the user space now
 ################################################################################
 RUN mkdir /var/run/sshd
 RUN chmod 0755 /var/run/sshd
-RUN useradd biggroum
+RUN useradd -m biggroum
 RUN groupadd admin
 RUN usermod -a -G admin biggroum
+
+
+# Android SDK
+# Set up environment variables
+ENV ANDROID_HOME="/home/biggroum/android-sdk-linux" \
+    SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
+    GRADLE_URL="https://services.gradle.org/distributions/gradle-4.5.1-all.zip"
+
+USER biggroum
+WORKDIR /home/biggroum
+
+# Download Android SDK
+RUN mkdir "$ANDROID_HOME" .android \
+  && cd "$ANDROID_HOME" \
+  && curl -o sdk.zip $SDK_URL \
+  && unzip sdk.zip \
+  && rm sdk.zip \
+  && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+
+# Install Gradle
+RUN wget $GRADLE_URL -O gradle.zip \
+  && unzip gradle.zip \
+  && mv gradle-4.5.1 gradle \
+  && rm gradle.zip \
+  && mkdir .gradle
+
+ENV PATH="/home/biggroum/gradle/bin:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${PATH}"
 
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
 
+
+# Cleanup
+# rm protoc-3.3.0-linux-x86_64.zip
+# rm -rf protoc-3.3.0-linux-x86_64.zip
