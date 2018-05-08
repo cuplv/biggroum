@@ -7,9 +7,9 @@ import string
 
 class Clusters:
 
-    CMD_FOR_MAKE="""time -p (ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out)
+    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out'
 """
-    
+
     """
     Read the cluster file and returns a list of clusters.
 
@@ -18,7 +18,7 @@ class Clusters:
     Output:
     - cluster_list: a list of tuples containing the cluster id, the
     list of methods in the cluster, the length of the acdfg list in
-    the cluster, the list of acdfgs. 
+    the cluster, the list of acdfgs.
     """
     @staticmethod
     def read_clusters(cluster_file):
@@ -69,7 +69,7 @@ class Clusters:
     def gen_make(base_cluster_path,
                  timeout, # timeout to compute the patter for a cluster
                  frequency_cutoff,
-                 graphisopath, # path 
+                 graphisopath, # path
                  frequentsubgraph_path):
         def get_cluster_list(base_cluster_path):
             cluster_path = os.path.join(base_cluster_path, "all_clusters")
@@ -127,7 +127,7 @@ class Clusters:
             os.makedirs(dst_path)
 
             # Create a symlink to all the groums
-            for acdfg in acdfg_list:            
+            for acdfg in acdfg_list:
                 dst_file = os.path.join(dst_path, os.path.basename(acdfg))
                 os.symlink(acdfg, dst_file)
 
@@ -137,5 +137,5 @@ class Clusters:
                 for s in method_list:
                     method_f.write("%s\n" % s)
                 method_f.close()
-    
+
 
