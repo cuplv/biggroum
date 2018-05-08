@@ -13,6 +13,8 @@ The extraction of the Groums and the implementation of the mining
 algorithm is implemented in the FixrGraphExtractor and FixrGraphIso
 submodules.
 
+`git submodule update --init --recursive --remote`
+
 
 ## Installation and dependencies
 
