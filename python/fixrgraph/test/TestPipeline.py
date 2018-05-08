@@ -204,7 +204,7 @@ class TestPipeline(unittest.TestCase):
             os.remove(c)
 
 
-    @nottest
+    @unittest.skip("skip test_create_html")
     def test_create_html(self):
         # Set the paths
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
