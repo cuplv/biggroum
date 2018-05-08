@@ -182,8 +182,3 @@ RUN cd biggroum/python/fixrgraph/test \\
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
-
-
-# Cleanup
-# rm protoc-3.3.0-linux-x86_64.zip
-# rm -rf protoc-3.3.0-linux-x86_64.zip
