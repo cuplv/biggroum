@@ -33,7 +33,7 @@ class TestPipeline(unittest.TestCase):
     def get_extractor_path():
         repo_path = TestPipeline.get_repo_path()
         extractor_path = os.path.join(repo_path,
-                                      "FixrGraphExtractor/target/scala-2.11/fixrgraphextractor_2.11-0.1-SNAPSHOT-one-jar.jar")
+                                      "FixrGraphExtractor/target/scala-2.12/fixrgraphextractor_2.12-0.1.0-one-jar.jar")
         return extractor_path
 
     @staticmethod
