@@ -84,6 +84,23 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y glpk-utils libglpk-dev
 RUN sudo pip install nose
 
+RUN sudo apt-get install -y python-cffi
+RUN sudo pip install six
+RUN sudo apt-get install -y libssl-dev
+RUN sudo mkdir app \
+    && cd app \
+    && curl -OL https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz \
+    && ls \
+    && tar xzf v0.27.0.tar.gz \
+    && cd libgit2-0.27.0/ \
+    && mkdir build && cd build \
+    && cmake .. \
+    && cmake --build . --target install \
+    && sudo ldconfig \
+    && rm -rf /app
+RUN sudo pip install pygit2
+RUN sudo apt-get install time
+
 ################################################################################
 # Set up user
 #
@@ -94,7 +111,7 @@ RUN chmod 0755 /var/run/sshd
 RUN useradd -m biggroum
 RUN groupadd admin
 RUN usermod -a -G admin biggroum
-
+RUN sudo chsh -s /bin/bash biggroum
 
 # 7. Android SDK
 # Set up environment variables
@@ -122,6 +139,9 @@ RUN wget $GRADLE_URL -O gradle.zip \
 
 ENV PATH="/home/biggroum/gradle/bin:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${PATH}"
 
+# Install platform tools
+RUN cd android-sdk-linux/tools/bin \
+    && ./sdkmanager "platform-tools" "platforms;android-10" "platforms;android-11" "platforms;android-12" "platforms;android-13" "platforms;android-14" "platforms;android-15" "platforms;android-16" "platforms;android-17" "platforms;android-18" "platforms;android-19" "platforms;android-20" "platforms;android-21" "platforms;android-22" "platforms;android-23" "platforms;android-24" "platforms;android-25" "platforms;android-26" "platforms;android-27" "platforms;android-7" "platforms;android-8" "platforms;android-9" "platforms;android-P"
 
 # Clone our repositories
 RUN git clone https://github.com/cuplv/biggroum \
@@ -148,28 +168,6 @@ RUN protoc -I=./biggroum/FixrGraphExtractor/src/main/protobuf --python_out=./big
 # Include the project in the PYTHONPATH variable
 ENV PYTHONPATH=/home/biggroum/biggroum/python:$PYTHONPATH
 
-USER root
-WORKDIR /
-
-RUN echo "APP"
-RUN sudo apt-get install -y python-cffi
-RUN sudo pip install six
-RUN sudo apt-get install -y libssl-dev 
-RUN sudo mkdir app \
-    && cd app \
-    && curl -OL https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz \
-    && ls \
-    && tar xzf v0.27.0.tar.gz \
-    && cd libgit2-0.27.0/ \
-    && mkdir build && cd build \
-    && cmake .. \
-    && cmake --build . --target install \
-    && sudo ldconfig \
-    && rm -rf /app
-RUN sudo pip install pygit2
-
-
-RUN sudo chsh -s /bin/bash biggroum
 
 USER biggroum
 WORKDIR /home/biggroum
@@ -177,7 +175,7 @@ WORKDIR /home/biggroum
 RUN cat /etc/passwd
 
 # Run the tests
-RUN cd biggroum/python/fixrgraph/test \\
+RUN cd biggroum/python/fixrgraph/test \
     && nosetests
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
