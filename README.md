@@ -47,7 +47,20 @@ $> make
 - android SDK
 Remember to set the android SDK home
 
-3. To test if your environment is set-up correctly, you can run the tests.
+3. Generate the protobuffer bindings for python
+
+```
+protoc -I=./FixrGraphExtractor/src/main/protobuf --python_out=./python/fixrgraph/annotator/protobuf ./FixrGraphExtractor/src/main/protobuf/proto_acdfg.proto 
+protoc -I=./FixrGraphExtractor/src/main/protobuf --python_out=./python/fixrgraph/annotator/protobuf ./FixrGraphExtractor/src/main/protobuf/proto_iso.proto
+```
+
+4. Set the `PYTHONPATH` variable to include the package
+
+```
+export PYTHONPATH=`pwd`""/python:$PYTHONPATH
+```
+
+4. To test if your environment is set-up correctly, you can run the tests.
 ```
 $> cd python/fixrgraph/test
 $> nosetests
