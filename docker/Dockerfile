@@ -7,10 +7,10 @@ FROM ubuntu:16.04
 # 1. openssh-server, gcc, make, sudo, cmake, apt-transport-https
 # 2. Oracle Java Jdk 8
 # 3. sbt
-# 4. Android SDK
-# 5. Python 2
-# 6. Google protobuffer
-# 7. Microsoft z3
+# 4. Python 2
+# 5. Google protobuffer
+# 6. Microsoft z3
+# 7. Android SDK
 #
 ################################################################################
 
@@ -37,21 +37,31 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y sbt
 
 
-# 5. Python 2
+# 4. Python 2
 RUN sudo apt-get install -y python
 RUN sudo apt-get install -y python-pip
 RUN sudo apt-get install -y python-sqlalchemy
 RUN sudo pip install protobuf
 
-# 6. Google protobuffer
-RUN sudo apt-get install curl unzip
-RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
-RUN unzip protoc-3.3.0-linux-x86_64.zip -d protoc3
-RUN sudo mv protoc3/bin/* /usr/local/bin/
-RUN sudo mv protoc3/include/* /usr/local/include/
+# 5. Google protobuffer
+RUN sudo apt-get install -y curl unzip autoconf automake libtool
+RUN curl -OL https://github.com/google/protobuf/releases/download/v3.5.0/protobuf-all-3.5.0.zip \
+    && unzip protobuf-all-3.5.0.zip \
+    && cd protobuf-3.5.0 \
+    && ./autogen.sh
 
-# 7. Microsoft z3
+RUN cd protobuf-3.5.0 \
+    && ./configure \
+    && make \
+    && sudo make install
 
+RUN cd protobuf-3.5.0/ \
+    && sudo ldconfig
+
+RUN rm -rf protobuf-3.5.0 protobuf-all-3.5.0.zip
+
+
+# 6. Microsoft z3
 ENV Z3_VERSION "4.5.0"
 # install debian packages
 RUN apt-get update -qq -y \
@@ -70,6 +80,10 @@ RUN apt-get update -qq -y \
  && cd / \
  && rm -rf "$Z3_DIR"
 
+RUN sudo apt-get update
+RUN sudo apt-get install -y glpk-utils libglpk-dev
+RUN sudo pip install nose
+
 ################################################################################
 # Set up user
 #
@@ -82,7 +96,7 @@ RUN groupadd admin
 RUN usermod -a -G admin biggroum
 
 
-# Android SDK
+# 7. Android SDK
 # Set up environment variables
 ENV ANDROID_HOME="/home/biggroum/android-sdk-linux" \
     SDK_URL="https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
@@ -108,6 +122,63 @@ RUN wget $GRADLE_URL -O gradle.zip \
 
 ENV PATH="/home/biggroum/gradle/bin:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${PATH}"
 
+
+# Clone our repositories
+RUN git clone https://github.com/cuplv/biggroum \
+    && cd biggroum \
+    && git submodule update --init --recursive
+
+# Build the graph extractor
+RUN cd biggroum/FixrGraphExtractor/ \
+    && sbt oneJar \
+    && cd ../
+
+# Build the graph mining/frequent itemset mining tool
+RUN cd biggroum/FixrGraphIso \
+    && mkdir build \
+    && cd build \
+    && cmake ../ -DFIXR_GRAPH_EXTRACTOR_DIRECTORY=../../FixrGraphExtractor \
+    && make \
+    && cd ../../
+
+# Build the protobuffer files
+RUN protoc -I=./biggroum/FixrGraphExtractor/src/main/protobuf --python_out=./biggroum/python/fixrgraph/annotator/protobuf ./biggroum/FixrGraphExtractor/src/main/protobuf/proto_acdfg.proto \
+    && protoc -I=./biggroum/FixrGraphExtractor/src/main/protobuf --python_out=./biggroum/python/fixrgraph/annotator/protobuf ./biggroum/FixrGraphExtractor/src/main/protobuf/proto_iso.proto
+
+# Include the project in the PYTHONPATH variable
+ENV PYTHONPATH=/home/biggroum/biggroum/python:$PYTHONPATH
+
+USER root
+WORKDIR /
+
+RUN echo "APP"
+RUN sudo apt-get install -y python-cffi
+RUN sudo pip install six
+RUN sudo apt-get install -y libssl-dev 
+RUN sudo mkdir app \
+    && cd app \
+    && curl -OL https://github.com/libgit2/libgit2/archive/v0.27.0.tar.gz \
+    && ls \
+    && tar xzf v0.27.0.tar.gz \
+    && cd libgit2-0.27.0/ \
+    && mkdir build && cd build \
+    && cmake .. \
+    && cmake --build . --target install \
+    && sudo ldconfig \
+    && rm -rf /app
+RUN sudo pip install pygit2
+
+
+RUN sudo chsh -s /bin/bash biggroum
+
+USER biggroum
+WORKDIR /home/biggroum
+
+RUN cat /etc/passwd
+
+# Run the tests
+RUN cd biggroum/python/fixrgraph/test \\
+    && nosetests
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
