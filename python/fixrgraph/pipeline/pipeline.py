@@ -55,7 +55,7 @@ class Pipeline(object):
           - output path where the results and the logs are produced
         """
         def __init__(self,
-                     graph_extractor_jar, 
+                     graph_extractor_jar,
                      repo_list_file_path,
                      build_repo_list_file_path,
                      build_repo_path,
@@ -65,7 +65,7 @@ class Pipeline(object):
             self.build_repo_list_file_path = build_repo_list_file_path
             self.build_repo_path = build_repo_path
             self.output_path = output_path
-    
+
     """
     Extract the graphs from the android projects.
 
@@ -78,7 +78,7 @@ class Pipeline(object):
         - a provenance directory containing the human readable
          representation of the extracted graphs (html and dot files
          for different graphs created for the process, like the cdfg,
-         the sliced cdfg...)     
+         the sliced cdfg...)
     """
     @staticmethod
     def extractGraphs(config):
@@ -93,7 +93,7 @@ class Pipeline(object):
         repo_list = RepoProcessor.init_extraction(indir, graphdir, provdir,
                                                   config.repo_list_file_path)
         repoProcessor = RepoProcessor(indir, graphdir, provdir,
-                                      Pipeline.ExtractConfig.default_slicing_filter, 
+                                      Pipeline.ExtractConfig.default_slicing_filter,
                                       config.graph_extractor_jar,
                                       None,
                                       config.build_repo_list_file_path,
@@ -133,9 +133,9 @@ class Pipeline(object):
             self.cluster_file = cluster_file
 
     """ Compute the frequent itemset for a set of graphs.
-    
+
     The input is a config object (it should be an ItemsetCompConfig)
-    """ 
+    """
     @staticmethod
     def computeItemsets(config):
         # TODO: check if all the inputs are well formed
@@ -159,7 +159,7 @@ class Pipeline(object):
         # Creates the cluster directories
         Clusters.generate_graphiso_clusters(config.cluster_path,
                                             config.cluster_file)
-            
+
 
 
     """
@@ -184,7 +184,7 @@ class Pipeline(object):
     Run the computation of the of the cluster using make
     """
     @staticmethod
-    def computePatterns(config):        
+    def computePatterns(config):
 
         # Generate the makefile
         makefile_path = os.path.join(config.cluster_path, "makefile")
@@ -232,5 +232,5 @@ class Pipeline(object):
             raise Exception("Error computing the html pages")
 
 
-        
+
 
