@@ -6,3 +6,14 @@
 	path = FixrGraphIso
 	url = https://github.com/cuplv/FixrGraphIso
 	branch = master
+[submodule "FixrGraphPatternSearch"]
+	path = FixrGraphPatternSearch
+	url = https://github.com/cuplv/FixrGraphPatternSearch.git
+	branch = master
+[submodule "FixrService-Backend"]
+	path = FixrService-Backend
+	url = git@github.com:cuplv/FixrService-Backend.git
+	branch = imp-proto-dev
+[submodule "fixr_groum_search_frontend"]
+	path = fixr_groum_search_frontend
+	url = git@github.com:cuplv/fixr_groum_search_frontend.git
