@@ -14,3 +14,6 @@
 	path = FixrService-Backend
 	url = git@github.com:cuplv/FixrService-Backend.git
 	branch = imp-proto-dev
+[submodule "fixr_groum_search_frontend"]
+	path = fixr_groum_search_frontend
+	url = git@github.com:cuplv/fixr_groum_search_frontend.git
