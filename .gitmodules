@@ -6,3 +6,7 @@
 	path = FixrGraphIso
 	url = https://github.com/cuplv/FixrGraphIso
 	branch = master
+[submodule "FixrGraphPatternSearch"]
+	path = FixrGraphPatternSearch
+	url = https://github.com/cuplv/FixrGraphPatternSearch.git
+	branch = master
