@@ -17,3 +17,6 @@
 [submodule "fixr_groum_search_frontend"]
 	path = fixr_groum_search_frontend
 	url = https://github.com/cuplv/fixr_groum_search_frontend.git
+[submodule "fixr_source_code_service"]
+	path = fixr_source_code_service
+	url = https://github.com/cuplv/fixr_source_code_service.git
