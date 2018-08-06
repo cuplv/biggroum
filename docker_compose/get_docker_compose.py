@@ -19,13 +19,17 @@ VERSION = "0.2"
 LOCAL_IMAGES = {"SOLR_IMAGE" : "biggroum_solr",
                 "SEARCH_IMAGE" : "biggroum_search",
                 "SRC_IMAGE" : "srcfinder",
-                "FRONTEND_IMAGE" : "biggroum_frontend"}
+                "FRONTEND_IMAGE" : "biggroum_frontend",
+                "SOLR_DATA_PREFIX" : "../FixrGraphPatternSearch",
+                "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch"}
 
-REP = (NEXUS_IP, NEXUS_PORT, VERSION)
-REMOTE_IMAGES = {"SOLR_IMAGE" : "%s:%s/biggroum_solr:%s" % REP,
-                 "SEARCH_IMAGE" : "%s:%s/biggroum_search:%s" % REP,
-                 "SRC_IMAGE" : "%s:%s/srcfinder:%s" % REP,
-                 "FRONTEND_IMAGE" : "%s:%s/biggroum_frontend:%s" % REP}
+REP = (NEXUS_IP, NEXUS_PORT)
+REMOTE_IMAGES = {"SOLR_IMAGE" : "%s:%s/biggroum_solr:${VERSION}" % REP,
+                 "SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
+                 "SRC_IMAGE" : "%s:%s/srcfinder:${VERSION}" % REP,
+                 "FRONTEND_IMAGE" : "%s:%s/biggroum_frontend:${VERSION}" % REP,
+                 "SOLR_DATA_PREFIX" : "..",
+                 "SEARCH_DATA_PREFIX" : ".."}
 
 DOCKER_FILE = """version: '3'
 services:
@@ -35,7 +39,7 @@ services:
     - "30071:8983"
     hostname : biggroum_solr
     volumes:
-    - ../FixrGraphPatternSearch/solr_groum:/persist
+    - ${SOLR_DATA_PREFIX}/solr_groum:/persist
 
   biggroum_search:
     image: ${SEARCH_IMAGE}
@@ -45,12 +49,10 @@ services:
     - biggroum_solr
     hostname: biggroum_search
     volumes:
-    - ../FixrGraphPatternSearch/sitevisit_extraction:/persist
+    - ${SEARCH_DATA_PREFIX}/sitevisit_extraction:/persist
 
   srcfinder:
     image: ${SRC_IMAGE}
-    ports:
-    - "30074:8080"
     hostname: srcfinder
 
   biggroum_frontend:
@@ -73,6 +75,10 @@ def main(input_args=None):
                  default=False,
                  help="Generate docker compose for the remote server")
 
+    p.add_option('-v', '--version',
+                 help="Version number of the images")
+
+
     def usage(msg=""):
         if msg: print "----%s----\n" % msg
         p.print_help()
@@ -83,7 +89,20 @@ def main(input_args=None):
     opts, args = p.parse_args(input_args)
 
     if (opts.remote):
-        df = _substitute(DOCKER_FILE, REMOTE_IMAGES)
+
+        if (not opts.version):
+            usage("You must provide a version "
+                  "number to tag the images with the -v flag")
+
+        remote_map = {}
+        for key,value in REMOTE_IMAGES.iteritems():
+            new_val = _substitute(value, {"VERSION" : opts.version})
+
+            remote_map[key] = new_val
+
+        df = _substitute(DOCKER_FILE, remote_map)
+
+
     else:
         df = _substitute(DOCKER_FILE, LOCAL_IMAGES)
 
