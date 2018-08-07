@@ -5,11 +5,12 @@ import sys
 import logging
 import httplib
 
-def test_json(condition, request, error_msg):
+def test_json(condition, reply, error_msg):
     if not condition:
         print("*** FAILURE!\n\t%s\n" % error_msg)
 
-        logging.debug(request)
+        logging.debug(reply)
+        
 
         return False
     else:
@@ -20,7 +21,9 @@ def test_solr(address, port):
     print "*** Testing biggroum_solr service..."
 
     service_address = "%s:%s" % (address, port)
-    r = requests.get("http://%s/solr/groums/get?id=69/popular/1" % service_address)
+    solr_query = "http://%s/solr/groums/get?id=69/popular/1" % service_address
+    print solr_query
+    r = requests.get(solr_query)
 
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
@@ -101,7 +104,6 @@ def test_search(address, port):
 
     json_data = r.json()
 
-    logging.debug(json_data)
 
     if not test_json(u"patterns" in json_data, r,
                      "No pattern in the reply"):

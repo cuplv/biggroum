@@ -19,7 +19,7 @@ LOCAL_IMAGES = {"SOLR_IMAGE" : "biggroum_solr",
                 "SEARCH_IMAGE" : "biggroum_search",
                 "SRC_IMAGE" : "srcfinder",
                 "FRONTEND_IMAGE" : "biggroum_frontend",
-                "SOLR_DATA_PREFIX" : "../FixrGraphPatternSearch",
+                "SOLR_DATA_PREFIX" : "../FixrGraphPatternSearch/solr_groum",
                 "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch",
                 "RESOURCES_BIGGROUM_SOLR" : "",
                 "RESOURCES_BIGGROUM_SEARCH" : "",
@@ -55,7 +55,7 @@ services:
     - "30071:8983"
     hostname : biggroum_solr
     volumes:
-    - ${SOLR_DATA_PREFIX}/solr_groum:/persist
+    - ${SOLR_DATA_PREFIX}:/persist
 
   biggroum_search:
     image: ${SEARCH_IMAGE}
