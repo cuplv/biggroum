@@ -49,6 +49,28 @@ Extract the archive (tar xjf sitevisit_extraction.tar.bz2) and mount the folder 
 
 The extraction of this file will take some time to finish.
 
+# Test
+Download the python script https://raw.githubusercontent.com/cuplv/biggroum/master/docker_compose/test.py.
+
+The tests just use requests. You can install the dependecies downloading the https://raw.githubusercontent.com/cuplv/biggroum/master/docker_compose/requirements.txt file.
+Intall the requirements with:
+
+pip install -r requirements.txt
+
+Run the test as:
+python test.py --address 100.120.0.6 --search_port 30072  --solr_port 30071 --webserver_port 30073
+
+A correct output is:
+
+*** Testing biggroum_solr service...
+*** SUCCESS!
+
+*** Testing biggroum_search service...
+*** SUCCESS!
+
+*** Testing web server -- get src code...
+*** SUCCESS!
+
 
 Thank you,
 Sergio
