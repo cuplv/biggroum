@@ -31,34 +31,25 @@ Persistent disk size: 10GB
 
 # Data to attach to the containers
 The containers for *biggroum_search* and *biggroum_solr* mount two data stores in the /persist folder of the container (see the docker-compose.yml)
-Could you download and link the data for them? (the one I sent you last time is stale)
 
+I updated the data only for *biggroum_solr*
+
+* NOTE: I updated the data, so you should download it again and substitute it  *
 1. For the biggroum_solr container
-Download the archive solr_groum.tar.bz2 here https://drive.google.com/file/d/1LG2e_YMf6ms3ri7s-N34MhaIyfsFYwWD/view?usp=sharing
+
+Download the archive solr_groum.tar.bz2 here: https://drive.google.com/file/d/18HBMdcr4JQLCoqgDsQfHWUOYZjwUeGu3/view?usp=sharing
 Extract the archive (tar xjf solr_groum.tar.bz2) and mount the folder solr_groum to the /persist folder in the biggroum_solr container.
 
+
+* NOTE: I did not update this data for the biggroum_search so you can skip this step *
 2. For the biggroum_search container
+
 Download the archive solr_groum.tar.bz2 here https://drive.google.com/file/d/1I43XNDa7ma5niPUsWVh1qEHhGy781sVH/view?usp=sharing
 Extract the archive (tar xjf sitevisit_extraction.tar.bz2) and mount the folder solr_groum to the /persist folder in the biggroum_search container.
 
 The extraction of this file will take some time to finish.
 
-Note: In the docker-compose.yml I cannot set the exact path of the mounted volumes since I don't know where you're going to extract the archive on the filesystem.
-For example the docker-compose.yml contains:
-
-volumes:
-- ./solr_groum:/persist
-
-If you have a default path where you are extracting the solr_groum folder I can update the scripts on my end.
-This will be useful to avoid you from editing the file.
-
 
 Thank you,
 Sergio
-
-
-PS: In the docker-compose file the container communicates through their internal network (e.g., the biggroum_frontend container communicates with the srcfinder container on port 8080).
-This works because the deployment is done with the docker-compose file.
-
-Does it work also for the deployment on the two-six labs infrastructure?
 
