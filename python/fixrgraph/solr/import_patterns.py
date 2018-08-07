@@ -24,6 +24,8 @@ def _get_cluster_key(cluster_id):
     return key
 
 def _get_groum_key_from_bin(acdfg_path):
+    logging.debug("Importing groum %s" % acdfg_path)
+
     with open(acdfg_path, "rb") as acdfg_file:
         acdfg = proto_acdfg_pb2.Acdfg()
         acdfg.ParseFromString(acdfg_file.read())
@@ -72,6 +74,12 @@ def _create_pattern_docs(current_path, cluster_info_path):
 
         groum_keys_list = []
         for groum in pattern_info.groum_files_list:
+            if (groum.startswith("isol_") or
+                groum.startswith("pop_") or
+                groum.startswith("anom_")):
+                logging.debug("Skipping pattern groum %s..." % groum)
+                continue
+
             acdfg_path = os.path.join(current_path, groum)
             groum_key = _get_groum_key_from_bin(acdfg_path)
             groum_keys_list.append(groum_key)
