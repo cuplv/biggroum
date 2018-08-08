@@ -6,6 +6,8 @@ import string
 import collections
 import re
 
+import traceback
+
 import pysolr
 
 from fixrgraph.annotator.protobuf import proto_acdfg_pb2
@@ -109,7 +111,8 @@ def main():
                 doc_pool = upload_pool(solr, threshold, doc_pool)
             doc_pool = upload_pool(solr, -1, doc_pool)
         except MissingProtobufField as e:
-            logging.warn("Missing field for %s (%s)" % (name, relpath))
+            print(e)
+            traceback.print_exc()
 
         f.close()
 
