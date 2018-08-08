@@ -5,19 +5,22 @@ The `docker-compose.yml` is generated from the file `get_docker_compose.py`.
 # Deploy
 
 ## Local
-``` python get_docker_compose.py
+``` 
+python get_docker_compose.py
 ```
 Will generate a the docker compose file from the local image registry.
 
 Once the `docker-compose.yml` file is generated, the container can be spun up
 with:
 
-```docker-compose up -d
+```
+docker-compose up -d
 ```
 
 ## Two six lab infrastructure
 
-``` python get_docker_compose.py -r -v 0.2
+``` 
+python get_docker_compose.py -r -v 0.2
 ```
 
 will generate a the docker compose file from the nexus image registry (the one
@@ -35,12 +38,14 @@ used in the two-six lab deployment) tagging the images with version 0.2.
 
 Run the tests to see if everything is ok:
 
-```python test.py  --address localhost --search_port 30072  --solr_port 30071 --webserver_port 30073
+```
+python test.py  --address localhost --search_port 30072  --solr_port 30071 --webserver_port 30073
 ```
 
 If you get an error, you can get more info enabling the debug output:
 
-```python test.py  --address localhost --search_port 30072  --solr_port 30071 --webserver_port 30073 -d
+```
+python test.py  --address localhost --search_port 30072  --solr_port 30071 --webserver_port 30073 -d
 ```
 
 
@@ -59,7 +64,8 @@ To test the web interface now, insert the following input and press `Search`:
 
 The services should be up. Run the tests to see if everything is ok:
 
-```python test.py --address 100.120.0.6 --search_port 30072  --solr_port 30071 --webserver_port 30073
+```
+python test.py --address 100.120.0.6 --search_port 30072  --solr_port 30071 --webserver_port 30073
 ```
 
 The web interface should be accessible at the address `http://100.120.0.6:30073`
