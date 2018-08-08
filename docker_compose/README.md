@@ -50,7 +50,7 @@ To test the web interface now, insert the following input and press `Search`:
 
 - User/Repo: `denzilferreira/aware-client`
 - CommitId: `537e709dedefba23255700be8af028ea415f3923`
-- Method name: `com.aware.Bluetooth_notifyMissingBluetooth`
+- Method name: `com.aware.Bluetooth.notifyMissingBluetooth`
 - File name: `Bluetooth.java`
 - Line number: `331`
 
