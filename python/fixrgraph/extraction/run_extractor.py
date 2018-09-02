@@ -26,6 +26,11 @@ import subprocess
 import re
 import traceback
 import string
+
+import queue
+import threading
+import functools
+
 from xml.dom.minidom import parse, parseString
 
 MIN_STATUS = 0
@@ -59,6 +64,8 @@ class ExtractorStatus:
         self._repo2log = {}
         self._file_name = file_name
 
+        self.lock = threading.Lock()
+
         if (self._file_name != None):
             self.load()
 
@@ -73,26 +80,24 @@ class ExtractorStatus:
         return first_status
 
     def get_status(self, repo):
-        status = None
-        if repo not in self._repo_set:
-            # new repo, insert it
-            self._repo_set.add(repo)
-            status = self._get_init_status()
-            self._repo2status[repo] = status
-        else:
-            status = self._repo2status[repo]
-        return status
-
-    def set_log(self, repo, log):
-        assert repo in self._repo_set
-        self._repo2log[repo] = log
+        with self.lock:
+            status = None
+            if repo not in self._repo_set:
+                # new repo, insert it
+                self._repo_set.add(repo)
+                status = self._get_init_status()
+                self._repo2status[repo] = status
+            else:
+                status = self._repo2status[repo]
+            return status
 
     def next_status(self, repo):
-        repo_status = self._repo2status[repo]
-        last_status = self._get_final_status()
-        if repo_status != last_status:
-            repo_status = repo_status + 1
-            self._repo2status[repo] = repo_status
+        with self.lock:
+            repo_status = self._repo2status[repo]
+            last_status = self._get_final_status()
+            if repo_status != last_status:
+                repo_status = repo_status + 1
+                self._repo2status[repo] = repo_status
 
 
     def load(self):
@@ -152,8 +157,9 @@ class ExtractorStatus:
         return (user,repo_name,chash)
 
     def _write_repo(self, json_data, repo):
-        repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
-        json_data["repo"] = repo_string
+        with self.lock:
+            repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
+            json_data["repo"] = repo_string
 
 
 class ErrorLog:
@@ -262,7 +268,8 @@ class RepoProcessor:
                  extractor_jar, classpath,
                  buildable_repos_list = None,
                  buildable_repos_path = None,
-                 extractor_status=None):
+                 extractor_status=None,
+                 tot_workers=1):
         # Keeps the error log for each repo
         self.log = ErrorLog()
         # Directory where download the repositories
@@ -272,6 +279,7 @@ class RepoProcessor:
         self.slice_filter = slice_filter
         self.extractor_jar = extractor_jar
         self.classpath = classpath
+        self.tot_workers = tot_workers
 
         if extractor_status is None:
             extractor_statis = "extractor_status.json"
@@ -965,6 +973,30 @@ class RepoProcessor:
                 self.extractor_status.next_status(repo)
             self.extractor_status.write()
 
+    @staticmethod
+    def workerfun(tasks_queue):
+        while True:
+            data = tasks_queue.get()
+            if data is None:
+                break
+
+            (repoProcessor, repo, task_index, repo_index, tot_repos) = data
+            logging.info("Repo %d/%d..." % (repo_index, tot_repos))
+            logging.info("Repo %s" % RepoProcessor.get_repo_name(repo))
+
+            try:
+                repoProcessor.processRepoFromStep(repo, task_index)
+            except Exception:
+                traceback.print_exc()
+
+                logging.error("Thread: error processing repo " \
+                              "%d/%d" % (repo_index, tot_repos))
+                logging.error("Thread: error processing repo " \
+                              "%s" % (RepoProcessor.get_repo_name(repo)))
+
+            finally:
+                tasks_queue.task_done()
+
     def processFromStep(self, repo_list, user_task):
         assert (user_task in ExtractorStatus.task2status.keys())
         assert (user_task in ExtractorStatus.tasks_list)
@@ -972,14 +1004,37 @@ class RepoProcessor:
         task_index = ExtractorStatus.tasks_list.index(user_task)
         steps_to_do = ExtractorStatus.tasks_list[task_index:]
 
+        # Creates the worker threads
+        tasks_queue = queue.Queue()
+        threads = []
+        workerpart = functools.partial(RepoProcessor.workerfun, tasks_queue)
+
+        for i in range(self.tot_workers):
+            t = threading.Thread(target=workerpart)
+            t.start()
+            threads.append(t)
+
         repo_index = 1
         tot_repos = len(repo_list)
+        processed = set()
         for repo in repo_list:
-            logging.info("Repo %d/%d..." % (repo_index, tot_repos))
-            logging.info("Repo %s" % RepoProcessor.get_repo_name(repo))
-            self.processRepoFromStep(repo, task_index)
+            if repo in processed:
+                logging.info("Repo %d/%d already processed" % (repo_index, tot_repos))
+                logging.info("Repo %s already processed" % RepoProcessor.get_repo_name(repo))
+            else:
+                worker_data = (self, repo, task_index, repo_index, tot_repos)
+                tasks_queue.put(worker_data)
+                processed.add(repo)
             repo_index = repo_index + 1
 
+        # block until all tasks are done
+        tasks_queue.join()
+
+        # stop workers
+        for i in range(self.tot_workers):
+            tasks_queue.put(None)
+        for t in threads:
+            t.join()
 
     def printErrors(self, out):
         self.log.printErrors(out)
