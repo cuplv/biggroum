@@ -191,6 +191,7 @@ class TestPipeline(unittest.TestCase):
                    os.path.join(cluster_1_path, "run1.err.out"),
                    os.path.join(cluster_1_path, "run1.out"),
                    os.path.join(cluster_1_path, "cluster_1_info.txt"),
+                   os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
                    os.path.join(cluster_1_path, "pop_1.acdfg.bin"),
                    os.path.join(cluster_1_path, "pop_2.acdfg.bin"),
                    os.path.join(cluster_1_path, "anom_1.acdfg.bin"),
@@ -202,7 +203,6 @@ class TestPipeline(unittest.TestCase):
             self.assertTrue(os.path.exists(c))
             # cleanup
             os.remove(c)
-
 
     @unittest.skip("skip test_create_html")
     def test_create_html(self):

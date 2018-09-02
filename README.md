@@ -52,6 +52,7 @@ Remember to set the android SDK home
 ```
 protoc -I=./FixrGraphExtractor/src/main/protobuf --python_out=./python/fixrgraph/annotator/protobuf ./FixrGraphExtractor/src/main/protobuf/proto_acdfg.proto 
 protoc -I=./FixrGraphExtractor/src/main/protobuf --python_out=./python/fixrgraph/annotator/protobuf ./FixrGraphExtractor/src/main/protobuf/proto_iso.proto
+protoc -I=./FixrGraphIso/src/fixrgraphiso/protobuf:./FixrGraphExtractor/src/main/protobuf --python_out=./python/fixrgraph/annotator/protobuf ./FixrGraphIso/src/fixrgraphiso/protobuf/proto_acdfg_bin.proto ./FixrGraphIso/src/fixrgraphiso/protobuf/proto_unweighted_iso.proto ./FixrGraphIso/src/fixrgraphiso/protobuf/proto_search.proto
 ```
 
 4. Set the `PYTHONPATH` variable to include the package
