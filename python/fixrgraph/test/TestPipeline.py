@@ -95,7 +95,7 @@ class TestPipeline(unittest.TestCase):
         fixrgraph_jar = os.path.join(test_data_path, "repo_list.json")
 
         config = Pipeline.ExtractConfig(extractor_path,
-                                        repo_list, buildable_list, build_data, out_path)
+                                        repo_list, buildable_list, build_data, out_path, 1)
         Pipeline.extractGraphs(config)
 
         # some files that must have been created by running the test
