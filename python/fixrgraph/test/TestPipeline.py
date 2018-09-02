@@ -17,7 +17,7 @@ except ImportError:
     import unittest
 
 
-DELETE_FILES = False
+DELETE_FILES = True
 
 class TestPipeline(unittest.TestCase):
 
