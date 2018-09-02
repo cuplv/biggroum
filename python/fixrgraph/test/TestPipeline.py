@@ -17,6 +17,8 @@ except ImportError:
     import unittest
 
 
+DELETE_FILES = TRUE
+
 class TestPipeline(unittest.TestCase):
 
     @staticmethod
@@ -109,8 +111,8 @@ class TestPipeline(unittest.TestCase):
             f_path = os.path.join(os.path.join(test_data_path, out_path), f)
             self.assertTrue(os.path.exists(f_path))
 
-        # cleanup 
-        if os.path.exists(out_path):
+        # cleanup
+        if DELETE_FILES and os.path.exists(out_path):
             shutil.rmtree(out_path)
 
 
@@ -162,7 +164,7 @@ class TestPipeline(unittest.TestCase):
         self.assertTrue(os.path.exists(methods_file))
 
         # cleanup 
-        if os.path.exists(cluster_path):
+        if DELETE_FILES and os.path.exists(cluster_path):
             shutil.rmtree(cluster_path)
 
 
@@ -192,17 +194,17 @@ class TestPipeline(unittest.TestCase):
                    os.path.join(cluster_1_path, "run1.out"),
                    os.path.join(cluster_1_path, "cluster_1_info.txt"),
                    os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
-                   os.path.join(cluster_1_path, "pop_1.acdfg.bin"),
-                   os.path.join(cluster_1_path, "pop_2.acdfg.bin"),
-                   os.path.join(cluster_1_path, "anom_1.acdfg.bin"),
                    os.path.join(cluster_1_path, "pop_1.dot"),
                    os.path.join(cluster_1_path, "pop_2.dot"),
                    os.path.join(cluster_1_path, "anom_1.dot")]
 
         for c in created:
+            logging.debug("Checking creation of %s..." % c)
             self.assertTrue(os.path.exists(c))
             # cleanup
-            os.remove(c)
+            if DELETE_FILES:
+                print "Removing..."
+                os.remove(c)
 
     @unittest.skip("skip test_create_html")
     def test_create_html(self):
@@ -227,8 +229,12 @@ class TestPipeline(unittest.TestCase):
                    "cluster_1_pop_2.dot",
                    "index.html"]
         created = [os.path.join(html_path, s) for s in created]
+
+
         for c in created:
             self.assertTrue(os.path.exists(c))
-            os.remove(c)
-        shutil.rmtree(html_path)
+            if DELETE_FILES:
+                os.remove(c)
+        if DELETE_FILES:
+            shutil.rmtree(html_path)
 
