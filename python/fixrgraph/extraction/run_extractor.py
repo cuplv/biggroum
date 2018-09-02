@@ -64,6 +64,8 @@ class ExtractorStatus:
         self._repo2log = {}
         self._file_name = file_name
 
+        self.lock = threading.Lock()
+
         if (self._file_name != None):
             self.load()
 
@@ -78,26 +80,24 @@ class ExtractorStatus:
         return first_status
 
     def get_status(self, repo):
-        status = None
-        if repo not in self._repo_set:
-            # new repo, insert it
-            self._repo_set.add(repo)
-            status = self._get_init_status()
-            self._repo2status[repo] = status
-        else:
-            status = self._repo2status[repo]
-        return status
-
-    def set_log(self, repo, log):
-        assert repo in self._repo_set
-        self._repo2log[repo] = log
+        with self.lock:
+            status = None
+            if repo not in self._repo_set:
+                # new repo, insert it
+                self._repo_set.add(repo)
+                status = self._get_init_status()
+                self._repo2status[repo] = status
+            else:
+                status = self._repo2status[repo]
+            return status
 
     def next_status(self, repo):
-        repo_status = self._repo2status[repo]
-        last_status = self._get_final_status()
-        if repo_status != last_status:
-            repo_status = repo_status + 1
-            self._repo2status[repo] = repo_status
+        with self.lock:
+            repo_status = self._repo2status[repo]
+            last_status = self._get_final_status()
+            if repo_status != last_status:
+                repo_status = repo_status + 1
+                self._repo2status[repo] = repo_status
 
 
     def load(self):
@@ -157,8 +157,9 @@ class ExtractorStatus:
         return (user,repo_name,chash)
 
     def _write_repo(self, json_data, repo):
-        repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
-        json_data["repo"] = repo_string
+        with self.lock:
+            repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
+            json_data["repo"] = repo_string
 
 
 class ErrorLog:
@@ -986,9 +987,11 @@ class RepoProcessor:
             try:
                 repoProcessor.processRepoFromStep(repo, task_index)
             except Exception:
-                logging.error("Error processing repo " \
+                traceback.print_exc()
+
+                logging.error("Thread: error processing repo " \
                               "%d/%d" % (repo_index, tot_repos))
-                logging.error("Error processing repo " \
+                logging.error("Thread: error processing repo " \
                               "%s" % (RepoProcessor.get_repo_name(repo)))
 
             finally:
@@ -1013,9 +1016,15 @@ class RepoProcessor:
 
         repo_index = 1
         tot_repos = len(repo_list)
+        processed = set()
         for repo in repo_list:
-            worker_data = (self, repo, task_index, repo_index, tot_repos)
-            tasks_queue.put(worker_data)
+            if repo in processed:
+                logging.info("Repo %d/%d already processed" % (repo_index, tot_repos))
+                logging.info("Repo %s already processed" % RepoProcessor.get_repo_name(repo))
+            else:
+                worker_data = (self, repo, task_index, repo_index, tot_repos)
+                tasks_queue.put(worker_data)
+                processed.add(repo)
             repo_index = repo_index + 1
 
         # block until all tasks are done
