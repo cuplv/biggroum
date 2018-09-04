@@ -27,7 +27,8 @@ import re
 import traceback
 import string
 
-import queue
+import Queue
+
 import threading
 import functools
 
@@ -37,7 +38,7 @@ MIN_STATUS = 0
 #MIN_HEAP_SIZE="256m"
 # MAX_HEAP_SIZE="256m"
 MIN_HEAP_SIZE="1024m"
-MAX_HEAP_SIZE="4096m"
+MAX_HEAP_SIZE="2048m"
 TIMEOUT="60"
 
 
@@ -871,7 +872,6 @@ class RepoProcessor:
                     "-r", repo[1],
                     "-u", repo_url]
 
-
             args.append("-p")
 
             # remove google support libraries from the thing to
@@ -889,6 +889,7 @@ class RepoProcessor:
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
+
 
             is_ok = RepoProcessor._call_sub(log, repo, args)
             if not is_ok:
@@ -1005,7 +1006,7 @@ class RepoProcessor:
         steps_to_do = ExtractorStatus.tasks_list[task_index:]
 
         # Creates the worker threads
-        tasks_queue = queue.Queue()
+        tasks_queue = Queue.Queue()
         threads = []
         workerpart = functools.partial(RepoProcessor.workerfun, tasks_queue)
 
