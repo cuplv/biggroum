@@ -15,11 +15,9 @@ def _substitute(template, substitution):
 NEXUS_IP = "192.168.0.2"
 NEXUS_PORT = "5005"
 
-LOCAL_IMAGES = {"SOLR_IMAGE" : "biggroum_solr",
-                "SEARCH_IMAGE" : "biggroum_search",
+LOCAL_IMAGES = {"SEARCH_IMAGE" : "biggroum_search",
                 "SRC_IMAGE" : "srcfinder",
                 "FRONTEND_IMAGE" : "biggroum_frontend",
-                "SOLR_DATA_PREFIX" : "../FixrGraphPatternSearch/solr_groum",
                 "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch",
                 "RESOURCES_BIGGROUM_SOLR" : "",
                 "RESOURCES_BIGGROUM_SEARCH" : "",
@@ -27,20 +25,15 @@ LOCAL_IMAGES = {"SOLR_IMAGE" : "biggroum_solr",
                 "RESOURCES_BIGGROUM_FRONTEND" : ""}
 
 REP = (NEXUS_IP, NEXUS_PORT)
-REMOTE_IMAGES = {"SOLR_IMAGE" : "%s:%s/biggroum_solr:${VERSION}" % REP,
-                 "SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
+REMOTE_IMAGES = {"SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
                  "SRC_IMAGE" : "%s:%s/srcfinder:${VERSION}" % REP,
                  "FRONTEND_IMAGE" : "%s:%s/biggroum_frontend:${VERSION}" % REP,
-                 "SOLR_DATA_PREFIX" : "/srv/col_solr",
                  "SEARCH_DATA_PREFIX" : "/srv/col-search",
-                 "RESOURCES_BIGGROUM_SOLR" : """cpu_count: 2
-    mem_limit: 2048000000
+                 "RESOURCES_BIGGROUM_SEARCH" : """cpu_count: 8
+    mem_limit: 8192000000
     network_mode: "bridge" """,
-                 "RESOURCES_BIGGROUM_SEARCH" : """cpu_count: 2
+                 "RESOURCES_SRCFINDER" : """cpu_count: 4
     mem_limit: 4096000000
-    network_mode: "bridge" """,
-                 "RESOURCES_SRCFINDER" : """cpu_count: 2
-    mem_limit: 2048000000
     network_mode: "bridge" """,
                  "RESOURCES_BIGGROUM_FRONTEND" : """cpu_count: 2
     mem_limit: 2048000000
@@ -48,29 +41,21 @@ REMOTE_IMAGES = {"SOLR_IMAGE" : "%s:%s/biggroum_solr:${VERSION}" % REP,
 
 DOCKER_FILE = """version: '2.2'
 services:
-  biggroum_solr:
-    image: ${SOLR_IMAGE}
-    ${RESOURCES_BIGGROUM_SOLR}
-    ports:
-    - "30071:8983"
-    hostname : biggroum_solr
-    volumes:
-    - ${SOLR_DATA_PREFIX}:/persist
-
   biggroum_search:
     image: ${SEARCH_IMAGE}
     ${RESOURCES_BIGGROUM_SEARCH}
     ports:
     - "30072:8081"
     links:
-    - biggroum_solr
     hostname: biggroum_search
     volumes:
-    - ${SEARCH_DATA_PREFIX}/sitevisit_extraction:/persist
+    - ${SEARCH_DATA_PREFIX}/demo_meeting:/persist
 
   srcfinder:
     image: ${SRC_IMAGE}
     ${RESOURCES_SRCFINDER}
+    ports:
+    - "30071:8080"
     hostname: srcfinder
 
   biggroum_frontend:
