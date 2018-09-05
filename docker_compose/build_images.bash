@@ -4,7 +4,7 @@
 popd
 pushd .
 cd ../FixrGraphPatternSearch/docker_search
-bash download_data.bash
+# bash download_data.bash
 docker build -t biggroum_search .
 
 # src server

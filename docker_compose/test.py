@@ -78,6 +78,7 @@ def test_search(address, port):
         print(str(e))
         return 1
 
+    print str(r)
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
 
@@ -203,7 +204,7 @@ def main(input_args=None):
             usage(msg)
 
     test_search(opts.address, opts.search_port)
-    test_src_query(opts.address, opts.srcsrv_port)
+    # test_src_query(opts.address, opts.srcsrv_port)
 
 if __name__ == '__main__':
     main()

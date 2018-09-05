@@ -19,10 +19,15 @@ LOCAL_IMAGES = {"SEARCH_IMAGE" : "biggroum_search",
                 "SRC_IMAGE" : "srcfinder",
                 "FRONTEND_IMAGE" : "biggroum_frontend",
                 "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch",
-                "RESOURCES_BIGGROUM_SOLR" : "",
-                "RESOURCES_BIGGROUM_SEARCH" : "",
-                "RESOURCES_SRCFINDER" : "",
-                "RESOURCES_BIGGROUM_FRONTEND" : ""}
+                 "RESOURCES_BIGGROUM_SEARCH" : """cpu_count: 1
+    mem_limit: 1024000000
+    network_mode: bridge """,
+                 "RESOURCES_SRCFINDER" : """cpu_count: 1
+    mem_limit: 1024000000
+    network_mode: bridge """,
+                 "RESOURCES_BIGGROUM_FRONTEND" : """cpu_count: 1
+    mem_limit: 1024000000
+    network_mode: bridge """}
 
 REP = (NEXUS_IP, NEXUS_PORT)
 REMOTE_IMAGES = {"SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
@@ -31,42 +36,41 @@ REMOTE_IMAGES = {"SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
                  "SEARCH_DATA_PREFIX" : "/srv/col-search",
                  "RESOURCES_BIGGROUM_SEARCH" : """cpu_count: 8
     mem_limit: 8192000000
-    network_mode: "bridge" """,
-                 "RESOURCES_SRCFINDER" : """cpu_count: 4
-    mem_limit: 4096000000
-    network_mode: "bridge" """,
+    network_mode: bridge """,
+                 "RESOURCES_SRCFINDER" : """cpu_count: 8
+    mem_limit: 8192000000
+    network_mode: bridge """,
                  "RESOURCES_BIGGROUM_FRONTEND" : """cpu_count: 2
     mem_limit: 2048000000
-    network_mode: "bridge" """}
+    network_mode: bridge """}
 
 DOCKER_FILE = """version: '2.2'
 services:
   biggroum_search:
     image: ${SEARCH_IMAGE}
-    ${RESOURCES_BIGGROUM_SEARCH}
     ports:
     - "30072:8081"
-    links:
     hostname: biggroum_search
     volumes:
     - ${SEARCH_DATA_PREFIX}/demo_meeting:/persist
+    ${RESOURCES_BIGGROUM_SEARCH}
 
   srcfinder:
     image: ${SRC_IMAGE}
-    ${RESOURCES_SRCFINDER}
     ports:
     - "30071:8080"
     hostname: srcfinder
+    ${RESOURCES_SRCFINDER}
 
   biggroum_frontend:
     image: ${FRONTEND_IMAGE}
-    ${RESOURCES_BIGGROUM_FRONTEND}
     ports:
     - "30073:5000"
     links:
     - biggroum_search
     - srcfinder
     hostname: biggroum_frontend
+    ${RESOURCES_BIGGROUM_FRONTEND}
 """
 
 def main(input_args=None):
