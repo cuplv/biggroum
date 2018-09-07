@@ -15,44 +15,6 @@ def test_json(condition, reply, error_msg):
     else:
         return True
 
-
-def test_solr(address, port):
-    print "*** Testing biggroum_solr service..."
-
-    service_address = "%s:%s" % (address, port)
-    solr_query = "http://%s/solr/groums/get?id=69/popular/1" % service_address
-    print solr_query
-    r = requests.get(solr_query)
-
-    if not test_json(r.status_code == 200, r,
-                     "Wrong http result code"): return 1
-
-    json_res = r.json()
-
-    if not test_json(u"doc" in json_res, r, "Doc tag not found in reply"):
-        return 1
-
-    if not test_json("doc_type_sni" in json_res[u"doc"], r,
-                     "Doc type not found in reply"):
-        return 1
-
-    if not test_json(json_res[u"doc"][u"doc_type_sni"] == "pattern", r,
-                     "Doc is not a pattern"):
-        return 1
-
-    if not test_json("type_sni" in json_res[u"doc"], r,
-                     "Pattern category not found"):
-        return 1
-
-    if not test_json(json_res[u"doc"][u"type_sni"] == "popular", r,
-                     "Wrong pattern category"):
-        return 1
-
-    print "*** SUCCESS!\n"
-
-
-    return 0
-
 def test_search(address, port):
     print "*** Testing biggroum_search service..."
 
@@ -78,7 +40,6 @@ def test_search(address, port):
         print(str(e))
         return 1
 
-    print str(r)
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
 
