@@ -8,17 +8,17 @@ could you deploy the new containers for the BigGroum search?
 
 # Resources for the containers:
 
-Image name and tag: biggroum_search:2.0
+Image name and tag: biggroum_search:2.1
 Memory allocation: 8192MB
 CPU needs: 8 CPUS
 Persistent disk size: 10GB
 
-Image name and tag: biggroum_srcfinder:2.0
+Image name and tag: biggroum_srcfinder:2.1
 Memory allocation: 8192MB
 CPU needs: 2 CPUS
 Persistent disk size: 10GB
 
-Image name and tag: biggroum_frontend:2.0
+Image name and tag: biggroum_frontend:2.1
 Memory allocation: 2048MB
 CPU needs: 2 CPUS
 Persistent disk size: 10GB
@@ -27,13 +27,10 @@ Persistent disk size: 10GB
 # Data to attach to the containers
 The container for *biggroum_search* mount data stores in the /persist folder of the container (see the docker-compose.yml)
 
-I updated the data only for *biggroum_solr*
+I updated the data in: https://drive.google.com/file/d/1EntMDaxhIwK5rNoMFIueozJtObHXlq0f/view?usp=sharing
 
-// FIX
-Download the archive solr_groum.tar.bz2 here https://drive.google.com/file/d/1I43XNDa7ma5niPUsWVh1qEHhGy781sVH/view?usp=sharing
-Extract the archive (tar xjf sitevisit_extraction.tar.bz2) and mount the folder solr_groum to the /persist folder in the biggroum_search container.
+Extract the archive (tar xjf demo_meeting.tar.gz) and mount the folder demo_meeting to the /persist folder in the biggroum_search container.
 
-The extraction of this file will take some time to finish.
 
 # Test
 Download the python script https://raw.githubusercontent.com/cuplv/biggroum/master/docker_compose/test.py.
