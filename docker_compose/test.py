@@ -41,8 +41,6 @@ def test_search(address, port):
         return 1
 
 
-    print r.status_code
-
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
 
@@ -76,6 +74,9 @@ def test_src_query(address, port,
     ws_address = "http://%s:%s/getsrc" % (address, port)
     service_address = "http://%s:%s/src" % (src_srv_address,
                                             src_srv_port)
+
+    print "Address: %s" % "*** Testing web server -- get src code..."
+
 
     user = "anyremote"
     repo = "anyremote-android-client"
@@ -168,7 +169,7 @@ def main(input_args=None):
             usage(msg)
 
     test_search(opts.address, opts.search_port)
-    # test_src_query(opts.address, opts.srcsrv_port)
+    test_src_query(opts.address, opts.srcsrv_port)
 
 if __name__ == '__main__':
     main()

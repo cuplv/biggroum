@@ -41,12 +41,9 @@ Intall the requirements with:
 pip install -r requirements.txt
 
 Run the test as:
-python test.py --address 100.120.0.6 --search_port 30072  --solr_port 30071 --webserver_port 30073
+python test.py --address 100.120.0.6 --search_port 30072  --srcsrv_port 30071
 
 A correct output is:
-
-*** Testing biggroum_solr service...
-*** SUCCESS!
 
 *** Testing biggroum_search service...
 *** SUCCESS!
