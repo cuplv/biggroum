@@ -21,7 +21,7 @@ def test_search(address, port):
     service_address = "%s:%s" % (address, port)
 
     data = {
-        "groum_key" : "7heaven/CameraEffect/2bdea2275b3f4a67436e08428a1697e4419bcb36/com.example.cameraeffect.MainActivity.onCreate/39"
+        "groum_key" : "DevelopFreedom/logmein-android/418b37ffbafac3502b661d0918d1bc190e3c2dd1/org.developfreedom.logmein.DatabaseEngine.userList/95"
     }
 
     try:
@@ -39,6 +39,9 @@ def test_search(address, port):
         print("Request exception")
         print(str(e))
         return 1
+
+
+    print r.status_code
 
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
