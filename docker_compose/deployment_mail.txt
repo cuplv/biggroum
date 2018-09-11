@@ -2,7 +2,7 @@ Hi Banjo,
 
 could you deploy the new containers for the BigGroum search?
 
-# Docker compose file: 
+# Docker compose file:
 <ATTACH>
 
 
