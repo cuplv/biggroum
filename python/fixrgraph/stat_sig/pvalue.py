@@ -7,7 +7,7 @@ import os
 import sys
 import functools
 import operators
-from fixrgraph.stat_sig.feat import FeatExtractor
+from fixrgraph.stat_sig.feat import (FeatExtractor, Feature)
 from fixrgraph.stat_sig.db import FeatDb
 
 def compute_p_value(graph_path,
@@ -21,9 +21,9 @@ def compute_p_value(graph_path,
 
     # Extract the features
     for feat in featExtractor.features():
-        if feat.kind == FeatExtractor.METHOD_CALL:
+        if feat.kind == Feature.METHOD_CALL:
             methodCalls.add(feat)
-        elif feat.kind == FeatExtractor.METHOD_EDGE:
+        elif feat.kind == Feature.METHOD_EDGE:
             methodEdges.add(feat)
         else:
             raise Exception("Unknown feature kind " + feat.kind)
