@@ -23,12 +23,42 @@ class FeatExtractor:
             self.proto_acdfg.ParseFromString(groum_file.read())
             groum_file.close()
 
+
+        graph_sig = ""
+        if (acdfg.HasField("repo_tag")):
+            repoTag = acdfg.repo_tag
+            if (repoTag.HasField("user_name")):
+                graph_sig += repoTag.user_name
+            if (repoTag.HasField("repo_name")):
+                graph_sig += repoTag.repo_name
+            if (repoTag.HasField("url")):
+                graph_sig += repoTag.url
+            if (repoTag.HasField("commit_hash")):
+                graph_sig += repoTag.commit_hash
+
+        if (acdfg.HasField("source_info")):
+            protoSource = acdfg.source_info
+
+            if (protoSource.HasField("package_name")):
+                graph_sig += protoSource.package_name
+            if (protoSource.HasField("class_name")):
+                graph_sig += protoSource.class_name
+            if (protoSource.HasField("method_name")):
+                graph_sig += protoSource.method_name
+            if (protoSource.HasField("method_name")):
+                graph_sig += protoSource.method_name
+
+        self.graph_sig = graph_sig
+
         self.features = []
         self._extract_features()
 
-    def features(self):
+    def get_features(self):
         """ Implement an iterator """
-        raise NotImplementedError
+        return self.features
+
+    def get_graph_sig(self):
+        return self.graph_sig
 
     @static_method
     def _get_signature(method_node):

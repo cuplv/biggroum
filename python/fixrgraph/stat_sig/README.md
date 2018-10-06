@@ -83,3 +83,17 @@ The tools performs two tasks:
    obtain 'G' from the null model.
 
 
+## Dependencies
+
+The module inserts and queries the data from a MySQL database. You have to set-up a MySQL server.
+
+```
+sudo apt-get install mysql-server libmysqlclient-dev
+```
+
+The module uses the mysql client:
+
+```
+pip install mysqlclient
+```
+
