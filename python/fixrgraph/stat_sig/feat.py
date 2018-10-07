@@ -2,7 +2,7 @@
 Extract the features used to define the null model from a graph
 """
 
-import fixrgraph.annotator.protobuf.proto_acdfg_pb2
+from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 
 class Feat:
     METHOD_CALL = "method_call"
@@ -13,20 +13,22 @@ class Feat:
         self.desc = desc
         assert (kind in [self.METHOD_CALL, self.METHOD_EDGE])
 
+    def __repr__(self):
+        return "%s - %s" % (self.kind, self.desc)
 
 class FeatExtractor:
     def __init__(self, graph_path):
         self.graph_path = graph_path
 
         with open(graph_path) as groum_file:
-            self.proto_acdfg = proto_acdfg_pb2.Acdfg()
+            self.proto_acdfg = Acdfg()
             self.proto_acdfg.ParseFromString(groum_file.read())
             groum_file.close()
 
 
         graph_sig = ""
-        if (acdfg.HasField("repo_tag")):
-            repoTag = acdfg.repo_tag
+        if (self.proto_acdfg.HasField("repo_tag")):
+            repoTag = self.proto_acdfg.repo_tag
             if (repoTag.HasField("user_name")):
                 graph_sig += repoTag.user_name
             if (repoTag.HasField("repo_name")):
@@ -36,8 +38,8 @@ class FeatExtractor:
             if (repoTag.HasField("commit_hash")):
                 graph_sig += repoTag.commit_hash
 
-        if (acdfg.HasField("source_info")):
-            protoSource = acdfg.source_info
+        if (self.proto_acdfg.HasField("source_info")):
+            protoSource = self.proto_acdfg.source_info
 
             if (protoSource.HasField("package_name")):
                 graph_sig += protoSource.package_name
@@ -60,7 +62,7 @@ class FeatExtractor:
     def get_graph_sig(self):
         return self.graph_sig
 
-    @static_method
+    @staticmethod
     def _get_signature(method_node):
         if (method_node.HasField('assignee')):
             ret = "1"
@@ -72,12 +74,9 @@ class FeatExtractor:
         else:
             invokee = "0"
 
-        if (method_node.HasField('argument')):
-            args = len(method_node.argument)
-        else:
-            args = "0"
+        args = len(method_node.argument)
 
-        signature = "%d_%d_%s_%d" % (ret,invokee,method_node.name,args)
+        signature = "%s_%s_%s_%d" % (ret,invokee,method_node.name,args)
 
         return signature
 
@@ -98,10 +97,10 @@ class FeatExtractor:
         # Extract method edges features
         for edge in self.proto_acdfg.control_edge:
             # Just process method nodes
-            if (edge.from in idToNode and
+            if (getattr(edge, 'from') in idToNode and
                 edge.to in idToNode):
 
-                src_node = idToNode[edge.from]
+                src_node = idToNode[getattr(edge, 'from')]
                 dst_node = idToNode[edge.to]
 
                 src_sig = FeatExtractor._get_signature(src_node)
@@ -109,7 +108,7 @@ class FeatExtractor:
 
                 edge_sig = "%s -> %s" % (src_sig, dst_sig)
 
-                feat = Feat(Feat.EDGE_SIG, edge_sig)
+                feat = Feat(Feat.METHOD_EDGE, edge_sig)
                 self.features.append(feat)
 
 

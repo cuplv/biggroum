@@ -5,7 +5,7 @@ database
 
 import os
 import sys
-from fixrgraph.stat_sig.feat import (FeatExtractor, Feature)
+from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
 from fixrgraph.stat_sig.db import FeatDb
 
 def process_graph(graph_path, featDb):
