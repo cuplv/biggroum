@@ -25,14 +25,21 @@ def process_graphs(graph_path,
     featDb = FeatDb(host, user, password, db_name)
     featDb.open()
 
+
+    acdfgs = []
     for root, dirs, files in os.walk(graph_path, topdown=False):
         for name in files:
             if name.endswith("acdfg.bin"):
                 filename = os.path.join(root, name)
-                process_graph(filename, featDb)
+                acdfgs.append(filename)
+
+    i = 0
+    for filename in acdfgs:
+        i = i + 1
+        print "Extracting %d/%d..." % (i, len(acdfgs))
+        process_graph(filename, featDb)
 
     featDb.close()
-
 
 def main():
     p = optparse.OptionParser()

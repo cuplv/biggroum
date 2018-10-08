@@ -65,11 +65,18 @@ def compute_p_values(graph_path,
     featDb = FeatDb(host, user, password, db_name)
     featDb.open()
 
+    acdfgs = []
     for root, dirs, files in os.walk(graph_path, topdown=False):
         for name in files:
             if name.endswith("acdfg.bin"):
                 filename = os.path.join(root, name)
-                compute_p_value(graph_path, featDb)
+                acdfgs.append(filename)
+
+    i = 0
+    for filename in acdfgs:
+        i = i + 1
+        print "Computing p-value for %d/%d..." % (i, len(acdfgs))
+        compute_p_value(graph_path, featDb)
 
     featDb.close()
 
@@ -97,12 +104,12 @@ def main():
     if (not os.path.exists(opts.graph)): usage("Path %s does not exists!" % opts.graphs)
 
 
-    pvalue = compute_p_values(opts.graphs,
-                              opts.address,
-                              opts.user,
-                              opts.password,)
+    compute_p_values(opts.graphs,
+                     opts.address,
+                     opts.user,
+                     opts.password,)
 
-    print("P-Value for %s: %f" % (opts.graph, pvalue))
+    print "Computed p values"
 
 
 if __name__ == '__main__':
