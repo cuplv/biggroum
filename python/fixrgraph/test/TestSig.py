@@ -8,6 +8,8 @@ from fixrgraph.stat_sig.db import FeatDb
 from fixrgraph.stat_sig.extract import process_graphs
 from fixrgraph.stat_sig.pvalue import compute_p_value
 
+from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
+
 import shutil
 import logging
 import unittest
@@ -104,15 +106,21 @@ class TestSig(unittest.TestCase):
         count_res = featDb.count_features(to_consider)
         self.assertTrue(count_res == 1)
 
-        featDb.close()
 
 
         single_graph_path = os.path.join(test_path, TestSig.GRAPH_PATH)
         p_value = compute_p_value(single_graph_path,
-                                  TestSig.ADDRESS,
-                                  TestSig.USER,
-                                  TestSig.PASSWORD,
-                                  TestSig.DBNAME)
+                                  featDb)
+
+        with open(single_graph_path) as groum_file:
+            proto_acdfg = Acdfg()
+            proto_acdfg.ParseFromString(groum_file.read())
+            groum_file.close()
+            graph_sig = FeatExtractor._get_graph_name(proto_acdfg)
+
+        featDb.insert_pval(graph_sig, p_value)
+
+        featDb.close()
 
         self.assertTrue(p_value >= 0.0 and p_value <= 0.01)
 

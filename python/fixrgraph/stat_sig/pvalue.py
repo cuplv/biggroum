@@ -12,10 +12,7 @@ from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
 from fixrgraph.stat_sig.db import FeatDb
 
 def compute_p_value(graph_path,
-                    address,
-                    user,
-                    password,
-                    db_name = FeatDb.DB_NAME):
+                    featDb):
     featExtractor = FeatExtractor(graph_path)
 
     methodCalls = set()
@@ -29,11 +26,6 @@ def compute_p_value(graph_path,
             methodEdges.add(feat)
         else:
             raise Exception("Unknown feature kind " + feat.kind)
-
-
-    # Query the database
-    featDb = FeatDb(address, user, password)
-    featDb.open()
 
     # Compute the probability of the null model
     #
@@ -64,10 +56,26 @@ def compute_p_value(graph_path,
 
     return prob_graph
 
+def compute_p_values(graph_path,
+                     host,
+                     user,
+                     password,
+                     db_name = "groum_features"):
+    featDb = FeatDb(host, user, password, db_name)
+    featDb.open()
+
+    for root, dirs, files in os.walk(graph_path, topdown=False):
+        for name in files:
+            if name.endswith("acdfg.bin"):
+                filename = os.path.join(root, name)
+                compute_p_value(graph_path, featDb)
+                
+    featDb.close()
+
 
 def main():
     p = optparse.OptionParser()
-    p.add_option('-g', '--graph', help="Path to the groum file")
+    p.add_option('-g', '--graph', help="Path to the groum files")
 
     p.add_option('-a', '--host', help="Address to the db server")
     p.add_option('-u', '--user', help="User to access the db")
@@ -88,10 +96,10 @@ def main():
     if (not os.path.exists(opts.graph)): usage("Path %s does not exists!" % opts.graphs)
 
 
-    pvalue = compute_p_value(opts.graphs,
-                             opts.address,
-                             opts.user,
-                             opts.password)
+    pvalue = compute_p_values(opts.graphs,
+                              opts.address,
+                              opts.user,
+                              opts.password,)
 
     print("P-Value for %s: %f" % (opts.graph, pvalue))
 

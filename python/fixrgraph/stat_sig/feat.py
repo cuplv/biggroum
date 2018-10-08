@@ -25,32 +25,7 @@ class FeatExtractor:
             self.proto_acdfg.ParseFromString(groum_file.read())
             groum_file.close()
 
-
-        graph_sig = ""
-        if (self.proto_acdfg.HasField("repo_tag")):
-            repoTag = self.proto_acdfg.repo_tag
-            if (repoTag.HasField("user_name")):
-                graph_sig += repoTag.user_name
-            if (repoTag.HasField("repo_name")):
-                graph_sig += repoTag.repo_name
-            if (repoTag.HasField("url")):
-                graph_sig += repoTag.url
-            if (repoTag.HasField("commit_hash")):
-                graph_sig += repoTag.commit_hash
-
-        if (self.proto_acdfg.HasField("source_info")):
-            protoSource = self.proto_acdfg.source_info
-
-            if (protoSource.HasField("package_name")):
-                graph_sig += protoSource.package_name
-            if (protoSource.HasField("class_name")):
-                graph_sig += protoSource.class_name
-            if (protoSource.HasField("method_name")):
-                graph_sig += protoSource.method_name
-            if (protoSource.HasField("method_name")):
-                graph_sig += protoSource.method_name
-
-        self.graph_sig = graph_sig
+        self.graph_sig = FeatExtractor._get_graph_name(self.proto_acdfg)
 
         self.features = []
         self._extract_features()
@@ -63,7 +38,35 @@ class FeatExtractor:
         return self.graph_sig
 
     @staticmethod
-    def _get_signature(method_node):
+    def _get_graph_name(proto_acdfg):
+        graph_sig = ""
+        if (proto_acdfg.HasField("repo_tag")):
+            repoTag = proto_acdfg.repo_tag
+            if (repoTag.HasField("user_name")):
+                graph_sig += repoTag.user_name
+            if (repoTag.HasField("repo_name")):
+                graph_sig += repoTag.repo_name
+            if (repoTag.HasField("url")):
+                graph_sig += repoTag.url
+            if (repoTag.HasField("commit_hash")):
+                graph_sig += repoTag.commit_hash
+
+        if (proto_acdfg.HasField("source_info")):
+            protoSource = proto_acdfg.source_info
+
+            if (protoSource.HasField("package_name")):
+                graph_sig += protoSource.package_name
+            if (protoSource.HasField("class_name")):
+                graph_sig += protoSource.class_name
+            if (protoSource.HasField("method_name")):
+                graph_sig += protoSource.method_name
+            if (protoSource.HasField("method_name")):
+                graph_sig += protoSource.method_name
+
+        return graph_sig
+
+    @staticmethod
+    def _get_method_signature(method_node):
         if (method_node.HasField('assignee')):
             ret = "1"
         else:
@@ -90,7 +93,7 @@ class FeatExtractor:
 
         # Extract method set of method calls features
         for node in self.proto_acdfg.method_node:
-            signature = FeatExtractor._get_signature(node)
+            signature = FeatExtractor._get_method_signature(node)
             feat = Feat(Feat.METHOD_CALL, signature)
             self.features.append(feat)
 
@@ -103,8 +106,8 @@ class FeatExtractor:
                 src_node = idToNode[getattr(edge, 'from')]
                 dst_node = idToNode[edge.to]
 
-                src_sig = FeatExtractor._get_signature(src_node)
-                dst_sig = FeatExtractor._get_signature(dst_node)
+                src_sig = FeatExtractor._get_method_signature(src_node)
+                dst_sig = FeatExtractor._get_method_signature(dst_node)
 
                 edge_sig = "%s -> %s" % (src_sig, dst_sig)
 
