@@ -112,13 +112,6 @@ class TestSig(unittest.TestCase):
         p_value = compute_p_value(single_graph_path,
                                   featDb)
 
-        with open(single_graph_path) as groum_file:
-            proto_acdfg = Acdfg()
-            proto_acdfg.ParseFromString(groum_file.read())
-            groum_file.close()
-            graph_sig = FeatExtractor._get_graph_name(proto_acdfg)
-
-        featDb.insert_pval(graph_sig, p_value)
 
         featDb.close()
 

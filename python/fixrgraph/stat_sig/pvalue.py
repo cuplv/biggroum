@@ -52,9 +52,10 @@ def compute_p_value(graph_path,
 
         logging.debug("Computing %d/%d = %f" % (prob_all, prob_e, cond_prob) )
 
-    prob_graph = functools.reduce(operator.mul, methodEdgesProb, 1.0)
+    p_value = functools.reduce(operator.mul, methodEdgesProb, 1.0)
+    featDb.insert_pval(featExtractor.graph_sig, p_value)
 
-    return prob_graph
+    return p_value
 
 def compute_p_values(graph_path,
                      host,
@@ -69,7 +70,7 @@ def compute_p_values(graph_path,
             if name.endswith("acdfg.bin"):
                 filename = os.path.join(root, name)
                 compute_p_value(graph_path, featDb)
-                
+
     featDb.close()
 
 
