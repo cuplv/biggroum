@@ -4,6 +4,7 @@
 
 import fixrgraph
 from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
+from fixrgraph.stat_sig.db import FeatDb
 from fixrgraph.stat_sig.extract import process_graphs
 
 import shutil
@@ -22,8 +23,22 @@ except ImportError:
 
 class TestSig(unittest.TestCase):
 
+    ADDRESS = "localhost"
+    USER = "groum"
+    PASSWORD = "groum"
+    DBNAME = "test_groum_features"
+
     GRAPH_PATH = "test_data/groums/tv.acfun.a63.MainActivity_showLastPublicReleaseAlert.acdfg.bin"
     ALL_GRAPH_PATH = "test_data/groums"
+
+    def clean_db(self):
+        featDb = FeatDb(TestSig.ADDRESS,
+                        TestSig.USER,
+                        TestSig.PASSWORD,
+                        TestSig.DBNAME)
+        featDb.open()
+        featDb._clean_db()
+        featDb.close()
 
     def _load_graph(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
@@ -64,11 +79,25 @@ class TestSig(unittest.TestCase):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         graph_path = os.path.join(test_path, TestSig.ALL_GRAPH_PATH)
 
+        self.clean_db()
+
         process_graphs(graph_path,
-                       "localhost",
-                       "groum",
-                       "groum")
+                       TestSig.ADDRESS,
+                       TestSig.USER,
+                       TestSig.PASSWORD,
+                       TestSig.DBNAME)
 
-        self.assertTrue(True)
 
+        # Test number of insert features
+        featDb = FeatDb(TestSig.ADDRESS,
+                        TestSig.USER,
+                        TestSig.PASSWORD,
+                        TestSig.DBNAME)
+        featDb.open()
+        num_features = featDb.count_all_features()
+        featDb.close()
+        self.assertTrue(len(num_features) == 1 and num_features[0] == 136)
+
+        # Test queries on features
         
+

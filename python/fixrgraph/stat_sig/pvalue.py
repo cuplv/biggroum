@@ -48,6 +48,7 @@ def compute_p_value(graph_path,
     #
     methodEdgesProb = []
     for e in methodEdges:
+        tot_features = featDb.count_all_features()
         prob_all = featDb.count_features([e] + methodCalls)
         prob_e = featDb.count_feature([e])
 

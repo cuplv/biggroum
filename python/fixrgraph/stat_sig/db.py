@@ -14,17 +14,28 @@ class FeatDb:
     FEATURE_TABLE = "FEATURES"
     FEAT_IN_GRAPHS_TABLE = "FEAT_IN_GRAPHS"
 
-    def __init__(self, address, user, password):
+    def __init__(self, address, user, password, db_name = None):
         self.address = address
         self.user = user
         self.password = password
         self.db = None
 
+        if db_name is None:
+            self.db_name = FeatDb.DB_NAME
+        else:
+            self.db_name = db_name
 
     def _exec_sql(self, cursor, sql):
         logging.debug("SQL: %s" % sql)
         cursor.execute(sql)
 
+    def _clean_db(self):
+        cursor = self.db.cursor()
+        sql = "DROP DATABASE IF EXISTS %s" % self.db_name
+        self._exec_sql(cursor, sql)
+        self.db.commit()
+
+        cursor.close()
 
     def _init_db(self):
         self.db = MySQLdb.connect(host=self.address,
@@ -33,13 +44,13 @@ class FeatDb:
 
         # create db
         cursor = self.db.cursor()
-        sql = "CREATE DATABASE IF NOT EXISTS %s" % FeatDb.DB_NAME
+        sql = "CREATE DATABASE IF NOT EXISTS %s" % self.db_name
         self._exec_sql(cursor, sql)
 
-        self.db.select_db(FeatDb.DB_NAME)
+        self.db.select_db(self.db_name)
 
         self._exec_sql(cursor,
-                       "CREATE DATABASE IF NOT EXISTS %s" % FeatDb.DB_NAME)
+                       "CREATE DATABASE IF NOT EXISTS %s" % self.db_name)
 
         # create tables
         self._exec_sql(cursor,
@@ -117,7 +128,24 @@ class FeatDb:
         self.db.commit()
         cursor.close()
 
-    def count_features(self):
+
+    def count_features(self, feature_list):
+        # Count the number of features
+
+
         raise NotImplementedError
+
+    def count_all_features(self):
+        # Count the number of all features
+
+        cursor = self.db.cursor()
+        sql = "SELECT COUNT(*) FROM %s" % (FeatDb.FEAT_IN_GRAPHS_TABLE)
+        self._exec_sql(cursor, sql)
+        count = cursor.fetchone()
+
+        print count
+
+        return count
+
 
 

@@ -20,8 +20,9 @@ def process_graph(graph_path, featDb):
 def process_graphs(graph_path,
                    host,
                    user,
-                   password):
-    featDb = FeatDb(host, user, password)
+                   password,
+                   db_name = "groum_features"):
+    featDb = FeatDb(host, user, password, db_name)
     featDb.open()
 
     for root, dirs, files in os.walk(graph_path, topdown=False):
