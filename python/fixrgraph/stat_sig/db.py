@@ -8,7 +8,6 @@ from fixrgraph.stat_sig.feat import Feat
 
 
 class FeatDb:
-
     DB_NAME = "groum_features"
     GRAPH_TABLE = "GRAPHS"
     FEATURE_TABLE = "FEATURES"
@@ -130,22 +129,59 @@ class FeatDb:
 
 
     def count_features(self, feature_list):
-        # Count the number of features
+        # Count the number of graphs that contains all the
+        # features in feature_list
 
+        if (len(feature_list) == 0):
+            return 0
 
-        raise NotImplementedError
+        feat_sql = None
+        for feat in feature_list:
+            if (feat_sql is None):
+                feat_sql = "SELECT DISTINCT %s.graph_id FROM %s " \
+                  "INNER JOIN FEATURES ON %s.feat_id = %s.id " \
+                  "WHERE %s.description = '%s'" % (FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                   FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                   FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                   FeatDb.FEATURE_TABLE,
+                                                   FeatDb.FEATURE_TABLE,
+                                                   feat.desc)
 
-    def count_all_features(self):
-        # Count the number of all features
+            else:
+                feat_sql = "SELECT DISTINCT %s.graph_id FROM %s " \
+                  "INNER JOIN FEATURES ON %s.feat_id = %s.id " \
+                  "WHERE %s.description = '%s' AND " \
+                  "%s.graph_id IN (%s)" \
+                  "" % (FeatDb.FEAT_IN_GRAPHS_TABLE,
+                        FeatDb.FEAT_IN_GRAPHS_TABLE,
+                        FeatDb.FEAT_IN_GRAPHS_TABLE,
+                        FeatDb.FEATURE_TABLE,
+                        FeatDb.FEATURE_TABLE,
+                        feat.desc,
+                        FeatDb.FEAT_IN_GRAPHS_TABLE,
+                        feat_sql)
+
+        sql = "SELECT COUNT(DISTINCT(%s.graph_id)) FROM %s WHERE " \
+              "%s.graph_id IN (%s)" % (FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                       FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                       FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                       feat_sql)
 
         cursor = self.db.cursor()
-        sql = "SELECT COUNT(*) FROM %s" % (FeatDb.FEAT_IN_GRAPHS_TABLE)
         self._exec_sql(cursor, sql)
         count = cursor.fetchone()
 
-        print count
+        cursor.close()
+        return count[0]
+
+    def count_all_graphs(self):
+        # Count the number of the graphs
+        cursor = self.db.cursor()
+        sql = "SELECT COUNT(*) FROM %s" % (FeatDb.GRAPH_TABLE)
+        self._exec_sql(cursor, sql)
+        count = cursor.fetchone()
+        cursor.close()
 
         return count
-
 
 

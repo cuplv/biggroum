@@ -6,6 +6,7 @@ import fixrgraph
 from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
 from fixrgraph.stat_sig.db import FeatDb
 from fixrgraph.stat_sig.extract import process_graphs
+from fixrgraph.stat_sig.pvalue import compute_p_value
 
 import shutil
 import logging
@@ -74,8 +75,6 @@ class TestSig(unittest.TestCase):
             self.assertTrue(feat.desc in features)
 
     def test_db_insertion(self):
-        featExtractor = self._load_graph()
-
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         graph_path = os.path.join(test_path, TestSig.ALL_GRAPH_PATH)
 
@@ -94,10 +93,27 @@ class TestSig(unittest.TestCase):
                         TestSig.PASSWORD,
                         TestSig.DBNAME)
         featDb.open()
-        num_features = featDb.count_all_features()
-        featDb.close()
-        self.assertTrue(len(num_features) == 1 and num_features[0] == 136)
+
+
+        num_graphs = featDb.count_all_graphs()
+        self.assertTrue(len(num_graphs) > 0 and num_graphs[0] == 6)
 
         # Test queries on features
-        
+        to_consider = [Feat(Feat.METHOD_CALL, '0_1_android.app.AlertDialog$Builder.show_0'),
+                       Feat(Feat.METHOD_EDGE, '0_0_EQ_2')]
+        count_res = featDb.count_features(to_consider)
+        self.assertTrue(count_res == 1)
+
+        featDb.close()
+
+
+        single_graph_path = os.path.join(test_path, TestSig.GRAPH_PATH)
+        p_value = compute_p_value(single_graph_path,
+                                  TestSig.ADDRESS,
+                                  TestSig.USER,
+                                  TestSig.PASSWORD,
+                                  TestSig.DBNAME)
+
+        self.assertTrue(p_value >= 0.0 and p_value <= 0.01)
+
 

@@ -6,24 +6,26 @@ Compute the p-value for a graph
 import os
 import sys
 import functools
-import operators
-from fixrgraph.stat_sig.feat import (FeatExtractor, Feature)
+import operator
+import logging
+from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
 from fixrgraph.stat_sig.db import FeatDb
 
 def compute_p_value(graph_path,
                     address,
                     user,
-                    password):
+                    password,
+                    db_name = FeatDb.DB_NAME):
     featExtractor = FeatExtractor(graph_path)
 
     methodCalls = set()
     methodEdges = set()
 
     # Extract the features
-    for feat in featExtractor.features():
-        if feat.kind == Feature.METHOD_CALL:
+    for feat in featExtractor.features:
+        if feat.kind == Feat.METHOD_CALL:
             methodCalls.add(feat)
-        elif feat.kind == Feature.METHOD_EDGE:
+        elif feat.kind == Feat.METHOD_EDGE:
             methodEdges.add(feat)
         else:
             raise Exception("Unknown feature kind " + feat.kind)
@@ -38,24 +40,27 @@ def compute_p_value(graph_path,
     # methodCalls = {m1, ..., mk}
     # methodEdges = {e1, ..., el}
     #
-    # We compute P(e1 = 1, ..., el = 1) for the null model.
+    # We compute P(e1 = 1, ..., el = 1 | m1, ..., mk) for the null model.
     #
     # We assume e1, ..., el to be independent. Then:
-    # P(e1 = 1, ..., el = 1) = P(e1 = 1) ... P(el = 1)
+    # P(e1 = 1, ..., el = 1) = P(e1 = 1 | m1, ..., mk) ... P(el = 1 | m1, ..., mk)
     #
-    # We compute P(ei = 1) as:
-    # P(ei = 1) = P(ei=1, m1 = 1, ..., mk =1) / P(ei = 1)
+    # We compute each P(ei = 1 | m1, ..., mk) as:
+    # P(ei = 1 | m1, ..., mk ) = P(ei=1, m1 = 1, ..., mk =1) / P(ei = 1)
     #
     methodEdgesProb = []
     for e in methodEdges:
-        tot_features = featDb.count_all_features()
-        prob_all = featDb.count_features([e] + methodCalls)
-        prob_e = featDb.count_feature([e])
-
-        cond_prob = prob_all / prob_e
+        # P(ei=1, m1 = 1, ..., mk =1)
+        prob_all = featDb.count_features([e] + list(methodCalls))
+        # P(ei = 1)
+        prob_e = featDb.count_features([e])
+        # P(ei = 1 | m1, ..., mk )
+        cond_prob = float(prob_all) / float(prob_e)
         methodEdgesProb.append(cond_prob)
 
-    prob_graph = functools.reduce(operator.mul, methodEdgesProb, 1)
+        logging.debug("Computing %d/%d = %f" % (prob_all, prob_e, cond_prob) )
+
+    prob_graph = functools.reduce(operator.mul, methodEdgesProb, 1.0)
 
     return prob_graph
 
