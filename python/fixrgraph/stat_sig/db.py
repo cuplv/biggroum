@@ -3,6 +3,7 @@ Store the features in a database
 """
 
 import MySQLdb
+import logging
 from fixrgraph.stat_sig.feat import Feat
 
 
@@ -20,83 +21,103 @@ class FeatDb:
         self.db = None
 
 
+    def _exec_sql(self, cursor, sql):
+        logging.debug("SQL: %s" % sql)
+        cursor.execute(sql)
+
+
     def _init_db(self):
-        self.db = MySQLdb.connect(host=address, user=user,passwd=password)
+        self.db = MySQLdb.connect(host=self.address,
+                                  user=self.user,
+                                  passwd=self.password)
 
         # create db
         cursor = self.db.cursor()
         sql = "CREATE DATABASE IF NOT EXISTS %s" % FeatDb.DB_NAME
-        cursor.execute(sql)
+        self._exec_sql(cursor, sql)
 
         self.db.select_db(FeatDb.DB_NAME)
 
+        self._exec_sql(cursor,
+                       "CREATE DATABASE IF NOT EXISTS %s" % FeatDb.DB_NAME)
+
         # create tables
-        cursor.execute("CREATE TABLE IF NOT EXISTS %s (" \
+        self._exec_sql(cursor,
+                       "CREATE TABLE IF NOT EXISTS %s (" \
                        "id INT AUTO_INCREMENT," \
-                       "desc TEXT NOT NULL,"
-                       "PRIMARY_KEY(id)," \
-                       "CONSTRAINT tb_un UNIQUE (desc)"\
+                       "description VARCHAR(500) NOT NULL,"
+                       "PRIMARY KEY(id)," \
+                       "CONSTRAINT tb_un UNIQUE (description)"\
                        ")" % FeatDb.GRAPH_TABLE)
 
-        cursor.execute("CREATE TABLE IF NOT EXISTS %s (" \
+        self._exec_sql(cursor,
+                       "CREATE TABLE IF NOT EXISTS %s (" \
                        "id INT AUTO_INCREMENT," \
-                       "desc TEXT NOT NULL,"
-                       "PRIMARY_KEY(id)," \
-                       "CONSTRAINT tb_un UNIQUE (desc)"\
+                       "description VARCHAR(500) NOT NULL,"
+                       "PRIMARY KEY(id)," \
+                       "CONSTRAINT tb_un UNIQUE (description)"\
                        ")" % FeatDb.FEATURE_TABLE)
 
-        cursor.execute("CREATE TABLE IF NOT EXISTS %s (" \
+        self.db.commit()
+
+        self._exec_sql(cursor,
+                       "CREATE TABLE IF NOT EXISTS %s (" \
                        "graph_id INT NOT NULL," \
-                       "feat_id TEXT NOT NULL,"
-                       "CONSTRAINT graph_key FOREIGN KEY(graph_id)," \
-                       "CONSTRAINT feat_key FOREIGN KEY(feat_id)," \
-                       "CONSTRAINT feat_unique PRIMARY KEY (graph_id,feat_id)," \
-                       ")" % FeatDb.FEAT_IN_GRAPHS)
+                       "feat_id INT NOT NULL,"
+                       "CONSTRAINT graph_key FOREIGN KEY(graph_id) references %s(id)," \
+                       "CONSTRAINT feat_key FOREIGN KEY(feat_id) references %s(id)," \
+                       "CONSTRAINT feat_unique PRIMARY KEY (graph_id,feat_id)" \
+                       ")" % (FeatDb.FEAT_IN_GRAPHS_TABLE,
+                              FeatDb.GRAPH_TABLE,
+                              FeatDb.FEATURE_TABLE))
+        self.db.commit()
+
         cursor.close()
 
 
     def open(self):
-        assert not self.db.open()
+        assert self.db is None
         self._init_db()
 
     def close(self):
-        assert self.db.open()
         self.db.close()
 
     def insert_feat(self, graph_name, feat):
-        assert self.db.open()
         cursor = self.db.cursor()
 
         # Insert the feature
-        sql = "INSERT IGNORE %s(x) VALUES(%s)" % (FeatDb.FEATURE_TABLE,
-                                                  feat.desc)
-        cursor.execute()
+        sql = "INSERT IGNORE %s(description) VALUES('%s')" % (FeatDb.FEATURE_TABLE,
+                                                              feat.desc)
+        self._exec_sql(cursor, sql)
 
         # Insert the feature
-        sql = "INSERT IGNORE INTO %s (x,y)" \
-              "VALUES(SELECT id FROM %s WHERE desc = %s," \
-              "SELECT id from %s WHERE desc = %s)" % (FeatDb.FEAT_IN_GRAPHS,
-                                                      FeatDb.GRAPH_TABLE,
-                                                      graph_name,
-                                                      FeatDb.FEATURE_TABLE,
-                                                      feat.desc)
-        cursor.execute()
+        sql = "INSERT IGNORE INTO %s (graph_id,feat_id) " \
+              "SELECT %s.id, %s.id " \
+              "FROM %s, %s " \
+              "WHERE %s.description = '%s' AND " \
+              "%s.description = '%s'" % (FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                         FeatDb.GRAPH_TABLE,
+                                         FeatDb.FEATURE_TABLE,
+                                         FeatDb.GRAPH_TABLE,
+                                         FeatDb.FEATURE_TABLE,
+                                         FeatDb.GRAPH_TABLE,
+                                         graph_name,
+                                         FeatDb.FEATURE_TABLE,
+                                         feat.desc)
+        self._exec_sql(cursor, sql)
+        self.db.commit()
         cursor.close()
 
     def insert_graph(self, graph_sig):
-        assert self.db.open()
         cursor = self.db.cursor()
 
-        sql = "INSERT IGNORE %s(x) VALUES(%s) " % (FeatDb.GRAPH_TABLE,
-                                                   graph_sig)
-
-
-        cursor.execute()
+        sql = "INSERT IGNORE %s(description) VALUES('%s') " % (FeatDb.GRAPH_TABLE,
+                                                               graph_sig)
+        self._exec_sql(cursor, sql)
+        self.db.commit()
         cursor.close()
 
     def count_features(self):
-        assert self.db.open()
-
         raise NotImplementedError
 
 

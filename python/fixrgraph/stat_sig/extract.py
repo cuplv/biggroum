@@ -15,13 +15,13 @@ def process_graph(graph_path, featDb):
     featDb.insert_graph(graph_sig)
 
     for feat in featExtractor.get_features():
-        featDb.insert(graph_sig, feat)
+        featDb.insert_feat(graph_sig, feat)
 
 def process_graphs(graph_path,
                    host,
                    user,
                    password):
-    featDb = FeatDb(address, user, password)
+    featDb = FeatDb(host, user, password)
     featDb.open()
 
     for root, dirs, files in os.walk(graph_path, topdown=False):

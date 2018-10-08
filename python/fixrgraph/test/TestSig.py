@@ -4,6 +4,7 @@
 
 import fixrgraph
 from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
+from fixrgraph.stat_sig.extract import process_graphs
 
 import shutil
 import logging
@@ -22,12 +23,16 @@ except ImportError:
 class TestSig(unittest.TestCase):
 
     GRAPH_PATH = "test_data/groums/tv.acfun.a63.MainActivity_showLastPublicReleaseAlert.acdfg.bin"
+    ALL_GRAPH_PATH = "test_data/groums"
 
-    def test_feature_extraction(self):
+    def _load_graph(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         file_path = os.path.join(test_path, TestSig.GRAPH_PATH)
-
         featExtractor = FeatExtractor(file_path)
+        return featExtractor
+
+    def test_feature_extraction(self):
+        featExtractor = self._load_graph()
 
         graph_sig = featExtractor.get_graph_sig()
         self.assertTrue(graph_sig == "yromAcFun-Area63https://github.com/yrom/AcFun-Area63403a5f553cff913c51373e48a84880583f89483btv.acfun.a63tv.acfun.a63.MainActivityshowLastPublicReleaseAlertshowLastPublicReleaseAlert")
@@ -52,3 +57,18 @@ class TestSig(unittest.TestCase):
 
         for feat in featExtractor.get_features():
             self.assertTrue(feat.desc in features)
+
+    def test_db_insertion(self):
+        featExtractor = self._load_graph()
+
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        graph_path = os.path.join(test_path, TestSig.ALL_GRAPH_PATH)
+
+        process_graphs(graph_path,
+                       "localhost",
+                       "groum",
+                       "groum")
+
+        self.assertTrue(True)
+
+        
