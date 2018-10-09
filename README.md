@@ -163,3 +163,16 @@ A copy of a pre-print of the paper is available in the doc folder.
 In the paper we used the `BigGroum` tool to extract and mine patterns from 500 Android applications. The results are available here: https://goo.gl/r1VAgc
 
 
+## For statistical significance
+
+Need:
+
+```
+sudo apt-get install mysql-server
+
+echo "GRANT ALL PRIVILEGES ON *.* TO 'groum'@'localhost' IDENTIFIED BY 'password'; quit;" > app.sql
+/usr/bin/mysql -u root -p < app.sql
+rm app.sql
+
+sudo apt-get install python-pip python-dev libmysqlclient-dev && sudo pip install mysqlclient
+```
