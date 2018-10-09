@@ -5,17 +5,14 @@ database
 
 import os
 import sys
+import optparse
 from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
 from fixrgraph.stat_sig.db import FeatDb
 
 def process_graph(graph_path, featDb):
     featExtractor = FeatExtractor(graph_path)
-
     graph_sig = featExtractor.get_graph_sig()
-    featDb.insert_graph(graph_sig)
-
-    for feat in featExtractor.get_features():
-        featDb.insert_feat(graph_sig, feat)
+    featDb.insert_features(graph_sig, featExtractor.get_features())
 
 def process_graphs(graph_path,
                    host,
@@ -36,7 +33,11 @@ def process_graphs(graph_path,
     i = 0
     for filename in acdfgs:
         i = i + 1
-        print "Extracting %d/%d..." % (i, len(acdfgs))
+
+        perc = float(i) / float(len(acdfgs))
+        perc = perc * 100
+
+        print "Extracting %d/%d (%f)..." % (i, len(acdfgs), perc)
         process_graph(filename, featDb)
 
     featDb.close()
@@ -57,13 +58,16 @@ def main():
 
     opts, args = p.parse_args()
 
-    required = [opts.graph_path,opts.address,opts.user,opts.password]
+    required = [opts.graph_path,opts.host,opts.user,opts.password]
     for r in required:
         if (not r):
             usage("Missing required argument!")
     if (not os.path.isdir(opts.graph_path)): usage("Path %s does not exists!" % opts.graph_path)
 
-
+    process_graphs(opts.graph_path,
+                   opts.host,
+                   opts.user,
+                   opts.password)
 
 if __name__ == '__main__':
     main()

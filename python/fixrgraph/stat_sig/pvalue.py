@@ -5,6 +5,7 @@ Compute the p-value for a graph
 
 import os
 import sys
+import optparse
 import functools
 import operator
 import logging

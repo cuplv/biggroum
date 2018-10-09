@@ -38,6 +38,10 @@ class FeatDb:
         cursor.close()
 
     def _init_db(self):
+        print self.address
+        print self.user
+        print self.password
+
         self.db = MySQLdb.connect(host=self.address,
                                   user=self.user,
                                   passwd=self.password)
@@ -103,19 +107,25 @@ class FeatDb:
     def close(self):
         self.db.close()
 
-    def insert_graph(self, graph_sig):
+    def insert_features(self, graph_sig, features):
         cursor = self.db.cursor()
 
-        sql = "INSERT IGNORE %s(description) VALUES('%s') " % (FeatDb.GRAPH_TABLE,
-                                                               graph_sig)
-        self._exec_sql(cursor, sql)
+        self._insert_graph(graph_sig, cursor)
+
+        for feat in features:
+            self._insert_feat(graph_sig, feat, cursor)
+
         self.db.commit()
         cursor.close()
 
 
-    def insert_feat(self, graph_name, feat):
-        cursor = self.db.cursor()
+    def _insert_graph(self, graph_sig, cursor):
+        sql = "INSERT IGNORE %s(description) VALUES('%s') " % (FeatDb.GRAPH_TABLE,
+                                                               graph_sig)
+        self._exec_sql(cursor, sql)
 
+
+    def _insert_feat(self, graph_name, feat, cursor):
         # Insert the feature
         sql = "INSERT IGNORE %s(description) VALUES('%s')" % (FeatDb.FEATURE_TABLE,
                                                               feat.desc)
@@ -136,8 +146,6 @@ class FeatDb:
                                          FeatDb.FEATURE_TABLE,
                                          feat.desc)
         self._exec_sql(cursor, sql)
-        self.db.commit()
-        cursor.close()
 
     def insert_pval(self, graph_name, pvalue):
         cursor = self.db.cursor()
