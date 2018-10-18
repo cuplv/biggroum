@@ -23,19 +23,27 @@ def run_extraction(config):
     gather_results_path = TestPipeline.get_gather_results_path()
 
     out_path = os.path.join(config.get("extraction", "out_path"))
+
+    try:
+        tot_thread = int(config.get("extraction","processes"))
+    except:
+        return 1
+
     extract_config = Pipeline.ExtractConfig(extractor_path,
                                             config.get("extraction", "repo_list"),
                                             config.get("extraction", "buildable_list"),
                                             config.get("extraction", "build_data"),
-                                            out_path)
+                                            out_path,
+                                            tot_thread)
 
     groums_path = os.path.join(out_path, "graphs")
     cluster_path = os.path.join(out_path,"clusters")
-    os.makedirs(cluster_path)
+    if (not os.path.isdir(cluster_path)):
+        os.makedirs(cluster_path)
     cluster_file_path = os.path.join(cluster_path, "clusters.txt")
     groum_files_path = os.path.join(cluster_path, "groums_list.txt")
 
-    TestPipeline.create_groums_file(groums_path, groum_files_path)
+
     itemset_config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
                                                 config.get("itemset", "frequency_cutoff"),
                                                 config.get("itemset", "min_methods_in_itemset"),
@@ -53,32 +61,43 @@ def run_extraction(config):
     html_path = os.path.join(cluster_path, "html_files")
 
     # Extract the graphs
+    print("Extract groums...")
     Pipeline.extractGraphs(extract_config)
 
+    print("Generating graphs list...")
+    TestPipeline.create_groums_file(groums_path, groum_files_path, 100000)
+
     # Run the itemset computation
+    print("Extract itemsets...")
     Pipeline.computeItemsets(itemset_config)
 
     # Compute the patterns
+    print("Compute patterns...")
     Pipeline.computePatterns(pattern_config)
 
     # Render the HTML results
+    print("Render HTML pages...")
     cluster_folders = os.path.join(cluster_path, "all_clusters")
-    max_cluster = -1
-    for path in os.listdir(cluster_folders):
-        if path.startswith("cluster_"):
-            n_str = path[8:]
-            try:
-                n = int(n_str)
-                if n > max_cluster:
-                    max_cluster = n
-            except:
-                pass
-    # Missing: cluster number, to get automatically
-    for i in range(n):
-        html_config = Pipeline.ComputeHtmlConfig(cluster_path,
-                                                 i+1,
-                                                 gather_results_path)
-        Pipeline.computeHtml(html_config)
+
+    if (os.path.isdir(cluster_folders)):
+        max_cluster = -1
+        for path in os.listdir(cluster_folders):
+            if path.startswith("cluster_"):
+                n_str = path[8:]
+                try:
+                    n = int(n_str)
+                    if n > max_cluster:
+                        max_cluster = n
+                except:
+                    pass
+        # Missing: cluster number, to get automatically
+        for i in range(n):
+            html_config = Pipeline.ComputeHtmlConfig(cluster_path,
+                                                     i+1,
+                                                     gather_results_path)
+            Pipeline.computeHtml(html_config)
+    else:
+        print("The extraction did not find any pattern.")
 
 
 def main():
@@ -103,4 +122,7 @@ def main():
 
 
 if __name__ == '__main__':
+    log_name = "extraction_log_" + str(os.getpid())
+    logging.basicConfig(filename = log_name, level=logging.DEBUG)
+
     main()
