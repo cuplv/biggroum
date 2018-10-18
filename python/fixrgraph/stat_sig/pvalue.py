@@ -51,9 +51,15 @@ def compute_p_value(graph_path,
         cond_prob = float(prob_all) / float(prob_e)
         methodEdgesProb.append(cond_prob)
 
-        logging.debug("Computing %d/%d = %f" % (prob_all, prob_e, cond_prob) )
+        logging.info("Computing %d/%d = %f" % (prob_all, prob_e, cond_prob) )
+
 
     p_value = functools.reduce(operator.mul, methodEdgesProb, 1.0)
+    logging.debug("Computed pvalue %f" % p_value)
+
+    
+    
+
     featDb.insert_pval(featExtractor.graph_sig, p_value)
 
     return p_value
@@ -76,15 +82,19 @@ def compute_p_values(graph_path,
     i = 0
     for filename in acdfgs:
         i = i + 1
-        print "Computing p-value for %d/%d..." % (i, len(acdfgs))
-        compute_p_value(graph_path, featDb)
+
+        perc = float(i) / float(len(acdfgs))
+        perc = perc * 100
+
+        print "Extracting %d/%d (%f)..." % (i, len(acdfgs), perc)
+        compute_p_value(filename, featDb)
 
     featDb.close()
 
 
 def main():
     p = optparse.OptionParser()
-    p.add_option('-g', '--graph', help="Path to the groum files")
+    p.add_option('-g', '--graphs', help="Path to the groum files")
 
     p.add_option('-a', '--host', help="Address to the db server")
     p.add_option('-u', '--user', help="User to access the db")
@@ -98,17 +108,16 @@ def main():
 
     opts, args = p.parse_args()
 
-    required = [opts.graph,opts.address,opts.user,opts.password]
+    required = [opts.graphs,opts.host,opts.user,opts.password]
     for r in required:
         if (not r):
             usage("Missing required argument!")
-    if (not os.path.exists(opts.graph)): usage("Path %s does not exists!" % opts.graphs)
-
+    if (not os.path.exists(opts.graphs)): usage("Path %s does not exists!" % opts.graphs)
 
     compute_p_values(opts.graphs,
-                     opts.address,
+                     opts.host,
                      opts.user,
-                     opts.password,)
+                     opts.password)
 
     print "Computed p values"
 
