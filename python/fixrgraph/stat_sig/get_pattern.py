@@ -1,5 +1,11 @@
+import os
+import sys
+import logging
+import traceback
+
 from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 from google.protobuf.json_format import MessageToJson
+from fixrgraph.solr.patterns_utils import parse_clusters, parse_cluster_info
 
 def get_pattern(graph_path, method_list, out_path):
     proto_acdfg = None
@@ -103,7 +109,46 @@ def get_pattern(graph_path, method_list, out_path):
     f.close()
 
 
-    msg = MessageToJson(out_acdfg)
-    print msg
 
-get_pattern("/home/sergio/Downloads/SANER/SANER_SHARED/SANER_ARTIFACT/results/computed_patterns/graphiso/all_clusters/cluster_1/com.achep.base.ui.fragments.DashboardFragment_rebuildUI.acdfg.bin", ["android.app.Activity.getLayoutInflater", "android.app.AlertDialog$Builder.<init>", "android.app.AlertDialog$Builder.create", "android.app.AlertDialog$Builder.setPositiveButton", "android.app.AlertDialog$Builder.setView", "android.content.Context.getResources", "android.content.Context.getSystemService", "android.support.v4.app.DialogFragment.getActivity", "android.support.v4.app.Fragment.getActivity", "android.view.LayoutInflater.from", "android.view.LayoutInflater.inflate", "android.view.View.findViewById", "android.view.View.getTag", "android.view.View.setOnClickListener", "android.view.View.setTag", "android.view.View.setVisibility", "android.view.ViewGroup.addView", "android.widget.ArrayAdapter.getContext", "android.widget.ArrayAdapter.getItem", "android.widget.ImageView.setImageResource", "android.widget.TextView.setText", "android.widget.TextView.setTextColor"], "/tmp/app.bin")
+out_path = "/home/sergio/works/projects/muse/pattern_repr"
+cluster_path = ""
+root = "/home/sergio/Downloads/SANER/SANER_SHARED/SANER_ARTIFACT/results/computed_patterns/graphiso/"
+
+cinfo_file = os.path.join(root, "all_clusters.txt")
+
+with open(cinfo_file, 'r') as f:
+    cluster_infos = parse_clusters(f)
+    f.close()
+
+for cluster_info in cluster_infos:
+    print "Processing cluster %d/%d" % (cluster_info.id, len(cluster_infos))
+
+    cluster_path = os.path.join(root,
+                                "all_clusters/cluster_%d" % cluster_info.id)
+    cluster_info_file = os.path.join(cluster_path,
+                                     "cluster_%d_info.txt" % cluster_info.id)
+
+    if os.path.isfile(cluster_info_file):
+        with open(cluster_info_file, 'r') as f:
+            pattern_list = parse_cluster_info(f)
+            f.close()
+
+        for pattern in pattern_list:
+            print "Processing pattern %s/%d" % (pattern.id, len(pattern_list))
+
+            assert(len(pattern.groum_files_list) > 0)
+            out_file = os.path.join(out_path,
+                                    "%d_%s_%s.acdfg.bin" % (cluster_info.id,
+                                                            pattern.type,
+                                                            pattern.id))
+
+            gfile = os.path.join(cluster_path, pattern.groum_files_list[0])
+            try:
+                get_pattern(gfile,
+                            cluster_info.methods_list,
+                            out_file)
+            except:
+                traceback.print_exc()
+    else:
+        logging.info("Cluster not computed %s" % cluster_info_file)
+
