@@ -88,38 +88,6 @@ def compute_p_value(graph_path, featDb):
 
     p_value = compute_p_value_inner(featDb, methodEdges, methodCalls)
 
-    # # Compute the probability of the null model
-    # #
-    # # methodCalls = {m1, ..., mk}
-    # # methodEdges = {e1, ..., el}
-    # #
-    # # We compute P(e1 = 1, ..., el = 1 | m1, ..., mk) for the null model.
-    # #
-    # # We assume e1, ..., el to be independent. Then:
-    # # P(e1 = 1, ..., el = 1) = P(e1 = 1 | m1, ..., mk) ... P(el = 1 | m1, ..., mk)
-    # #
-    # # We compute each P(ei = 1 | m1, ..., mk) as:
-    # # P(ei = 1 | m1, ..., mk ) = P(ei=1, m1 = 1, ..., mk =1) / P(ei = 1)
-    # #
-    # methodEdgesProb = []
-    # for e in methodEdges:
-    #     # P(ei=1, m1 = 1, ..., mk =1)
-    #     prob_all = featDb.count_features([e] + list(methodCalls))
-    #     # P(ei = 1)
-    #     prob_e = featDb.count_features([e])
-    #     # P(ei = 1 | m1, ..., mk )
-    #     cond_prob = float(prob_all) / float(prob_e)
-    #     methodEdgesProb.append(cond_prob)
-
-    #     logging.info("Computing %d/%d = %f" % (prob_all, prob_e, cond_prob) )
-
-
-    # p_value = functools.reduce(operator.mul, methodEdgesProb, 1.0)
-    # logging.debug("Computed pvalue %f" % p_value)
-
-    #print "computing..."
-    print p_value
-    # # featDb.insert_pval(featExtractor.graph_sig, p_value)
 
     return p_value
 
@@ -145,7 +113,7 @@ def compute_p_values(graph_path,
         perc = float(i) / float(len(acdfgs))
         perc = perc * 100
 
-        print "Extracting %d/%d (%f)..." % (i, len(acdfgs), perc)
+        print "Computing p value %d/%d (%f)..." % (i, len(acdfgs), perc)
         compute_p_value(filename, featDb)
 
         sys.exit(1)
