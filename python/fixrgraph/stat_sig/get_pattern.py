@@ -7,13 +7,44 @@ from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 from google.protobuf.json_format import MessageToJson
 from fixrgraph.solr.patterns_utils import parse_clusters, parse_cluster_info
 
+import pydot
+
+def get_ref_method_list(dot_file):
+    method_list = []
+    dot_graph = pydot.graph_from_dot_file(dot_file)[0]
+
+    assert 0 < len(dot_graph.get_nodes())
+
+    for node in dot_graph.get_nodes():
+        label = node.get_label()
+        if label is None:
+            continue
+        label = label.encode('ascii','ignore')
+        label = label.strip()
+        label = label.replace("\"","")
+
+        # data node
+        if label == "":
+            continue
+        elif label.startswith("DataNode"):
+            continue
+        else:
+            method_names = label.split("[")
+            method_name = method_names[0]
+            method_name = method_name.strip()
+            method_list.append(method_name)
+
+    assert len(method_list) > 0
+
+    return method_list
+
+
 def get_pattern(graph_path, method_list, out_path):
     proto_acdfg = None
     with open(graph_path) as groum_file:
         proto_acdfg = Acdfg()
         proto_acdfg.ParseFromString(groum_file.read())
         groum_file.close()
-
 
     # lookup...
     all_nodes = {}
@@ -30,9 +61,17 @@ def get_pattern(graph_path, method_list, out_path):
 
     # get method nodes IDs that must stay
     important_ids = set()
+    # print "Method list"
+    # print method_list
+
+    # print "acdfg methods"
     for method_node in proto_acdfg.method_node:
+        # print method_node.name
         if method_node.name in method_list:
             important_ids.add(method_node.id)
+    # print "cavallo"
+
+    assert len(important_ids) > 0
 
     def insert_node(out_acdfg,
                     node,
@@ -142,13 +181,17 @@ for cluster_info in cluster_infos:
                                                             pattern.type,
                                                             pattern.id))
 
+            dot_file = os.path.join(cluster_path, pattern.dot_name)
+            refined_method_list = get_ref_method_list(dot_file)
+
             gfile = os.path.join(cluster_path, pattern.groum_files_list[0])
             try:
                 get_pattern(gfile,
-                            cluster_info.methods_list,
+                            refined_method_list,
                             out_file)
             except:
                 traceback.print_exc()
+                sys.exit(0)
     else:
         logging.info("Cluster not computed %s" % cluster_info_file)
 

@@ -97,21 +97,24 @@ class FeatExtractor:
             feat = Feat(Feat.METHOD_CALL, signature)
             self.features.append(feat)
 
-        # Extract method edges features
-        for edge in self.proto_acdfg.control_edge:
-            # Just process method nodes
-            if (getattr(edge, 'from') in idToNode and
-                edge.to in idToNode):
+        edges_list = [self.proto_acdfg.control_edge,
+                      self.proto_acdfg.trans_edge]
+        for edge_list in edges_list:
+            # Extract method edges features
+            for edge in edge_list:
+                # Just process method nodes
+                if (getattr(edge, 'from') in idToNode and
+                    edge.to in idToNode):
 
-                src_node = idToNode[getattr(edge, 'from')]
-                dst_node = idToNode[edge.to]
+                    src_node = idToNode[getattr(edge, 'from')]
+                    dst_node = idToNode[edge.to]
 
-                src_sig = FeatExtractor._get_method_signature(src_node)
-                dst_sig = FeatExtractor._get_method_signature(dst_node)
+                    src_sig = FeatExtractor._get_method_signature(src_node)
+                    dst_sig = FeatExtractor._get_method_signature(dst_node)
 
-                edge_sig = "%s -> %s" % (src_sig, dst_sig)
+                    edge_sig = "%s -> %s" % (src_sig, dst_sig)
 
-                feat = Feat(Feat.METHOD_EDGE, edge_sig)
-                self.features.append(feat)
+                    feat = Feat(Feat.METHOD_EDGE, edge_sig)
+                    self.features.append(feat)
 
 

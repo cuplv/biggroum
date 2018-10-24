@@ -13,6 +13,16 @@ class FeatDb:
     FEATURE_TABLE = "FEATURES"
     FEAT_IN_GRAPHS_TABLE = "FEAT_IN_GRAPHS"
     PVALUES_TABLE = "PVALUES"
+    VIEW_METHODS = "METHODS"
+    VIEW_EDGES = "EDGES"
+
+    @staticmethod
+    def get_result_set(cursor):
+        res = set()
+        for elem in cursor:
+            res.add(elem[0])
+        return res
+
 
     def __init__(self, address, user, password, db_name = None):
         self.address = address
@@ -24,6 +34,9 @@ class FeatDb:
             self.db_name = FeatDb.DB_NAME
         else:
             self.db_name = db_name
+
+        self.graph_count = None
+        self.memo = {}
 
     def _exec_sql(self, cursor, sql):
         logging.debug("SQL: %s" % sql)
@@ -97,6 +110,34 @@ class FeatDb:
                               FeatDb.GRAPH_TABLE))
         self.db.commit()
 
+
+        query = "CREATE VIEW %s AS " \
+                "SELECT graph_id, feat_id FROM %s " \
+                "INNER JOIN %s " \
+                "ON %s.feat_id = %s.id " \
+                "WHERE %s.description LIKE '%% -> %%'" % (FeatDb.VIEW_EDGES,
+                                                          FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                          FeatDb.FEATURE_TABLE,
+                                                          FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                          FeatDb.FEATURE_TABLE,
+                                                          FeatDb.FEATURE_TABLE)
+#        self._exec_sql(cursor, query)
+#        self.db.commit()
+
+        query = "CREATE VIEW %s AS " \
+                "SELECT graph_id, feat_id FROM %s " \
+                "INNER JOIN %s " \
+                "ON %s.feat_id = %s.id " \
+                "WHERE NOT %s.description LIKE '%% -> %%'" % (FeatDb.VIEW_METHODS,
+                                                              FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                              FeatDb.FEATURE_TABLE,
+                                                              FeatDb.FEAT_IN_GRAPHS_TABLE,
+                                                              FeatDb.FEATURE_TABLE,
+                                                              FeatDb.FEATURE_TABLE)
+#        self._exec_sql(cursor, query)
+#        self.db.commit()
+
+
         cursor.close()
 
 
@@ -112,7 +153,9 @@ class FeatDb:
 
         self._insert_graph(graph_sig, cursor)
 
+        print "inserting..."
         for feat in features:
+            print feat
             self._insert_feat(graph_sig, feat, cursor)
 
         self.db.commit()
@@ -215,14 +258,170 @@ class FeatDb:
         cursor.close()
         return count[0]
 
-    def count_all_graphs(self):
-        # Count the number of the graphs
+
+    def get_graphs_for_methods(self, method_list):
+        feat_sql = None
+
+        graphs_with_other_feat = "SELECT DISTINCT %s.graph_id FROM %s " \
+                                 "INNER JOIN %s ON %s.feat_id = %s.id " \
+                                 "WHERE TRUE " % (FeatDb.VIEW_METHODS,
+                                                  FeatDb.VIEW_METHODS,
+                                                  FeatDb.FEATURE_TABLE,
+                                                  FeatDb.VIEW_METHODS,
+                                                  FeatDb.FEATURE_TABLE)
+
+        for feat in method_list:
+            app = "SELECT DISTINCT %s.graph_id FROM %s " \
+              "INNER JOIN %s ON %s.feat_id = %s.id " \
+              "WHERE %s.description = '%s'" % (FeatDb.VIEW_METHODS,
+                                               FeatDb.VIEW_METHODS,
+                                               FeatDb.FEATURE_TABLE,
+                                               FeatDb.VIEW_METHODS,
+                                               FeatDb.FEATURE_TABLE,
+                                               FeatDb.FEATURE_TABLE,
+                                               feat.desc)
+
+            if (feat_sql is None):
+                feat_sql = app
+            else:
+                feat_sql = "%s AND %s.graph_id IN (%s)" % (app,
+                                                           FeatDb.VIEW_METHODS,
+                                                           feat_sql)
+
+
+            graphs_with_other_feat = "%s AND %s.description != '%s'" % (graphs_with_other_feat,
+                                                                        FeatDb.FEATURE_TABLE,
+                                                                        feat.desc)
+
+        sql = "SELECT DISTINCT %s.graph_id FROM %s WHERE " \
+              "%s.graph_id IN (%s) AND " \
+              "%s.graph_id NOT IN (%s) " % (FeatDb.VIEW_METHODS,
+                                            FeatDb.VIEW_METHODS,
+                                            FeatDb.VIEW_METHODS,
+                                            feat_sql,
+                                            FeatDb.VIEW_METHODS,
+                                            graphs_with_other_feat)
+
         cursor = self.db.cursor()
-        sql = "SELECT COUNT(*) FROM %s" % (FeatDb.GRAPH_TABLE)
         self._exec_sql(cursor, sql)
-        count = cursor.fetchone()
+
+        res = FeatDb.get_result_set(cursor)
         cursor.close()
 
-        return count
+        return res
+
+
+    def get_graphs_for_edge(self, edge, neg=False):
+        key = (edge.desc, neg)
+
+        if key in self.memo:
+            return self.memo[key]
+
+        feat_sql = "SELECT DISTINCT %s.graph_id FROM %s " \
+              "INNER JOIN %s ON %s.feat_id = %s.id " \
+              "WHERE %s.description ='%s'" % (FeatDb.VIEW_EDGES,
+                                              FeatDb.VIEW_EDGES,
+                                              FeatDb.FEATURE_TABLE,
+                                              FeatDb.VIEW_EDGES,
+                                              FeatDb.FEATURE_TABLE,
+                                              FeatDb.FEATURE_TABLE,
+                                              edge.desc)
+
+        if (neg):
+            # complement
+            feat_sql = "SELECT DISTINCT %s.graph_id FROM %s " \
+                       "WHERE %s.graph_id NOT IN (%s)"  % (FeatDb.VIEW_EDGES,
+                                                           FeatDb.VIEW_EDGES,
+                                                           FeatDb.VIEW_EDGES,
+                                                           feat_sql)
+
+
+        cursor = self.db.cursor()
+        self._exec_sql(cursor, feat_sql)
+
+        res = FeatDb.get_result_set(cursor)
+        cursor.close()
+
+        self.memo[key] = res
+
+        return res
+
+    def get_graphs_for_edge_id(self, edge_id, neg=False):
+        key = (edge_id, neg)
+        if key in self.memo:
+            return self.memo[key]
+
+        feat_sql = "SELECT DISTINCT %s.graph_id FROM %s " \
+                   "WHERE %s.feat_id = %s " % (FeatDb.VIEW_EDGES,
+                                               FeatDb.VIEW_EDGES,
+                                               edge_id)
+
+        if (neg):
+            # complement
+            feat_sql = "SELECT DISTINT %s.graph_id FROM %s " \
+                       "WHERE %s.graph_id NOT IN (%s)"  % (FeatDb.VIEW_EDGES,
+                                                           FeatDb.VIEW_EDGES,
+                                                           feat_sql)
+
+
+
+        cursor = self.db.cursor()
+        self._exec_sql(cursor, feat_sql)
+
+        res = FeatDb.get_result_set(cursor)
+        cursor.close()
+
+        self.memo[key] = res
+
+        return res
+
+
+    def get_not_included_edges(self, methodEdges, methodCalls):
+        cm_a= "FALSE"
+        cm_b= "FALSE"
+        for m in methodCalls:
+            cm_a = '%s OR a.description = "%s"' % (cm_a, m.desc)
+            cm_b = '%s OR b.description = "%s"' % (cm_b, m.desc)
+
+        condition_edges = "TRUE"
+        for e in methodEdges:
+            condition_edges = "%s AND f.description != '%s' " % (condition_edges, e.desc)
+
+        condition = "(%s) AND (%s) AND (%s)" % (cm_a, cm_b, condition_edges)
+
+        select = "SELECT f.id, a.description, b.description "\
+                 "FROM FEATURES a, FEATURES b, FEATURES f " \
+                 " WHERE " \
+                 " %s " \
+                 " AND " \
+                 " a.id IN (SELECT feat_id FROM METHODS) " \
+                 " AND " \
+                 " b.id IN (SELECT feat_id FROM METHODS) " \
+                 " AND " \
+                 " f.id IN (SELECT feat_id FROM EDGES) " \
+                 " AND " \
+                 ' f.description =  CONCAT(CONCAT(a.description, " -> "), b.description) ' % condition
+
+        cursor = self.db.cursor()
+        self._exec_sql(cursor, select)
+        res = FeatDb.get_result_set(cursor)
+        cursor.close()
+
+        return res
+
+
+    def count_all_graphs(self):
+        # Count the number of the graphs
+        if self.graph_count is None:
+            cursor = self.db.cursor()
+            sql = "SELECT COUNT(*) FROM %s" % (FeatDb.GRAPH_TABLE)
+
+            self._exec_sql(cursor, sql)
+            count = cursor.fetchone()
+            cursor.close()
+
+            self.graph_count = count[0]
+
+        return self.graph_count
 
 
