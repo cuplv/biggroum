@@ -7,7 +7,7 @@ import string
 
 class Clusters:
 
-    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out'
+    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'
 """
 
     """

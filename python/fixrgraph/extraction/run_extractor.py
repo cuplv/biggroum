@@ -27,7 +27,12 @@ import re
 import traceback
 import string
 
-import queue
+try:
+    import Queue as Queue
+except ImportError:
+    import queue as queue
+
+
 import threading
 import functools
 
@@ -37,7 +42,7 @@ MIN_STATUS = 0
 #MIN_HEAP_SIZE="256m"
 # MAX_HEAP_SIZE="256m"
 MIN_HEAP_SIZE="1024m"
-MAX_HEAP_SIZE="4096m"
+MAX_HEAP_SIZE="2048m"
 TIMEOUT="60"
 
 
@@ -120,46 +125,47 @@ class ExtractorStatus:
 
     def write(self):
         """ Write the status """
-        repo_list = []
-        for repo in self._repo_set:
-            repo_data = {}
-            self._write_repo(repo_data, repo)
-            repo_list.append(repo_data)
+        with self.lock:
+            repo_list = []
+            for repo in self._repo_set:
+                repo_data = {}
+                self._write_repo(repo_data, repo)
+                repo_list.append(repo_data)
 
-        repo2status = []
-        for repo,status in self._repo2status.iteritems():
-            repo_data = {}
-            self._write_repo(repo_data, repo)
-            repo_data["status"] = status
-            repo2status.append(repo_data)
+            repo2status = []
+            for repo,status in self._repo2status.iteritems():
+                repo_data = {}
+                self._write_repo(repo_data, repo)
+                repo_data["status"] = status
+                repo2status.append(repo_data)
 
-        repo2log = []
-        for repo,log in self._repo2log.iteritems():
-            repo_data = {}
-            self._write_repo(repo_data, repo)
-            repo_data["log"] = log
-            repo2log.append(repo_data)
+            repo2log = []
+            for repo,log in self._repo2log.iteritems():
+                repo_data = {}
+                self._write_repo(repo_data, repo)
+                repo_data["log"] = log
+                repo2log.append(repo_data)
 
-        with open(self._file_name, "w") as outfile:
-            json.dump({"repo_list" : repo_list,
-                       "repo_status" : repo2status,
-                       "repo_log" : repo2log},
-                      outfile);
-            outfile.close()
+            with open(self._file_name, "w") as outfile:
+                json.dump({"repo_list" : repo_list,
+                           "repo_status" : repo2status,
+                           "repo_log" : repo2log},
+                          outfile);
+                outfile.close()
 
 
     def _read_repo(self, json_data):
-        repo_string = json_data["repo"]
-        splitted = repo_string.split("|")
-        user = splitted[0]
-        repo_name = splitted[1]
-        chash = splitted[2]
-        return (user,repo_name,chash)
+        with self.lock:
+            repo_string = json_data["repo"]
+            splitted = repo_string.split("|")
+            user = splitted[0]
+            repo_name = splitted[1]
+            chash = splitted[2]
+            return (user,repo_name,chash)
 
     def _write_repo(self, json_data, repo):
-        with self.lock:
-            repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
-            json_data["repo"] = repo_string
+        repo_string = "%s|%s|%s" % (repo[0], repo[1], repo[2])
+        json_data["repo"] = repo_string
 
 
 class ErrorLog:
@@ -354,7 +360,8 @@ class RepoProcessor:
 
     def download(self, repo):
         """Dowload the repository."""
-        logging.info("Download task for repo: " + str(repo))
+        logging.info("Download task for repo (disable download): " + str(repo))
+        return repo
 
         try:
             import pygit2
@@ -871,7 +878,6 @@ class RepoProcessor:
                     "-r", repo[1],
                     "-u", repo_url]
 
-
             args.append("-p")
 
             # remove google support libraries from the thing to
@@ -889,6 +895,7 @@ class RepoProcessor:
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
+
 
             is_ok = RepoProcessor._call_sub(log, repo, args)
             if not is_ok:
@@ -1005,19 +1012,22 @@ class RepoProcessor:
         steps_to_do = ExtractorStatus.tasks_list[task_index:]
 
         # Creates the worker threads
-        tasks_queue = queue.Queue()
+        tasks_queue = Queue.Queue()
         threads = []
         workerpart = functools.partial(RepoProcessor.workerfun, tasks_queue)
+
 
         for i in range(self.tot_workers):
             t = threading.Thread(target=workerpart)
             t.start()
             threads.append(t)
 
-        repo_index = 1
+        repo_index = 0
         tot_repos = len(repo_list)
         processed = set()
         for repo in repo_list:
+            repo_index = repo_index + 1
+
             if repo in processed:
                 logging.info("Repo %d/%d already processed" % (repo_index, tot_repos))
                 logging.info("Repo %s already processed" % RepoProcessor.get_repo_name(repo))
