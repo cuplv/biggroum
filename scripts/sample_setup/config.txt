@@ -3,6 +3,7 @@ repo_list=repo_list.json
 buildable_list=buildable.json
 build_data=
 out_path=out
+processes=2
 
 [itemset]
 frequency_cutoff=2

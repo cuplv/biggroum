@@ -30,8 +30,7 @@ import string
 try:
     import Queue as Queue
 except ImportError:
-    import queue as queue
-
+    import queue as Queue
 
 import threading
 import functools

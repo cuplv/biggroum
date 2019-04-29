@@ -65,7 +65,7 @@ To test the web interface now, insert the following input and press `Search`:
 The services should be up. Run the tests to see if everything is ok:
 
 ```
-python test.py --address 100.120.0.6 --search_port 30072  --solr_port 30071 --webserver_port 30073
+python test.py --address 100.120.0.6 --search_port 30072  --webserver_port 30071
 ```
 
 The web interface should be accessible at the address `http://100.120.0.6:30073`

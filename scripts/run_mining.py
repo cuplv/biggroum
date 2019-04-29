@@ -44,6 +44,9 @@ def run_extraction(config):
     groum_files_path = os.path.join(cluster_path, "groums_list.txt")
 
 
+    print("Generating graphs list...")
+    TestPipeline.create_groums_file(groums_path, groum_files_path, None)
+
     itemset_config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
                                                 config.get("itemset", "frequency_cutoff"),
                                                 config.get("itemset", "min_methods_in_itemset"),
@@ -63,9 +66,6 @@ def run_extraction(config):
     # Extract the graphs
     print("Extract groums...")
     Pipeline.extractGraphs(extract_config)
-
-    print("Generating graphs list...")
-    TestPipeline.create_groums_file(groums_path, groum_files_path, 100000)
 
     # Run the itemset computation
     print("Extract itemsets...")

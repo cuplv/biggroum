@@ -59,12 +59,14 @@ class Pipeline(object):
                      repo_list_file_path,
                      build_repo_list_file_path,
                      build_repo_path,
-                     output_path):
+                     output_path,
+                     tot_workers):
             self.graph_extractor_jar = graph_extractor_jar
             self.repo_list_file_path = repo_list_file_path
             self.build_repo_list_file_path = build_repo_list_file_path
             self.build_repo_path = build_repo_path
             self.output_path = output_path
+            self.tot_workers = tot_workers
 
     """
     Extract the graphs from the android projects.
@@ -98,7 +100,8 @@ class Pipeline(object):
                                       None,
                                       config.build_repo_list_file_path,
                                       config.build_repo_path,
-                                      extractor_status_file)
+                                      extractor_status_file,
+                                      config.tot_workers)
         repoProcessor.processFromStep(repo_list,
                                       Pipeline.ExtractConfig.default_step)
 
