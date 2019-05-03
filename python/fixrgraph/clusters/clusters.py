@@ -129,7 +129,12 @@ class Clusters:
             # Create a symlink to all the groums
             for acdfg in acdfg_list:
                 dst_file = os.path.join(dst_path, os.path.basename(acdfg))
-                os.symlink(acdfg, dst_file)
+
+                try:
+                    os.symlink(acdfg, dst_file)
+                except OSError as e:
+                    print("Error creating the symlink %s -> %s" % (acdfg, dst_file))
+                    raise e
 
             # Create the methods file
             method_file = os.path.join(dst_path, 'methods_%d.txt' % cluster_id)

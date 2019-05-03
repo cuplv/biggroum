@@ -60,13 +60,15 @@ class Pipeline(object):
                      build_repo_list_file_path,
                      build_repo_path,
                      output_path,
-                     tot_workers):
+                     tot_workers,
+                     use_apk):
             self.graph_extractor_jar = graph_extractor_jar
             self.repo_list_file_path = repo_list_file_path
             self.build_repo_list_file_path = build_repo_list_file_path
             self.build_repo_path = build_repo_path
             self.output_path = output_path
             self.tot_workers = tot_workers
+            self.use_apk = use_apk
 
     """
     Extract the graphs from the android projects.
@@ -92,7 +94,8 @@ class Pipeline(object):
                                              Pipeline.ExtractConfig.default_status_file)
 
         # 2. Perform the extraction
-        repo_list = RepoProcessor.init_extraction(indir, graphdir, provdir,
+        repo_list = RepoProcessor.init_extraction(indir, graphdir,
+                                                  provdir,
                                                   config.repo_list_file_path)
         repoProcessor = RepoProcessor(indir, graphdir, provdir,
                                       Pipeline.ExtractConfig.default_slicing_filter,
@@ -101,7 +104,8 @@ class Pipeline(object):
                                       config.build_repo_list_file_path,
                                       config.build_repo_path,
                                       extractor_status_file,
-                                      config.tot_workers)
+                                      config.tot_workers,
+                                      config.use_apk)
         repoProcessor.processFromStep(repo_list,
                                       Pipeline.ExtractConfig.default_step)
 
@@ -220,12 +224,14 @@ class Pipeline(object):
     @staticmethod
     def computeHtml(config):
         html_files_path = os.path.join(config.cluster_path, "html_files")
-        os.mkdir(html_files_path)
+
+        if (not os.path.exists(html_files_path)):
+            os.mkdir(html_files_path)
 
         args = ["python",
                 config.gather_results_path,
                 "-a", "1",
-                "-b", config.cluster_count,
+                "-b", str(config.cluster_count),
                 "-i", "all_clusters",
                 "-o", "html_files"]
 
