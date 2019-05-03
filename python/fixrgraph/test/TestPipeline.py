@@ -5,6 +5,7 @@
 from fixrgraph.pipeline.pipeline import Pipeline
 import fixrgraph
 
+import random
 import shutil
 import logging
 import unittest
@@ -67,13 +68,32 @@ class TestPipeline(unittest.TestCase):
         return gather_results_path
 
     @staticmethod
-    def create_groums_file(groums_path, groum_files_path):
+    def create_groums_file(groums_path, groum_files_path, limit=None):
+        # Removes "duplicate" files (same package, class, method name)
+        existing_files = set()
+
         groums_list = []
+        duplicates = 0
         for root, subFolder, files in os.walk(groums_path):
             for item in files:
                 if item.endswith(".bin") :
                     file_name_path = str(os.path.join(root,item))
-                    groums_list.append(file_name_path)
+
+                    # Workaround
+                    acdfg_simple_name = os.path.basename(file_name_path)
+                    acdfg_simple_name = acdfg_simple_name.strip()
+                    acdfg_simple_name = acdfg_simple_name.lower()                
+                    
+                    if not acdfg_simple_name in existing_files:
+                        groums_list.append(file_name_path)
+                        existing_files.add(acdfg_simple_name)
+                    else:
+                        duplicates = duplicates + 1
+
+
+        print "Skipping %d duplicates" % duplicates
+        if not limit is None:
+            groums_list = random.sample(groums_list, limit)
 
         with open(groum_files_path, "w") as gfile:
             for g in groums_list:
@@ -95,7 +115,9 @@ class TestPipeline(unittest.TestCase):
         fixrgraph_jar = os.path.join(test_data_path, "repo_list.json")
 
         config = Pipeline.ExtractConfig(extractor_path,
-                                        repo_list, buildable_list, build_data, out_path)
+                                        repo_list, buildable_list,
+                                        build_data, out_path, 1,
+                                        False)
         Pipeline.extractGraphs(config)
 
         # some files that must have been created by running the test

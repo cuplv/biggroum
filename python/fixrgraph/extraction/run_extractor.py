@@ -23,20 +23,30 @@ import traceback
 import shutil
 import json
 import subprocess
-import re
 import traceback
 import string
 
 try:
     import Queue as Queue
 except ImportError:
-    import queue as queue
-
+    import queue as Queue
 
 import threading
 import functools
 
 from xml.dom.minidom import parse, parseString
+
+from fixrgraph.extraction.extractor_utils import (
+    get_android_jar,
+    search_classes,
+    get_repo_url,
+    get_repo_path,
+    get_repo_name,
+    get_version_from_gradle,
+    getGradleInfo,
+    getAndroidAppPlugin,
+    write_log
+)
 
 MIN_STATUS = 0
 #MIN_HEAP_SIZE="256m"
@@ -221,8 +231,7 @@ def read_repo(repo_file):
             res.append((repo["user_name"], repo["repo_name"], repo["hash"]))
         else:
             # Find the last hash commit in the repo
-            url = RepoProcessor.get_repo_url(repo["user_name"],
-                                             repo["repo_name"])
+            url = get_repo_url(repo["user_name"], repo["repo_name"])
             args = ["git", "ls-remote", url]
 
             p = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -275,7 +284,8 @@ class RepoProcessor:
                  buildable_repos_list = None,
                  buildable_repos_path = None,
                  extractor_status=None,
-                 tot_workers=1):
+                 tot_workers=1,
+                 read_apk=False):
         # Keeps the error log for each repo
         self.log = ErrorLog()
         # Directory where download the repositories
@@ -286,14 +296,13 @@ class RepoProcessor:
         self.extractor_jar = extractor_jar
         self.classpath = classpath
         self.tot_workers = tot_workers
+        self.read_apk = read_apk
 
         if extractor_status is None:
             extractor_statis = "extractor_status.json"
-#        self.extractor_status = ExtractorStatus("extractor_status.json")
         self.extractor_status = ExtractorStatus(extractor_status)
 
-
-        self.android_home = "/home/sergio/Tools/android-sdk-linux"
+        self.android_home = None
         if 'ANDROID_HOME' not in os.environ:
             raise Exception("ANDROID_HOME path is not set")
         else:
@@ -317,26 +326,6 @@ class RepoProcessor:
 
 
     @staticmethod
-    def get_repo_url(user_name, repo_name):
-        repo_url = "https://github.com/%s/%s" % (user_name, repo_name)
-        return repo_url
-
-    @staticmethod
-    def get_repo_path(dir_path, repo):
-        """Return the path of the repository relative to dir_path.
-        dir_path is either the input or the output directory.
-        """
-        if(len(repo) > 2):
-            repo_path = os.path.join(dir_path, repo[0], repo[1], repo[2])
-        else:
-            repo_path = os.path.join(dir_path, repo[0], repo[1], "head")
-        return repo_path
-
-    @staticmethod
-    def get_repo_name(repo):
-        return "%s/%s" % (repo[0], repo[1])
-
-    @staticmethod
     def _call_sub(log, repo, args, cwd=None, wait=True):
         """Call a subprocess.
         """
@@ -350,7 +339,7 @@ class RepoProcessor:
         return_code = proc.returncode
         if (return_code != 0):
             err_msg = "Error code is %s\nCommand line is: %s\n%s" % (str(return_code), str(" ".join(args)),"\n")
-            RepoProcessor.write_log(log, repo, err_msg)
+            write_log(log, repo, err_msg)
 
             logging.error("Error executing %s\n%s" % (" ".join(args), err_msg))
             return False
@@ -371,8 +360,8 @@ class RepoProcessor:
             self.log.add_error(repo, e.message)
             return None
 
-        repo_url = RepoProcessor.get_repo_url(repo[0], repo[1])
-        repo_folder = RepoProcessor.get_repo_path(self.in_dir, repo)
+        repo_url = get_repo_url(repo[0], repo[1])
+        repo_folder = get_repo_path(self.in_dir, repo)
 
         try:
             logging.debug("Downloading %s" % (repo_url))
@@ -398,86 +387,6 @@ class RepoProcessor:
 
         return repo
 
-    @staticmethod
-    def find_gradle_file(repo_folder):
-        """Find the build.gradle file in the repository.
-        Return either the path to a build.gradle file or None.
-        """
-        gradle_build_name = "build.gradle"
-
-        for root, dirs, files in os.walk(repo_folder, topdown=True):
-            if gradle_build_name in files:
-                return os.path.join(root, gradle_build_name)
-
-        return None
-
-    """Get the min/max SDK version used by the app."""
-    @staticmethod
-    def matchNumber(key, startstring):
-        key = key.strip()
-        startstring = startstring.strip()
-        if not startstring.startswith(key):
-            return None
-        match = re.search('^%s ([0-9]+)' % key, (startstring))
-        if match:
-            number = match.group(1)
-            return int(number)
-        return None
-
-    @staticmethod
-    def get_version_from_gradle(gradle_build_file):
-        """ Returns the value of the attributes:
-        (minSdkVersion, maxSdkVersion, compileSdkVersion
-        """
-        def getLimit(current, new, is_min):
-            if (is_min and new != None and
-                    (new < current or current == None)):
-                return new
-            if (is_min and new != None and
-                    (new > current or current == None)):
-                return new
-            return current
-
-        android_version = None
-        min_sdk_version = None
-        max_sdk_version = None
-
-        with open(gradle_build_file, 'r') as f:
-            for l in f.readlines():
-                new_min = RepoProcessor.matchNumber("minSdkVersion", l)
-                new_max = RepoProcessor.matchNumber("maxSdkVersion", l)
-
-                match = re.search('^compileSdkVersion ([0-9]+)', l.strip())
-                if match:
-                    version_number =  match.group(1)
-                else:
-                    version_number = None
-
-                min_sdk_version = getLimit(min_sdk_version, new_min, True)
-                max_sdk_version = getLimit(max_sdk_version, new_max, False)
-                if (version_number != None):
-                    android_version = version_number
-
-        return (min_sdk_version, max_sdk_version, android_version)
-
-    @staticmethod
-    def getGradleInfo(repo, repo_folder):
-        # Current heuristic to build an android app
-        # 1. Find the build.gradle file (find the first in the repo tree)
-        #
-        # Decision making:
-        #   - we need to find at least one build.gradle
-        #
-
-        gradle_build_file = RepoProcessor.find_gradle_file(repo_folder)
-        if (None == gradle_build_file):
-            return (None, None)
-
-        gradle_path = os.path.dirname(gradle_build_file)
-
-        return (gradle_build_file, gradle_path)
-
-
     def lookup_build(self, repo):
         try:
             key = "%s|%s|%s" % (repo[0], repo[1], repo[2])
@@ -487,18 +396,15 @@ class RepoProcessor:
         except KeyError:
             return None
 
-
-
-
     def build_from_sources(self, repo):
         """Build the repo.
         """
         logging.debug("Building %s/%s" % (repo[0], repo[1]))
 
-        repo_folder = RepoProcessor.get_repo_path(self.in_dir, repo)
+        repo_folder = get_repo_path(self.in_dir, repo)
         assert (os.path.exists(repo_folder))
 
-        (gradle_build_file, gradle_path) = RepoProcessor.getGradleInfo(repo, repo_folder)
+        (gradle_build_file, gradle_path) = getGradleInfo(repo, repo_folder)
         if (None == gradle_build_file):
             # Skip if there is no build.gradle
             self.log.add_error(repo, "Gradle file not found found.")
@@ -547,206 +453,6 @@ class RepoProcessor:
             return repo
 
     @staticmethod
-    def write_log(log, repo, msg):
-        if (log != None):
-            log.add_error(repo, msg)
-        else:
-            logging.debug("%s: %s" % (str(repo), msg))
-
-    @staticmethod
-    def getAndroidAppPlugin(log, repo, repo_folder):
-        gradle_build_name = "build.gradle"
-
-        (gradle_build_file, basePath) = RepoProcessor.getGradleInfo(repo, repo_folder)
-        if (None == gradle_build_file):
-            # Skip if there is no build.gradle
-            RepoProcessor.write_log(log, repo, "Gradle file found.")
-            return None
-
-        assert (os.path.exists(basePath))
-
-        gradles_for_app = []
-        for root, dirs, files in os.walk(basePath, topdown=True):
-            if gradle_build_name in files:
-                gradle_file = os.path.join(root, gradle_build_name)
-                with open(gradle_file, 'r') as gradleFile:
-                    for line in gradleFile:
-                        if "com.android.application" in line:
-                            gradles_for_app.append(gradle_file)
-                            break
-
-        if (len(gradles_for_app) < 1):
-            msg = "No builds for app in %s/%s" % (repo[0], repo[1])
-            logging.debug(msg)
-            RepoProcessor.write_log(log, repo, msg)
-        elif (len(gradles_for_app) > 1):
-            gradles_for_app = [l for l in gradles_for_app if not "wear" in l]
-            if (len(gradles_for_app) > 1):
-                # Found more apps
-                logging.debug("Found more builds for apps for %s/%s" % (repo[0], repo[1]))
-                message = "Found more builds for apps for %s/%s" % (repo[0], repo[1])
-                for g in gradles_for_app:
-                    message = message + "\n" + g
-                RepoProcessor.write_log(log, repo, message)
-                return None
-
-        if (len(gradles_for_app) > 0):
-            gradle_path = os.path.dirname(gradles_for_app[0])
-        else:
-            return None
-        return gradle_path
-
-    # def search_classes(self, repo_folder):
-    #     """Looks for the classes.jar file created during the build"""
-    #     logging.info("Searching classes.jar in %s " + str(repo_folder))
-
-    #     result = []
-    #     for root, dirs, files in os.walk(repo_folder):
-    #         if "classes.jar" in files:
-    #             result.append(os.path.join(root, "classes.jar"))
-
-    #     if len(result) > 0:
-    #         # choose the debug one if it exists
-    #         for r in result:
-    #             if "debug" in r:
-    #                 return r
-    #         # return the first
-    #         return result[0]
-    #     else:
-    #         return None
-
-    @staticmethod
-    def search_classes(repo_dir, gradle_file_path):
-        """Looks for the classes.jar file created during the build"""
-        logging.info("Searching main classes %s " % str(gradle_file_path))
-
-        manifest = None
-        for root, dirs, files in os.walk(gradle_file_path):
-            if "AndroidManifest.xml" in files:
-                manifest = os.path.join(root, "AndroidManifest.xml")
-                break
-
-        if None != manifest:
-            # get the package name manifest, package
-            #
-            # get the application, android:name tag
-            #
-            dom1 = parse(manifest)
-            manifest_node = dom1.getElementsByTagName('manifest')
-            if (len(manifest_node) > 0):
-                if None != manifest_node[0].attributes and 'package' in manifest_node[0].attributes.keys():
-                    packageName = str(manifest_node[0].attributes['package'].value)
-                    # OS dependent
-                    packagePath = packageName.replace(".", "/")
-
-                    # search for package name and classes
-                    classes = []
-                    for root, dirs, files in os.walk(repo_dir):
-                        if packagePath in str(root):
-                            for f in files:
-                                str_f = str(f)
-                                if str_f.endswith(".class"):
-                                    classes.append(os.path.join(root, f))
-
-                    if len(classes) > 0:
-                        for c in classes:
-                            try:
-                                c_str = str(c)
-                                index = c_str.index(packagePath)
-                                base_path = c_str[:index]
-                                # pick the first one.
-                                logging.debug("Base path for %s is %s" % (repo_dir,base_path))
-                                return base_path
-                            except ValueError:
-                                # do nothing.
-                                base_path = None
-            logging.debug("Cannot find base path for %s" % (repo_dir))
-            return None
-
-
-    @staticmethod
-    def get_android_jar(android_home, version):
-        """Find the right android.jar"""
-        jar_path = os.path.join(android_home, "platforms", "android-%s" % version, "android.jar")
-
-        if not os.path.isfile(jar_path):
-            msg = "Cannot find the jar %s" % (jar_path)
-            logging.debug(msg)
-            return None
-        else:
-            return jar_path
-
-    def get_support_library(self, gradle_build_file, sdk_version):
-        def add_lib(lib_list, sl):
-            if os.path.isfile(sl):
-                lib_list.append(sl)
-            else:
-                logging.debug("Support library %s not found!", sl)
-            return lib_list
-
-        lib_list = []
-        template = "./extras/android/m2repository/com/android/support/support-${sup_version}/${version}/support-${sup_version}-${version}-sources.jar"
-
-
-        dots = 0
-        for c in sdk_version:
-            if c == ".": dots = dots + 1
-            assert dots <= 2
-        if (dots <= 1):
-            sdk_version = sdk_version + ".0"
-            if (dots <= 2): sdk_version = sdk_version + ".0"
-
-        # with open(gradle_build_file, 'r') as f:
-        #     for l in f.readlines():
-        #         l = l.strip()
-        #         match = re.search('compile \'com.android.support:appcompat-(v[0-9]*):([0-9\.]*)\'', l)
-        #         if None != match:
-        #             sup_version  = match.group(1)
-        #             sdk_version = match.group(2)
-
-        #             lib = string.Template(template).safe_substitute({"version" : sdk_version, "sup_version" : sup_version})
-        #             lib_list.append(lib)
-
-        #with open(gradle_build_file, 'r') as f:
-        #    for l in f.readlines():
-        for sup_version in ["v4","v7","v13"]:
-                    #l = l.strip()
-                    #match = re.search('compile \'com.android.support:appcompat-(v[0-9]*):([0-9\.]*)\'', l)
-                    #if None != match:
-            lib = string.Template(template).safe_substitute({"version" : sdk_version, "sup_version" : sup_version})
-            lib = os.path.join(self.android_home, lib)
-            lib_list = add_lib(lib_list, lib)
-
-        support_libs = ["extras/android/support/percent/libs/android-support-percent.jar",
-                        "extras/android/support/graphics/drawable/libs/android-support-vectordrawable.jar",
-                        "extras/android/support/graphics/drawable/libs/android-support-animatedvectordrawable.jar",
-                        "extras/android/support/recommendation/libs/android-support-recommendation.jar",
-                        "extras/android/support/v17/leanback/libs/android-support-v17-leanback.jar",
-                        "extras/android/support/v17/preference-leanback/libs/android-support-v17-preference-leanback.jar",
-                        "extras/android/support/annotations/android-support-annotations.jar",
-                        "extras/android/support/customtabs/libs/android-support-customtabs.jar",
-                        "extras/android/support/v14/preference/libs/android-support-v14-preference.jar",
-                        "extras/android/support/design/libs/android-support-design.jar",
-                        "extras/android/support/multidex/instrumentation/libs/android-support-multidex-instrumentation.jar",
-                        "extras/android/support/multidex/instrumentation/libs/android-support-multidex.jar",
-                        "extras/android/support/multidex/library/libs/android-support-multidex.jar",
-                        "extras/android/support/v4/android-support-v4.jar",
-                        "extras/android/support/v13/android-support-v13.jar",
-                        "extras/android/support/v7/recyclerview/libs/android-support-v7-recyclerview.jar",
-                        "extras/android/support/v7/cardview/libs/android-support-v7-cardview.jar",
-                        "extras/android/support/v7/appcompat/libs/android-support-v4.jar",
-                        "extras/android/support/v7/appcompat/libs/android-support-v7-appcompat.jar",
-                        "extras/android/support/v7/palette/libs/android-support-v7-palette.jar",
-                        "extras/android/support/v7/mediarouter/libs/android-support-v7-mediarouter.jar",
-                        "extras/android/support/v7/preference/libs/android-support-v7-preference.jar",
-                        "extras/android/support/v7/gridlayout/libs/android-support-v7-gridlayout.jar"]
-        for sl in support_libs:
-            sl = os.path.join(self.android_home, sl)
-            lib_list = add_lib(lib_list, sl)
-
-        return lib_list
-
-    @staticmethod
     def extract_static(repo,
                        log,
                        in_dir,
@@ -762,28 +468,30 @@ class RepoProcessor:
         logging.info("Extracting graphs for repo: " + str(repo))
 
         if build_info is None:
-            repo_folder = RepoProcessor.get_repo_path(in_dir, repo)
+            logging.debug("Build information not found...")
+            repo_folder = get_repo_path(in_dir, repo)
 
-            app_gradle_file_path = RepoProcessor.getAndroidAppPlugin(log, repo, repo_folder)
+            app_gradle_file_path = getAndroidAppPlugin(log, repo, repo_folder)
             if None == app_gradle_file_path:
                 # Error, classes.jar not found
                 msg = "Cannot find application build.gradle file for %s/%s" % (repo[0], repo[1])
                 logging.debug(msg)
-                RepoProcessor.write_log(log, repo, msg)
+                write_log(log, repo, msg)
                 return None
 
             app_gradle_file = os.path.join(app_gradle_file_path, "build.gradle")
             logging.debug("App gradle file is %s" % app_gradle_file)
-            (min_apk, max_apk, version_number) = RepoProcessor.get_version_from_gradle(app_gradle_file)
+            (min_apk, max_apk, version_number) = get_version_from_gradle(app_gradle_file)
 
             # set the process_dir: we look for the classes.jar file created
             # during the build.
-            single_dir = RepoProcessor.search_classes(repo_folder, app_gradle_file_path)
+            single_dir = search_classes(repo_folder, app_gradle_file_path)
             if single_dir is None:
                 process_dirs = []
             else:
                 process_dirs = [single_dir]
         else:
+            logging.debug("Found information...")
             repo_folder = os.path.join("/tmp", "%s.%s.%s" % (repo[0], repo[1], repo[2]))
             version_number = 25
 
@@ -800,27 +508,27 @@ class RepoProcessor:
                     process_dirs.append(abs_dir)
 
         # get jar file from the android sdk
-        android_jar_path = RepoProcessor.get_android_jar(android_home, version_number)
+        android_jar_path = get_android_jar(android_home, version_number)
         if None == android_jar_path:
             msg = "Cannot find the jar for %s/%s" % (repo[0], repo[1])
             logging.debug(msg)
-            RepoProcessor.write_log(log, repo, msg)
+            write_log(log, repo, msg)
             return None
 
         if 0 == len(process_dirs):
             # Error, classes.jar not found
             logging.debug("Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
-            RepoProcessor.write_log(log, repo, "Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
+            write_log(log, repo, "Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
             return None
 
         # Small try on support libraries
         logging.debug("Android jar path: %s for %s/%s" % (android_jar_path, repo[0], repo[1]))
 
         try:
-            repo_graph_dir = RepoProcessor.get_repo_path(graph_dir, repo)
+            repo_graph_dir = get_repo_path(graph_dir, repo)
             if not os.path.isdir(repo_graph_dir): os.makedirs(repo_graph_dir)
 
-            repo_prov_dir = RepoProcessor.get_repo_path(prov_dir, repo)
+            repo_prov_dir = get_repo_path(prov_dir, repo)
             if not os.path.isdir(repo_prov_dir): os.makedirs(repo_prov_dir)
 
             additional_cp = android_jar_path
@@ -845,7 +553,7 @@ class RepoProcessor:
             else:
                 classpath = additional_cp
 
-            repo_url = RepoProcessor.get_repo_url(repo[0], repo[1])
+            repo_url = get_repo_url(repo[0], repo[1])
             # args = ["runlim",
             #         "--time-limit=1200",
             #         "java",
@@ -884,7 +592,7 @@ class RepoProcessor:
             # process
             new_process_dirs = []
             ignore = ["/com.google.android.", "/com.android.",
-                      "/android."]
+                      "/android.","/androidx."]
             for p in process_dirs:
                 for i in ignore:
                    if i in p:
@@ -901,19 +609,113 @@ class RepoProcessor:
             if not is_ok:
                 msg = "call_sub ended in error for %s/%s" % (repo[0], repo[1])
                 logging.debug(msg)
-                RepoProcessor.write_log(log, repo, msg)
+                write_log(log, repo, msg)
                 return None
 
         except Exception as e:
             traceback.print_exc()
 
-            # DEBUG
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
-            RepoProcessor.write_log(log, repo, e.message)
+            write_log(log, repo, e.message)
             return None
 
         logging.debug("Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]))
         return repo
+
+    @staticmethod
+    def extract_static_apk(repo,
+                           log,
+                           android_home,
+                           graph_dir,
+                           prov_dir,
+                           extractor_jar,
+                           build_info,
+                           buildable_repos_path):
+        """Extract the graph for repo."""
+        logging.info("Extracting graphs for repo: " + str(repo))
+
+        assert (not build_info is None)
+        
+        # Base path to the repo
+        base_buildable_repo_folder = os.path.join(buildable_repos_path,
+                                                  repo[0],
+                                                  repo[1],
+                                                  repo[2])
+        # Pick one apk
+        if (len(build_info.apks) < 1):
+            msg = "No apk files for %s/%s" % (repo[0], repo[1])
+            logging.debug(msg)
+            write_log(log, repo, msg)
+            return None
+
+        apk_rel_path = build_info.apks[0]
+        apk_full_path = os.path.join(base_buildable_repo_folder, apk_rel_path)
+        if (not os.path.exists(apk_full_path)):
+            msg = "Cannot find apk file for %s/%s" % (repo[0], repo[1])
+            logging.debug(msg)
+            write_log(log, repo, msg)
+            return None
+
+        platforms_path = os.path.join(os.path.abspath(android_home), "platforms")
+        if (not os.path.isdir(platforms_path)):
+            msg = "Cannot find the Android platforms in %s for %s/%s" % (platforms_path,
+                                                                         repo[0],
+                                                                         repo[1])
+            logging.debug(msg)
+            write_log(log, repo, msg)
+            return None
+
+        # Compose and run the command
+        try:
+            repo_graph_dir = get_repo_path(graph_dir, repo)
+            if not os.path.isdir(repo_graph_dir): os.makedirs(repo_graph_dir)
+
+            repo_prov_dir = get_repo_path(prov_dir, repo)
+            if not os.path.isdir(repo_prov_dir): os.makedirs(repo_prov_dir)
+
+            tmp_folder = os.path.join("/tmp", "%s.%s.%s" % (repo[0], repo[1], repo[2]))
+
+            repo_url = get_repo_url(repo[0], repo[1])
+
+            args = ["java",
+                    "-Xms%s" % MIN_HEAP_SIZE,
+                    "-Xmx%s" % MAX_HEAP_SIZE,
+                    "-jar", extractor_jar,
+                    "-a", "true", # we read the apk
+                    "-s", "false",  # we read bytecode
+                    "-l", os.path.dirname(apk_full_path),
+                    "-o", repo_graph_dir,
+                    "-d", repo_prov_dir,
+                    "-j", "true", # enable jphantom
+                    "-z", tmp_folder,
+                    "-t", TIMEOUT,
+                    "-n", repo[0],
+                    "-r", repo[1],
+                    "-u", repo_url,
+                    "-p", apk_full_path,
+                    "-w", platforms_path]
+
+            if len(repo) > 2:
+                args.append("-h")
+                args.append(repo[2])
+
+            is_ok = RepoProcessor._call_sub(log, repo, args)
+            if not is_ok:
+                msg = "call_sub ended in error for %s/%s" % (repo[0], repo[1])
+                logging.debug(msg)
+                write_log(log, repo, msg)
+                return None
+
+        except Exception as e:
+            traceback.print_exc()
+
+            logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
+            write_log(log, repo, e.message)
+            return None
+
+        logging.debug("Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]))
+        return repo            
+
 
     def extract(self, repo):
 
@@ -921,20 +723,29 @@ class RepoProcessor:
         android_home = self.android_home
         graph_dir = self.graph_dir
         prov_dir = self.prov_dir
-        classpath = self.classpath
         extractor_jar = self.extractor_jar
         build_info = self.lookup_build(repo)
-
-        return RepoProcessor.extract_static(repo,
-                                            self.log,
-                                            self.in_dir,
-                                            self.android_home,
-                                            self.graph_dir,
-                                            self.prov_dir,
-                                            self.classpath,
-                                            self.extractor_jar,
-                                            build_info,
-                                            self.buildable_repos_path)
+        buildable_repos_path = self.buildable_repos_path
+        if (not self.read_apk):
+            return RepoProcessor.extract_static(repo,
+                                                log,
+                                                self.in_dir,
+                                                android_home,
+                                                graph_dir,
+                                                prov_dir,
+                                                self.classpath,
+                                                extractor_jar,
+                                                build_info,
+                                                buildable_repos_path)
+        else:
+            return RepoProcessor.extract_static_apk(repo,
+                                                    log,
+                                                    android_home,
+                                                    graph_dir,
+                                                    prov_dir,
+                                                    extractor_jar,
+                                                    build_info,
+                                                    buildable_repos_path)
 
 
     def processRepoFromStep(self, repo, task_index):
@@ -949,7 +760,7 @@ class RepoProcessor:
 
         if repo_status < MIN_STATUS:
             logging.warning("Skipping repo %s (repo status %d < min status %d" %
-                            (RepoProcessor.get_repo_name(repo), repo_status,
+                            (get_repo_name(repo), repo_status,
                              MIN_STATUS))
             return
 
@@ -989,7 +800,7 @@ class RepoProcessor:
 
             (repoProcessor, repo, task_index, repo_index, tot_repos) = data
             logging.info("Repo %d/%d..." % (repo_index, tot_repos))
-            logging.info("Repo %s" % RepoProcessor.get_repo_name(repo))
+            logging.info("Repo %s" % get_repo_name(repo))
 
             try:
                 repoProcessor.processRepoFromStep(repo, task_index)
@@ -999,7 +810,7 @@ class RepoProcessor:
                 logging.error("Thread: error processing repo " \
                               "%d/%d" % (repo_index, tot_repos))
                 logging.error("Thread: error processing repo " \
-                              "%s" % (RepoProcessor.get_repo_name(repo)))
+                              "%s" % (get_repo_name(repo)))
 
             finally:
                 tasks_queue.task_done()
@@ -1016,7 +827,6 @@ class RepoProcessor:
         threads = []
         workerpart = functools.partial(RepoProcessor.workerfun, tasks_queue)
 
-
         for i in range(self.tot_workers):
             t = threading.Thread(target=workerpart)
             t.start()
@@ -1030,7 +840,7 @@ class RepoProcessor:
 
             if repo in processed:
                 logging.info("Repo %d/%d already processed" % (repo_index, tot_repos))
-                logging.info("Repo %s already processed" % RepoProcessor.get_repo_name(repo))
+                logging.info("Repo %s already processed" % get_repo_name(repo))
             else:
                 worker_data = (self, repo, task_index, repo_index, tot_repos)
                 tasks_queue.put(worker_data)

@@ -10,81 +10,22 @@ def test_json(condition, reply, error_msg):
         print("*** FAILURE!\n\t%s\n" % error_msg)
 
         logging.debug(reply)
-        
 
         return False
     else:
         return True
-
-
-def test_solr(address, port):
-    print "*** Testing biggroum_solr service..."
-
-    service_address = "%s:%s" % (address, port)
-    solr_query = "http://%s/solr/groums/get?id=69/popular/1" % service_address
-    print solr_query
-    r = requests.get(solr_query)
-
-    if not test_json(r.status_code == 200, r,
-                     "Wrong http result code"): return 1
-
-    json_res = r.json()
-
-    if not test_json(u"doc" in json_res, r, "Doc tag not found in reply"):
-        return 1
-
-    if not test_json("doc_type_sni" in json_res[u"doc"], r,
-                     "Doc type not found in reply"):
-        return 1
-
-    if not test_json(json_res[u"doc"][u"doc_type_sni"] == "pattern", r,
-                     "Doc is not a pattern"):
-        return 1
-
-    if not test_json("type_sni" in json_res[u"doc"], r,
-                     "Pattern category not found"):
-        return 1
-
-    if not test_json(json_res[u"doc"][u"type_sni"] == "popular", r,
-                     "Wrong pattern category"):
-        return 1
-
-    print "*** SUCCESS!\n"
-
-
-    return 0
 
 def test_search(address, port):
     print "*** Testing biggroum_search service..."
 
     service_address = "%s:%s" % (address, port)
 
-    # data = {
-    #     "user" : "BarcodeEye",
-    #     "repo" : "BarcodeEye",
-    #     "class" : "com.google.zxing.client.android.camera.CameraConfigurationManager",
-    #     "method" : "setDesiredCameraParameters",
-    # }
-
     data = {
-        "user" : "anyremote",
-        "repo" : "anyremote-android-client",
-        "class" :  "anyremote.client.android.TextScreen",
-        "method" : "commandAction"
+        "groum_key" : "DevelopFreedom/logmein-android/418b37ffbafac3502b661d0918d1bc190e3c2dd1/org.developfreedom.logmein.DatabaseEngine.userList/95"
     }
-
-    # 537e709dedefba23255700be8af028ea415f3923
-    # Bluetooth.java
-    data = {
-        "user" : "denzilferreira",
-        "repo" : "aware-client",
-        "class" :  "com.aware.Bluetooth",
-        "method" : "notifyMissingBluetooth"
-    }
-
 
     try:
-        r = requests.post("http://%s/compute/method/groums" % service_address,
+        r = requests.post("http://%s/search" % service_address,
                           json=data)
     except requests.ConnectionError as e:
         print "Connection Error"
@@ -99,20 +40,25 @@ def test_search(address, port):
         print(str(e))
         return 1
 
+
     if not test_json(r.status_code == 200, r,
                      "Wrong http result code"): return 1
 
     json_data = r.json()
 
 
-    if not test_json(u"patterns" in json_data, r,
-                     "No pattern in the reply"):
+    if not test_json(u"status" in json_data, r,
+                     "No status in the reply"):
         return 1
 
-    if not test_json(len(json_data[u"patterns"]) > 0, r,
-                     "Patterns are empty"):
+    if not test_json(u"results" in json_data, r,
+                     "No results in the reply"):
         return 1
 
+
+    if not test_json(len(json_data[u"results"]) > 0, r,
+                     "Results are empty"):
+        return 1
 
     print "*** SUCCESS!\n"
 
@@ -128,6 +74,9 @@ def test_src_query(address, port,
     ws_address = "http://%s:%s/getsrc" % (address, port)
     service_address = "http://%s:%s/src" % (src_srv_address,
                                             src_srv_port)
+
+    print "Address: %s" % "*** Testing web server -- get src code..."
+
 
     user = "anyremote"
     repo = "anyremote-android-client"
@@ -178,48 +127,12 @@ def test_src_query(address, port,
     print "*** SUCCESS!\n"
     return 0
 
-
-# data = {
-#     "user" : "BarcodeEye",
-#     "repo" : "BarcodeEye",
-#     "class" : "com.github.barcodeeye.scan.ResultsActivity",
-#     "method" : "newIntent"
-# }
-
-# data = {
-#     "user" : "DroidPlanner",
-#     "repo" : "Tower",
-#     "class" : "org.droidplanner.android.droneshare.data.DroneShareDB",
-#     "method" : "getDataToUpload",
-# }
-# data = {
-#     "user" : "tommyd3mdi",
-#     "repo" : "c-geo-opensource",
-#     "class" : "cgeo.geocaching.apps.cache.navi.NavigonApp",
-#     "method" : "invoke",
-# }
-
-# data = {
-#     "user" : "hardikp888",
-#     "repo" : "my-daily-quest",
-#     "class" : "br.quest.PreferenceManager",
-#     "method" : "savePreference",
-# }
-
-# data = {
-#     "user" : "anyremote",
-#     "repo" : "anyremote-android-client",
-#     "class" :  "anyremote.client.android.TextScreen",
-#     "method" : "commandAction"
-# }
-
 def main(input_args=None):
 
     p = optparse.OptionParser()
     p.add_option('-a', '--address', help="Ip address of the server")
     p.add_option('-p', '--search_port', help="Port of the search server")
-    p.add_option('-s', '--solr_port', help="Port of the solr server")
-    p.add_option('-w', '--webserver_port', help="Port of the web server")
+    p.add_option('-w', '--srcsrv_port', help="Port of the src server")
     p.add_option('-d', '--debug', action="store_true",
                  default=False,
                  help="Print debug info")
@@ -234,10 +147,8 @@ def main(input_args=None):
                  "Server address not provided! (try 100.120.0.6)"),
                 (opts.search_port,
                  "Search port not provided! (try 30072)"),
-                (opts.solr_port,
-                 "Solr port not provided! (try 30071)"),
-                (opts.webserver_port,
-                 "Solr port not provided! (try 30073)")]
+                (opts.srcsrv_port,
+                 "Source port port not provided! (try 30071)")]
 
     if (opts.debug):
         logging.basicConfig(level=logging.DEBUG)
@@ -257,9 +168,8 @@ def main(input_args=None):
         if (not opt_val):
             usage(msg)
 
-    test_solr(opts.address, opts.solr_port)
     test_search(opts.address, opts.search_port)
-    test_src_query(opts.address, opts.webserver_port)
+    test_src_query(opts.address, opts.srcsrv_port)
 
 if __name__ == '__main__':
     main()

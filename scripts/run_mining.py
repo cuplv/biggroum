@@ -1,7 +1,6 @@
 """
 Extract the graphs from a set of Android APKs and run the mining algorithms.
 
-
 """
 
 from fixrgraph.pipeline.pipeline import Pipeline
@@ -34,7 +33,8 @@ def run_extraction(config):
                                             config.get("extraction", "buildable_list"),
                                             config.get("extraction", "build_data"),
                                             out_path,
-                                            tot_thread)
+                                            tot_thread,
+                                            config.get("extraction", "use_apk"))
 
     groums_path = os.path.join(out_path, "graphs")
     cluster_path = os.path.join(out_path,"clusters")
@@ -43,6 +43,9 @@ def run_extraction(config):
     cluster_file_path = os.path.join(cluster_path, "clusters.txt")
     groum_files_path = os.path.join(cluster_path, "groums_list.txt")
 
+
+    print("Generating graphs list...")
+    TestPipeline.create_groums_file(groums_path, groum_files_path, None)
 
     itemset_config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
                                                 config.get("itemset", "frequency_cutoff"),
@@ -63,9 +66,6 @@ def run_extraction(config):
     # Extract the graphs
     print("Extract groums...")
     Pipeline.extractGraphs(extract_config)
-
-    print("Generating graphs list...")
-    TestPipeline.create_groums_file(groums_path, groum_files_path, 100000)
 
     # Run the itemset computation
     print("Extract itemsets...")
@@ -91,11 +91,10 @@ def run_extraction(config):
                 except:
                     pass
         # Missing: cluster number, to get automatically
-        for i in range(n):
-            html_config = Pipeline.ComputeHtmlConfig(cluster_path,
-                                                     i+1,
-                                                     gather_results_path)
-            Pipeline.computeHtml(html_config)
+        html_config = Pipeline.ComputeHtmlConfig(cluster_path,
+                                                 max_cluster,
+                                                 gather_results_path)
+        Pipeline.computeHtml(html_config)
     else:
         print("The extraction did not find any pattern.")
 
