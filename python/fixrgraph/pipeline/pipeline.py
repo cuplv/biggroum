@@ -216,10 +216,12 @@ class Pipeline(object):
         def __init__(self,
                      cluster_path,
                      cluster_count,
-                     gather_results_path):
+                     gather_results_path,
+                     gen_png=False):
             self.cluster_path = cluster_path
             self.cluster_count = cluster_count
             self.gather_results_path = gather_results_path
+            self.gen_png = gen_png
 
     @staticmethod
     def computeHtml(config):
@@ -239,6 +241,27 @@ class Pipeline(object):
 
         if not success:
             raise Exception("Error computing the html pages")
+
+        if config.gen_png:
+
+            for dotfile in os.listdir(html_files_path):
+                if not dotfile.endswith(".dot"):
+                    continue
+                    
+                basename = os.path.basename(dotfile)
+                pngfile = "%s.png" % basename[:-4]
+                
+                args = ["dot",
+                        "-Tpng",
+                        "-o%s" % pngfile,
+                        basename]
+
+                success = Pipeline._call_sub(args, html_files_path)
+
+                if not success:
+                    logging.warning("Error computing the html pages "
+                                    "for %s" % basename)
+
 
 
 
