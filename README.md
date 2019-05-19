@@ -87,7 +87,7 @@ export PYTHONPATH="${repo_path}/python":${PYTHONPATH}
 
 The file `scripts/sample_setup/config.txt` shows an example of parameters that can be used to setup the extraction and mining process.
 
-Note that the file paths in the configiration file must be absolute or relative to the path where the script is executed.
+Note that the file paths in the configuration file must be absolute or relative to the path where the script is executed.
 
 #### Setting for the extraction `[extraction]` section in the configuration file
 
@@ -107,6 +107,11 @@ Each repository must be built in a folder called `<github-username>/<github-repo
 - out_path:
 Output directory for all the produced data (you have to create the folder `out` under `scripts/sample_setup` it to run the tool on the example setup).
 
+- processes: number of processes to use in parallel to extract the graphs
+
+- use_apk: if True uses the apk file to extract the graphs, instead of the class file
+
+- disabled: if True disable the extraction phase (e.g., useful to do just mine the patterns).
 
 #### Setting for the itemset computation `[itemset]` section in the configuration file
 
@@ -115,6 +120,8 @@ The minimum frequency of an itemset (i.e., number of groums that support that it
 
 - min_methods_in_itemset
 The minimum number of methods that an itemset must have
+
+- disabled: if True disable the frequent itemset computation phase.
 
 
 #### Setting for the pattern `[pattern]` section in the configuration file
@@ -125,6 +132,13 @@ The timeout (in seconds) for the computation of the patterns of a single cluster
 - frequency_cutoff
 The minimum frequency (number of groums) that a pattern must have to be considered frequent.
 
+- disabled: if True disable the pattern computation
+
+#### Setting for the `[html]` section
+
+- disabled: if True disable the computation of the html representation of the patterns
+
+- genpng: if True generates the png to be displayed in the html pages.
 
 ### Run the whole process
 ```
