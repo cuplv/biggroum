@@ -15,11 +15,23 @@ import sys
 import os
 import ConfigParser
 
+def get_default(config, section, option, default):
+    try:
+        val = config.get(section, option)
+    except:
+        val = default
+    return val
+
+
 def run_extraction(config):
-    extractor_path = TestPipeline.get_extractor_path()
-    fixrgraphiso_path = TestPipeline.get_fixrgraphiso_path()
-    frequentsubgraphs_path = TestPipeline.get_frequentsubgraphs_path()
-    gather_results_path = TestPipeline.get_gather_results_path()
+    extractor_path = get_default(config, "extraction","extractor_jar",
+                                 TestPipeline.get_extractor_path())
+    fixrgraphiso_path = get_default(config, "itemset", "binary",
+                                    TestPipeline.get_fixrgraphiso_path())
+    frequentsubgraphs_path = get_default(config, "pattern", "binary",
+                                         TestPipeline.get_frequentsubgraphs_path())
+    gather_results_path = get_default(config, "html", "result_script",
+                                      TestPipeline.get_gather_results_path())
 
     disable_extraction = False
     disable_itemset = False
@@ -135,7 +147,6 @@ def run_extraction(config):
             except: 
                 genpng = False
 
-            # Missing: cluster number, to get automatically
             html_config = Pipeline.ComputeHtmlConfig(cluster_path,
                                                      max_cluster,
                                                      gather_results_path,

@@ -123,6 +123,7 @@ The minimum number of methods that an itemset must have
 
 - disabled: if True disable the frequent itemset computation phase.
 
+- binary: the path to the itemset computation binary (optional if using the one in FixrGraphIso path relative to the repository)
 
 #### Setting for the pattern `[pattern]` section in the configuration file
 
@@ -133,6 +134,8 @@ The timeout (in seconds) for the computation of the patterns of a single cluster
 The minimum frequency (number of groums) that a pattern must have to be considered frequent.
 
 - disabled: if True disable the pattern computation
+
+- binary: the path to the frequent subgraph computation binary (optional if using the one in FixrGraphIso path relative to the repository)
 
 #### Setting for the `[html]` section
 
