@@ -67,7 +67,6 @@ def compute_p_value_inner(featDb, methodEdges, methodCalls):
         methodEdgesProb.append(cond_prob)
 
     p_value = functools.reduce(operator.mul, methodEdgesProb, 1.0)
-    logging.debug("Computed pvalue %f" % p_value)
 
     return p_value
 
@@ -106,6 +105,9 @@ def compute_p_values(graph_path,
                 filename = os.path.join(root, name)
                 acdfgs.append(filename)
 
+
+    outf = open('pvalue','w')
+
     i = 0
     for filename in acdfgs:
         i = i + 1
@@ -114,9 +116,14 @@ def compute_p_values(graph_path,
         perc = perc * 100
 
         print "Computing p value %d/%d (%f)..." % (i, len(acdfgs), perc)
-        compute_p_value(filename, featDb)
+        p_value = compute_p_value(filename, featDb)
+        print("Computed pvalue %f" % p_value)
 
-        sys.exit(1)
+        outf.write("%s %f\n" % (filename, p_value))
+        outf.flush()
+
+    outf.close()
+
     featDb.close()
 
 
