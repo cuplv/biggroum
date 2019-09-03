@@ -2,12 +2,71 @@
 
 BigGroum is a programming pattern-mining tool for finding patterns conserved across corpora consisting of hundreds or even thousands of projects.
 
+BigGroum also implements tools that utilizes the mined pattern to find anomalies in a user provided program and to provide hints to fix the anomaly.
+
 Frameworks like Android expose rich functionality through a complex, object-oriented application-programming interface (API). How to properly use API methods is rarely fully documented and so app developers may guess incorrectly. BigGroum reifies in a mining tool the intuitive approach of looking for examples of how others use the API. The underlying assumption is that a “popular” way of using the API probably works, and code that is slightly off from a popular pattern is suspicious. To accurately capture API usage patterns, BigGroum mines graph-based object usage models (groums) that simultaneously describe control flow and data dependencies between methods of
 multiple interacting object types.
 
-This repository contains code for extracting groums from Android apps and then performs the mining task.
+This repository collect the BigGroum code and the links to the repositories implementing all the tools used to construct BigGroum
 
-## Subprojects
+
+## Describing the BigGroum Architecture and Flow
+
+BigGroum implements tool for the *offline phase*, which extracts the graphs from the corpora and runs the graph mining process, and for the *online phase*, which uses the mined patterns to find anomalies and provide fixes for suggestions.
+
+
+### Offline Phase
+
+![High-level architecture of the offline phase](docs/offline.png "High-level architecture of the offline phase")
+
+The offline phase performs the following steps:
+1. Extract the graphs from a set of Android applications.
+
+The code for the graph extractor is in the `FixrGraphExtractor` submodule.
+
+2. Run the frequent itemsets mining algorithm to cluster graphs that use frequently the same set of API methods.
+
+The code for the frequent itemset mining is in the `FixrGraphIso` submodule.
+
+3. Run the frequent subgraph mining algorithm in each cluster to find common subgraphs, build a subsumption relation among common subgraphs, and classify common subgraphs as "popular", "anomalous", and "isolated" (refer to our paper for details about such definitions.)
+
+The code for the frequent subgraph mining is in the `FixrGraphIso` submodule.
+
+4. Produce a html output to inspect the found patterns.
+
+The code for producing the html output is in the `FixrGraphIso` submodule.
+
+This repository ('BigGroum') contains the code for the python module `fixrgraph` (under `python/fixrgraph`). This module implements the infrastructure to that we use (or used at some point) to automate the mining process and to access the mining results programmatically. The folder `scripts` contains a script that automates the full miing process (i.e., it usees the python module to implement an end-to-end mining pipeline),
+
+
+
+### Online Phase
+
+![High-level architecture of the online phase](docs/online.png "High-level architecture of the online phase")
+
+The online phase allow a developer to provide its source code, getting in return a list of possible anomalies with a suggested fix. The tool is implemented in the `FixrGraphPatternSearch` repository.
+
+The same repository further contains a web server taking as input the "key" identifying a method decaration in the repository,
+
+**Note** due to our current limitations in the implementation of the required functionalites, the developer has to manually provide the graphs representing is source code
+
+In the project we also provide two experimental front-ends useful to experiment with the system:
+
+- `fixr_groum_search_frontend` is a react web application showing the search capabilities in a standalone  web application (old demo)
+
+- [Fixrbot](https://github.com/cuplv/FixrBot) is a GitHub app interfacing the search web service with GitHub: the app responds to the GitHub web-hooks (e.g., our app is invoked whenever a user creates a pull request) with the goal of continuously analyzng a user-defined repository on GitHub. The app then interacts with the developer providing the list of found anomalies and fixes.
+
+**TO FIX:** We need to add this submodule to the BigGroum repository.
+
+- `fixr_groum_source_code_service`: this is a utility repository used to download source code on GitHub and then provide an annotate source code containing the fix suggestion.
+
+
+## Docker Containers
+
+Now we provide docker containers to set-up the full offline mining, see the `docker` folder and to run the *old* online phase that uses the stand-alone web application.
+
+
+## Subprojects included in BigGroum
 
 The extraction of the Groums and the implementation of the mining
 algorithm is implemented in the FixrGraphExtractor and FixrGraphIso
@@ -42,10 +101,7 @@ $> make
 - enum34 python package (`pip install enum34`)
 - protobuf (`pip install protobuf`)
 - sql_alchemy for python
-
-
-- android SDK
-Remember to set the android SDK home
+- android SDK (Remember to set the android SDK home)
 
 3. Generate the protobuffer bindings for python
 
@@ -80,7 +136,6 @@ You can execute the following command from the repository path:
 repo_path=`pwd`
 export PYTHONPATH="${repo_path}/python":${PYTHONPATH}
 ```
-
 
 
 ### Set-up the extraction step:
@@ -180,9 +235,9 @@ A copy of a pre-print of the paper is available in the doc folder.
 In the paper we used the `BigGroum` tool to extract and mine patterns from 500 Android applications. The results are available here: https://goo.gl/r1VAgc
 
 
-## For statistical significance
+## Steps to evaluate the statistical significance of the mined patterns
 
-Need:
+Dependencies:
 
 ```
 sudo apt-get install mysql-server
