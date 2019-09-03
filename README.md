@@ -40,7 +40,26 @@ This repository ('BigGroum') contains the code for the python module `fixrgraph`
 
 ### Online Phase
 
-The online phase allow a developer to 
+The online phase allow a developer to provide its source code, getting in return a list of possible anomalies with a suggested fix. The tool is implemented in the `FixrGraphPatternSearch` repository.
+
+The same repository further contains a web server taking as input the "key" identifying a method decaration in the repository,
+
+**Note** due to our current limitations in the implementation of the required functionalites, the developer has to manually provide the graphs representing is source code
+
+In the project we also provide two experimental front-ends useful to experiment with the system:
+
+- 'fixr_groum_search_frontend` is a react web application showing the search capabilities in a standalone  web application (old demo)
+
+- [Fixrbot](https://github.com/cuplv/FixrBot) is a GitHub app interfacing the search web service with GitHub: the app responds to the GitHub web-hooks (e.g., our app is invoked whenever a user creates a pull request) with the goal of continuously analyzng a user-defined repository on GitHub. The app then interacts with the developer providing the list of found anomalies and fixes.
+
+**TO FIX:** We need to add this submodule to the BigGroum repository.
+
+- `fixr_groum_source_code_service`: this is a utility repository used to download source code on GitHub and then provide an annotate source code containing the fix suggestion.
+
+
+## Docker Containers
+
+Now we provide docker containers to set-up the full offline mining, see the `docker` folder and to run the *old* online phase that uses the stand-alone web application.
 
 
 ## Subprojects included in BigGroum
@@ -53,8 +72,6 @@ submodules.
 
 
 ## Installation and dependencies
-
-You can use the docker file in the the `docker` folder to install the necessary dependencies and run the extraction pipeline.
 
 1. Follow the README files in the `FixrGraphExtractor` and `FixrGraphIso` to check the required dependencies of both tools.
 
