@@ -17,6 +17,8 @@ BigGroum implements tool for the *offline phase*, which extracts the graphs from
 
 ### Offline Phase
 
+![High-level architecture of the offline phase](docs/offline_phase.png "High-level architecture of the offline phase")
+
 The offline phase performs the following steps:
 1. Extract the graphs from a set of Android applications.
 
@@ -34,11 +36,13 @@ The code for the frequent subgraph mining is in the `FixrGraphIso` submodule.
 
 The code for producing the html output is in the `FixrGraphIso` submodule.
 
-This repository ('BigGroum') contains the code for the python module `fixrgraph` (under `python/fixrgraph`). This module implements the infrastructure to that we use (or used at some point) to automate the mining process and to access the mining results programmatically. The folder `scripts` contain a script that automates the full miing process (i.e., it usees the python module to implement an end-to-end mining pipeline),
+This repository ('BigGroum') contains the code for the python module `fixrgraph` (under `python/fixrgraph`). This module implements the infrastructure to that we use (or used at some point) to automate the mining process and to access the mining results programmatically. The folder `scripts` contains a script that automates the full miing process (i.e., it usees the python module to implement an end-to-end mining pipeline),
 
 
 
 ### Online Phase
+
+![High-level architecture of the online phase](docs/online_phase.png "High-level architecture of the online phase")
 
 The online phase allow a developer to provide its source code, getting in return a list of possible anomalies with a suggested fix. The tool is implemented in the `FixrGraphPatternSearch` repository.
 
@@ -48,7 +52,7 @@ The same repository further contains a web server taking as input the "key" iden
 
 In the project we also provide two experimental front-ends useful to experiment with the system:
 
-- 'fixr_groum_search_frontend` is a react web application showing the search capabilities in a standalone  web application (old demo)
+- `fixr_groum_search_frontend` is a react web application showing the search capabilities in a standalone  web application (old demo)
 
 - [Fixrbot](https://github.com/cuplv/FixrBot) is a GitHub app interfacing the search web service with GitHub: the app responds to the GitHub web-hooks (e.g., our app is invoked whenever a user creates a pull request) with the goal of continuously analyzng a user-defined repository on GitHub. The app then interacts with the developer providing the list of found anomalies and fixes.
 
