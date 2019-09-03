@@ -17,7 +17,7 @@ BigGroum implements tool for the *offline phase*, which extracts the graphs from
 
 ### Offline Phase
 
-![High-level architecture of the offline phase](docs/offline_phase.png "High-level architecture of the offline phase")
+![High-level architecture of the offline phase](docs/offline.png "High-level architecture of the offline phase")
 
 The offline phase performs the following steps:
 1. Extract the graphs from a set of Android applications.
@@ -42,7 +42,7 @@ This repository ('BigGroum') contains the code for the python module `fixrgraph`
 
 ### Online Phase
 
-![High-level architecture of the online phase](docs/online_phase.png "High-level architecture of the online phase")
+![High-level architecture of the online phase](docs/online.png "High-level architecture of the online phase")
 
 The online phase allow a developer to provide its source code, getting in return a list of possible anomalies with a suggested fix. The tool is implemented in the `FixrGraphPatternSearch` repository.
 
