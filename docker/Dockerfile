@@ -5,7 +5,7 @@ FROM ubuntu:16.04
 # Install packages
 #
 # 1. openssh-server, gcc, make, sudo, cmake, apt-transport-https
-# 2. Oracle Java Jdk 8
+# 2. OpenJdk 8
 # 3. sbt
 # 4. Python 2
 # 5. Google protobuffer
@@ -18,17 +18,11 @@ FROM ubuntu:16.04
 RUN apt-get update
 RUN apt-get install -y openssh-server gcc make sudo cmake apt-transport-https software-properties-common binutils g++
 
-# 2. Oracle Java Jdk 8
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && \
-  apt-get install -y oracle-java8-installer && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk7-installer
+# 2. OpenJdk 8
+RUN sudo apt-get install -y openjdk-8-jdk
 
 # Define commonly used JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
 # 3. sbt
 RUN echo "deb https://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
@@ -141,8 +135,7 @@ ENV PATH="/home/biggroum/gradle/bin:${ANDROID_HOME}/tools:${ANDROID_HOME}/platfo
 
 # Install platform tools
 RUN cd android-sdk-linux/tools/bin \
-    && ./sdkmanager "platform-tools" "platforms;android-10" "platforms;android-11" "platforms;android-12" "platforms;android-13" "platforms;android-14" "platforms;android-15" "platforms;android-16" "platforms;android-17" "platforms;android-18" "platforms;android-19" "platforms;android-20" "platforms;android-21" "platforms;android-22" "platforms;android-23" "platforms;android-24" "platforms;android-25" "platforms;android-26" "platforms;android-27" "platforms;android-7" "platforms;android-8" "platforms;android-9" "platforms;android-P"
-
+    && ./sdkmanager "platform-tools" "platforms;android-10" "platforms;android-11" "platforms;android-12" "platforms;android-13" "platforms;android-14" "platforms;android-15" "platforms;android-16" "platforms;android-17" "platforms;android-18" "platforms;android-19" "platforms;android-20" "platforms;android-21" "platforms;android-22" "platforms;android-23" "platforms;android-24" "platforms;android-25" "platforms;android-26" "platforms;android-27" "platforms;android-7" "platforms;android-8" "platforms;android-9"
 # Clone our repositories
 RUN git clone https://github.com/cuplv/biggroum \
     && cd biggroum \

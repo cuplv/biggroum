@@ -1,7 +1,6 @@
 """
 Extract the graphs from a set of Android APKs and run the mining algorithms.
 
-
 """
 
 from fixrgraph.pipeline.pipeline import Pipeline
@@ -16,87 +15,146 @@ import sys
 import os
 import ConfigParser
 
-def run_extraction(config):
-    extractor_path = TestPipeline.get_extractor_path()
-    fixrgraphiso_path = TestPipeline.get_fixrgraphiso_path()
-    frequentsubgraphs_path = TestPipeline.get_frequentsubgraphs_path()
-    gather_results_path = TestPipeline.get_gather_results_path()
+def get_default(config, section, option, default):
+    try:
+        val = config.get(section, option)
+    except:
+        val = default
+    return val
 
-    out_path = os.path.join(config.get("extraction", "out_path"))
+
+def run_extraction(config):
+    extractor_path = get_default(config, "extraction","extractor_jar",
+                                 TestPipeline.get_extractor_path())
+    fixrgraphiso_path = get_default(config, "itemset", "binary",
+                                    TestPipeline.get_fixrgraphiso_path())
+    frequentsubgraphs_path = get_default(config, "pattern", "binary",
+                                         TestPipeline.get_frequentsubgraphs_path())
+    gather_results_path = get_default(config, "html", "result_script",
+                                      TestPipeline.get_gather_results_path())
+
+    disable_extraction = False
+    disable_itemset = False
+    disable_pattern = False
+    disable_html = False
 
     try:
-        tot_thread = int(config.get("extraction","processes"))
+        disable_extraction = config.getboolean("extraction","disabled")
     except:
-        return 1
+        pass
+    try:
+        disable_itemset = config.getboolean("itemset","disabled")
+    except:
+        pass
+    try:
+        disable_pattern = config.getboolean("pattern","disabled")
+    except:
+        pass
+    try:
+        disable_html = config.getboolean("html","disabled")
+    except:
+        pass
 
-    extract_config = Pipeline.ExtractConfig(extractor_path,
-                                            config.get("extraction", "repo_list"),
-                                            config.get("extraction", "buildable_list"),
-                                            config.get("extraction", "build_data"),
-                                            out_path,
-                                            tot_thread)
+    extract_config = None
+    pattern_config = None
+    itemset_config = None
+    cluster_path = None
+    cluster_file_path = None    
 
+    out_path = os.path.join(config.get("extraction", "out_path"))
     groums_path = os.path.join(out_path, "graphs")
-    cluster_path = os.path.join(out_path,"clusters")
-    os.makedirs(cluster_path)
-    cluster_file_path = os.path.join(cluster_path, "clusters.txt")
-    groum_files_path = os.path.join(cluster_path, "groums_list.txt")
+
+    if (not disable_extraction):
+        try:
+            tot_thread = int(config.getint("extraction","processes"))
+        except:
+            return 1
+
+        extract_config = Pipeline.ExtractConfig(extractor_path,
+                                                config.get("extraction", "repo_list"),
+                                                config.get("extraction", "buildable_list"),
+                                                config.get("extraction", "build_data"),
+                                                out_path,
+                                                tot_thread,
+                                                config.getboolean("extraction", "use_apk"))
+
+    if ((not disable_itemset) or (not disable_pattern) or (not disable_html)):
+        cluster_path = os.path.join(out_path,"clusters")
+        if (not os.path.isdir(cluster_path)):
+            os.makedirs(cluster_path)
+        cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
 
-    print("Generating graphs list...")
-    TestPipeline.create_groums_file(groums_path, groum_files_path, None)
+    if (not disable_itemset):
+        print("Generating graphs list...")
 
-    itemset_config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
-                                                config.get("itemset", "frequency_cutoff"),
-                                                config.get("itemset", "min_methods_in_itemset"),
-                                                groum_files_path,
-                                                cluster_path,
-                                                cluster_file_path)
+        groum_files_path = os.path.join(cluster_path, "groums_list.txt")
+        TestPipeline.create_groums_file(groums_path, groum_files_path, None)
 
-    pattern_config = Pipeline.ComputePatternsConfig(groums_path,
+        itemset_config = Pipeline.ItemsetCompConfig(fixrgraphiso_path,
+                                                    config.get("itemset", "frequency_cutoff"),
+                                                    config.get("itemset", "min_methods_in_itemset"),
+                                                    groum_files_path,
                                                     cluster_path,
-                                                    cluster_file_path,
-                                                    config.get("pattern", "timeout"),
-                                                    config.get("pattern", "frequency_cutoff"),
-                                                    frequentsubgraphs_path)
+                                                    cluster_file_path)
 
-    html_path = os.path.join(cluster_path, "html_files")
+    if (not disable_pattern):
+        pattern_config = Pipeline.ComputePatternsConfig(groums_path,
+                                                        cluster_path,
+                                                        cluster_file_path,
+                                                        config.get("pattern", "timeout"),
+                                                        config.get("pattern", "frequency_cutoff"),
+                                                        frequentsubgraphs_path)
 
     # Extract the graphs
-    print("Extract groums...")
-    Pipeline.extractGraphs(extract_config)
+    if (not disable_extraction):
+        print("Extract groums...")
+        assert not extract_config is None
+        Pipeline.extractGraphs(extract_config)
 
     # Run the itemset computation
-    print("Extract itemsets...")
-    Pipeline.computeItemsets(itemset_config)
+    if (not disable_itemset):
+        print("Extract itemsets...")
+        assert not itemset_config is None
+        Pipeline.computeItemsets(itemset_config)
 
     # Compute the patterns
-    print("Compute patterns...")
-    Pipeline.computePatterns(pattern_config)
+    if (not disable_pattern):
+        print("Compute patterns...")
+        assert not pattern_config is None
+        Pipeline.computePatterns(pattern_config)
 
     # Render the HTML results
-    print("Render HTML pages...")
-    cluster_folders = os.path.join(cluster_path, "all_clusters")
+    if (not disable_html):
+        print("Render HTML pages...")
+        cluster_folders = os.path.join(cluster_path, "all_clusters")
 
-    if (os.path.isdir(cluster_folders)):
-        max_cluster = -1
-        for path in os.listdir(cluster_folders):
-            if path.startswith("cluster_"):
-                n_str = path[8:]
-                try:
-                    n = int(n_str)
-                    if n > max_cluster:
-                        max_cluster = n
-                except:
-                    pass
-        # Missing: cluster number, to get automatically
-        for i in range(n):
+        if (os.path.isdir(cluster_folders)):
+            max_cluster = -1
+            for path in os.listdir(cluster_folders):
+                if path.startswith("cluster_"):
+                    n_str = path[8:]
+                    try:
+                        n = int(n_str)
+                        if n > max_cluster:
+                            max_cluster = n
+                    except:
+                        pass
+
+
+            try:
+                genpng = config.getboolean("html", "genpng")
+            except: 
+                genpng = False
+
             html_config = Pipeline.ComputeHtmlConfig(cluster_path,
-                                                     i+1,
-                                                     gather_results_path)
+                                                     max_cluster,
+                                                     gather_results_path,
+                                                     genpng)
             Pipeline.computeHtml(html_config)
-    else:
-        print("The extraction did not find any pattern.")
+
+        else:
+            print("The extraction did not find any pattern.")
 
 
 def main():

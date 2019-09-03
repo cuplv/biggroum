@@ -60,13 +60,15 @@ class Pipeline(object):
                      build_repo_list_file_path,
                      build_repo_path,
                      output_path,
-                     tot_workers):
+                     tot_workers,
+                     use_apk):
             self.graph_extractor_jar = graph_extractor_jar
             self.repo_list_file_path = repo_list_file_path
             self.build_repo_list_file_path = build_repo_list_file_path
             self.build_repo_path = build_repo_path
             self.output_path = output_path
             self.tot_workers = tot_workers
+            self.use_apk = use_apk
 
     """
     Extract the graphs from the android projects.
@@ -92,7 +94,8 @@ class Pipeline(object):
                                              Pipeline.ExtractConfig.default_status_file)
 
         # 2. Perform the extraction
-        repo_list = RepoProcessor.init_extraction(indir, graphdir, provdir,
+        repo_list = RepoProcessor.init_extraction(indir, graphdir,
+                                                  provdir,
                                                   config.repo_list_file_path)
         repoProcessor = RepoProcessor(indir, graphdir, provdir,
                                       Pipeline.ExtractConfig.default_slicing_filter,
@@ -101,7 +104,8 @@ class Pipeline(object):
                                       config.build_repo_list_file_path,
                                       config.build_repo_path,
                                       extractor_status_file,
-                                      config.tot_workers)
+                                      config.tot_workers,
+                                      config.use_apk)
         repoProcessor.processFromStep(repo_list,
                                       Pipeline.ExtractConfig.default_step)
 
@@ -212,20 +216,24 @@ class Pipeline(object):
         def __init__(self,
                      cluster_path,
                      cluster_count,
-                     gather_results_path):
+                     gather_results_path,
+                     gen_png=False):
             self.cluster_path = cluster_path
             self.cluster_count = cluster_count
             self.gather_results_path = gather_results_path
+            self.gen_png = gen_png
 
     @staticmethod
     def computeHtml(config):
         html_files_path = os.path.join(config.cluster_path, "html_files")
-        os.mkdir(html_files_path)
+
+        if (not os.path.exists(html_files_path)):
+            os.mkdir(html_files_path)
 
         args = ["python",
                 config.gather_results_path,
                 "-a", "1",
-                "-b", config.cluster_count,
+                "-b", str(config.cluster_count),
                 "-i", "all_clusters",
                 "-o", "html_files"]
 
@@ -233,6 +241,27 @@ class Pipeline(object):
 
         if not success:
             raise Exception("Error computing the html pages")
+
+        if config.gen_png:
+
+            for dotfile in os.listdir(html_files_path):
+                if not dotfile.endswith(".dot"):
+                    continue
+                    
+                basename = os.path.basename(dotfile)
+                pngfile = "%s.png" % basename[:-4]
+                
+                args = ["dot",
+                        "-Tpng",
+                        "-o%s" % pngfile,
+                        basename]
+
+                success = Pipeline._call_sub(args, html_files_path)
+
+                if not success:
+                    logging.warning("Error computing the html pages "
+                                    "for %s" % basename)
+
 
 
 

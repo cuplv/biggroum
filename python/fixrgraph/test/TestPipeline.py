@@ -79,8 +79,11 @@ class TestPipeline(unittest.TestCase):
                 if item.endswith(".bin") :
                     file_name_path = str(os.path.join(root,item))
 
+                    # Workaround
                     acdfg_simple_name = os.path.basename(file_name_path)
-
+                    acdfg_simple_name = acdfg_simple_name.strip()
+                    acdfg_simple_name = acdfg_simple_name.lower()                
+                    
                     if not acdfg_simple_name in existing_files:
                         groums_list.append(file_name_path)
                         existing_files.add(acdfg_simple_name)
@@ -112,7 +115,9 @@ class TestPipeline(unittest.TestCase):
         fixrgraph_jar = os.path.join(test_data_path, "repo_list.json")
 
         config = Pipeline.ExtractConfig(extractor_path,
-                                        repo_list, buildable_list, build_data, out_path, 1)
+                                        repo_list, buildable_list,
+                                        build_data, out_path, 1,
+                                        False)
         Pipeline.extractGraphs(config)
 
         # some files that must have been created by running the test
