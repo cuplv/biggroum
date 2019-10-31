@@ -18,14 +18,11 @@ NEXUS_PORT = "5005"
 LOCAL_IMAGES = {"SEARCH_IMAGE" : "biggroum_search",
                 "SRC_IMAGE" : "srcfinder",
                 "FRONTEND_IMAGE" : "biggroum_frontend",
-                "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch",
+                "SEARCH_DATA_PREFIX" : "../FixrGraphPatternSearch/fixrsearch/test/data",
                  "RESOURCES_BIGGROUM_SEARCH" : """cpu_count: 1
     mem_limit: 1024000000
     network_mode: bridge """,
                  "RESOURCES_SRCFINDER" : """cpu_count: 1
-    mem_limit: 1024000000
-    network_mode: bridge """,
-                 "RESOURCES_BIGGROUM_FRONTEND" : """cpu_count: 1
     mem_limit: 1024000000
     network_mode: bridge """}
 
@@ -39,9 +36,6 @@ REMOTE_IMAGES = {"SEARCH_IMAGE" : "%s:%s/biggroum_search:${VERSION}" % REP,
     network_mode: bridge """,
                  "RESOURCES_SRCFINDER" : """cpu_count: 8
     mem_limit: 8192000000
-    network_mode: bridge """,
-                 "RESOURCES_BIGGROUM_FRONTEND" : """cpu_count: 2
-    mem_limit: 2048000000
     network_mode: bridge """}
 
 DOCKER_FILE = """version: '2.2'
@@ -49,28 +43,20 @@ services:
   biggroum_search:
     image: ${SEARCH_IMAGE}
     ports:
-    - "30072:8081"
+    - "8081:8081"
+    links:
+    - srcfinder
     hostname: biggroum_search
     volumes:
-    - ${SEARCH_DATA_PREFIX}/demo_meeting:/persist
+    - ${SEARCH_DATA_PREFIX}:/persist
     ${RESOURCES_BIGGROUM_SEARCH}
 
   srcfinder:
     image: ${SRC_IMAGE}
     ports:
-    - "30071:8080"
+    - "8080:8080"
     hostname: srcfinder
     ${RESOURCES_SRCFINDER}
-
-  biggroum_frontend:
-    image: ${FRONTEND_IMAGE}
-    ports:
-    - "30073:5000"
-    links:
-    - biggroum_search
-    - srcfinder
-    hostname: biggroum_frontend
-    ${RESOURCES_BIGGROUM_FRONTEND}
 """
 
 def main(input_args=None):
