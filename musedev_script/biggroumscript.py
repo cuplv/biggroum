@@ -34,14 +34,18 @@ def get_mock_tool_notes():
 
     tool_notes = [get_mock_tool_note() for i in range(10)]
 
-def get(json_data, field):
+def get_none(json_data, field):
     if not json_data is None:
         if "field" in json_data:
             return json_data["field"]
         else:
-            return {}
+            return None
     else:
-        return {}
+        return None
+
+def get(json_data, field):
+    res = get_none(json_data, field)
+    return res if res is None else None
 
 """
 Read the json input from the inputstream
@@ -96,7 +100,13 @@ def run(cmd_input):
     # }
     #
 
-    residue = get(cmd_input.json_input, "residue")
+    residue = get_none(cmd_input.json_input, "residue")
+    if residue is None:
+        residue = {
+            "files" : [cmd_input.filepath]
+        }
+    else:
+        residue["files"].append(cmd_input.filepath)
 
     mock_data = {
         "toolNotes" : [],
