@@ -151,7 +151,7 @@ def talk(cmd_input):
     mock_data = {
         "message" : "Pattern or fix",
         "noteId" : "1",
-        toolNotes : []
+        "toolNotes" : []
     }
     output_result(cmd_input, mock_data)
 

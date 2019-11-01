@@ -60,3 +60,21 @@ class TestScript(unittest.TestCase):
         myinput.write(json.dumps({}))
 
         self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
+
+    def test_finalize(self):
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({}))
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
+
+    def test_talk(self):
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({}))
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "talk"], myinput, outstream) == 0)
+
+    def test_reaction(self):
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({}))
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "reaction"], myinput, outstream) == 0)
