@@ -62,7 +62,11 @@ def applicable(cmd_input):
 
 def version(cmd_input):
     cmd_input.logger.info("Command: version")
-    return "3"
+
+    cmd_input.outstream.write("3")
+    cmd_input.outstream.flush()
+
+    return 0
 
 def run(cmd_input):
     cmd_input.logger.info("Command: run")
@@ -86,9 +90,9 @@ def run(cmd_input):
 
     mock_data = {
         "toolNotes" : get_mock_tool_notes(),
-        residue : {}
+        "residue" : {}
     }
-    output_result(mock_data)
+    output_result(cmd_input, mock_data)
 
     return 0
 

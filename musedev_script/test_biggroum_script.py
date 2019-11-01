@@ -6,6 +6,7 @@ import sys
 import logging
 import os
 import StringIO
+import json
 
 from cStringIO import StringIO
 
@@ -33,4 +34,25 @@ class TestScript(unittest.TestCase):
     def test_validate(self):
         myinput = StringIO()
         outstream = StringIO()
-        main(["biggroumscript.py", "aaa","aaa", "applicable"], myinput, outstream)
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "applicable"], myinput, outstream) == 0)
+        self.assertTrue(outstream.getvalue() == "true")
+
+    def test_version(self):
+        myinput = StringIO()
+        outstream = StringIO()
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "version"], myinput, outstream) == 0)
+        self.assertTrue(outstream.getvalue() == "3")
+
+
+    def test_run(self):
+        myinput = StringIO()
+        outstream = StringIO()
+
+        run_data = {}
+        run_data_json = json.dumps(run_data)
+        myinput.write(run_data_json)
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "run"], myinput, outstream) == 0)
+        # self.assertTrue(outstream.getvalue() == "")
