@@ -50,9 +50,13 @@ class TestScript(unittest.TestCase):
         myinput = StringIO()
         outstream = StringIO()
 
-        run_data = {}
-        run_data_json = json.dumps(run_data)
-        myinput.write(run_data_json)
+        myinput.write(json.dumps({}))
 
         self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "run"], myinput, outstream) == 0)
         # self.assertTrue(outstream.getvalue() == "")
+
+    def test_finalize(self):
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({}))
+
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)

@@ -34,6 +34,14 @@ def get_mock_tool_notes():
 
     tool_notes = [get_mock_tool_note() for i in range(10)]
 
+def get(json_data, field):
+    if not json_data is None:
+        if "field" in json_data:
+            return json_data["field"]
+        else:
+            return {}
+    else:
+        return {}
 
 """
 Read the json input from the inputstream
@@ -88,24 +96,76 @@ def run(cmd_input):
     # }
     #
 
+    residue = get(cmd_input.json_input, "residue")
+
     mock_data = {
-        "toolNotes" : get_mock_tool_notes(),
-        "residue" : {}
+        "toolNotes" : [],
+        "residue" : residue
     }
+
     output_result(cmd_input, mock_data)
 
     return 0
 
 def finalize(cmd_input):
     cmd_input.logger.info("Command: finalize")
+
+    residue = get(cmd_input.json_input, "residue")
+
+    # Input:
+    # {
+    #   residue: <JSON Value>,
+    # }
+
+    # Output
+    # {
+    #   toolNotes: [ToolNote]?
+    #   summary : Text,
+    #   residue : <JSON Value>
+    # }
+    mock_data = {
+        "toolNotes" : get_mock_tool_notes(),
+        "summary" : "good job!",
+        "residue" : residue
+    }
+    output_result(cmd_input, mock_data)
+
     return 0
 
 def talk(cmd_input):
-    print("talk")
+    # Input:
+    # {
+    #   residue: <JSON Value>,
+    #   messageText: Text,
+    #   user: Text,
+    #   noteID: Text?
+    # }
+
+    # Output
+    # {
+    #   message: Text?,
+    #   noteId: Text?,
+    #   toolNotes: [ToolNote]?
+    # }
+
+    mock_data = {
+        "message" : "Pattern or fix",
+        "noteId" : "1",
+        toolNotes : []
+    }
+    output_result(cmd_input, mock_data)
+
     return 0
 
 def reaction(cmd_input):
-    print("reaction")
+    # Input:
+    # {
+    #     noteId: Text,
+    #     residue: <JSON value>
+    #     positiveCount: Int,
+    #     negativeCount: Int
+    # }
+
     return 0
 
 
