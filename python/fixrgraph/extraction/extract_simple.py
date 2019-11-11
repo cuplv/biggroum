@@ -2,11 +2,6 @@ import argparse
 import fnmatch
 import os
 import run_extractor
-import tempfile
-
-# MIN_HEAP_SIZE="1024m"
-# MAX_HEAP_SIZE="2048m"
-# TIMEOUT="60"
 
 def findFiles(base_dir, extension):
     matches = []
@@ -17,18 +12,8 @@ def findFiles(base_dir, extension):
 
 def find_class_files(base_dir):
     all_class_files = findFiles(base_dir,"class")
-    #TODO: this logic is obviously bad and needs to be updated
-
+    #TODO: this logic will probably fail on some repos but works for simple things
     return all_class_files
-    # candidate_directories = set()
-    # for cf in all_class_files:
-    #     spl = cf.split("/classes/")
-    #     if len(spl) > 1:
-    #         candidate_directories.add(spl[0])
-    # if len(candidate_directories) == 0:
-    #     return None
-    #
-    # return [c for c in all_class_files if c.startswith(candidate_directories[0])]
 
 def isGeneratedFile(file_path):
     if "app/build/generated/" in file_path:
@@ -40,7 +25,6 @@ def isGeneratedFile(file_path):
         return True
 
 def find_rt_jar():
-    rtjar_file = None
     for rtloc in ["jre/lib/rt.jar", "/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar"]:
         rtjar_file = os.path.join(os.environ['JAVA_HOME'],rtloc)
         print(rtjar_file)
