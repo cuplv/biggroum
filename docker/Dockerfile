@@ -93,9 +93,6 @@ RUN sudo mkdir app \
     && sudo ldconfig \
     && rm -rf /app
 RUN sudo pip install pygit2
-#RUN sudo apt-get install default-libmysqlclient-dev
-RUN sudo apt-get install -y libmysqlclient-dev
-RUN sudo pip install MySQL-python
 RUN sudo apt-get install time
 
 ################################################################################
