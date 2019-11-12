@@ -3,10 +3,15 @@
  """
 
 import fixrgraph
-from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
-from fixrgraph.stat_sig.db import FeatDb
-from fixrgraph.stat_sig.extract import process_graphs
-from fixrgraph.stat_sig.pvalue import compute_p_value
+import sys
+
+try:
+    from fixrgraph.stat_sig.feat import (FeatExtractor, Feat)
+    from fixrgraph.stat_sig.extract import process_graphs
+    from fixrgraph.stat_sig.pvalue import compute_p_value
+    from fixrgraph.stat_sig.db import FeatDb
+except:
+    sys.stderr.write("Cannot load fixrgraph.stat_sig module --- skipping test on significance test computation.\n")
 
 from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 
@@ -49,6 +54,7 @@ class TestSig(unittest.TestCase):
         featExtractor = FeatExtractor(file_path)
         return featExtractor
 
+    @unittest.skip("skip the feature extraction for the significance test (requires mysql)")
     def test_feature_extraction(self):
         featExtractor = self._load_graph()
 
@@ -76,6 +82,7 @@ class TestSig(unittest.TestCase):
         for feat in featExtractor.get_features():
             self.assertTrue(feat.desc in features)
 
+    @unittest.skip("skip the feature extraction for the significance test (requires mysql)")
     def test_db_insertion(self):
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
         graph_path = os.path.join(test_path, TestSig.ALL_GRAPH_PATH)
