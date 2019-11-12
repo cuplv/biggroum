@@ -15,7 +15,7 @@ except ImportError:
     import unittest
 
 from biggroumscript import main
-from biggroumapi import biggroum_api_map
+from api import biggroum_api_map
 
 # Hold on on this
 # @contextmanager

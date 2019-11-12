@@ -6,7 +6,7 @@ import json
 import sys
 import logging
 
-from biggroumapi import CmdInput, biggroum_api_map
+from api import CmdInput, biggroum_api_map
 
 """
 Read the json input from the inputstream
