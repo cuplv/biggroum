@@ -38,7 +38,7 @@ class BuildInfoSimple:
     def __init__(self, classes, jars):
         self.classes = classes
         self.jars = jars
-def extract_simple_class(repo, out_dir,extractor_jar,path,filter=None):
+def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None):
 
     build_info = BuildInfoSimple(find_class_files(path), [])
 
@@ -72,8 +72,8 @@ if __name__ == "__main__":
     args = p.parse_args()
 
 
-    extract_simple_class(repo = [args.organization,args.app_name,args.hash],
-                         out_dir=args.graphdir,
-                         extractor_jar=args.extractorjar,
-                         path=args.app_directory,
-                         filter=args.filter)
+    extract_single_class_dir(repo = [args.organization, args.app_name, args.hash],
+                             out_dir=args.graphdir,
+                             extractor_jar=args.extractorjar,
+                             path=args.app_directory,
+                             filter=args.filter)

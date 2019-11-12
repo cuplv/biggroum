@@ -1,0 +1,16 @@
+digraph "void <init>__sliced__()" {
+    label="void <init>__sliced__()";
+    node [shape=box];
+    "5" [style=dashed,shape=ellipse,label="this : fixr.plv.colorado.edu.awesomeapp.MainActivity",];
+    "0" [style=filled,fillcolor=gray,label="nop",];
+    "1" [label="this := @this",];
+    "0"->"1";
+    "2" [label="specialinvoke this.<init>()",];
+    "1"->"2";
+    "1"->"5" [color=blue,];
+    "3" [label="goto label1",];
+    "2"->"3";
+    "4" [label="label1: nop",];
+    "3"->"4";
+    "5"->"2" [color=red,];
+}

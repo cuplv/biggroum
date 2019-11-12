@@ -1,0 +1,15 @@
+digraph "void onClick(android.view.View)" {
+    label="void onClick(android.view.View)";
+    node [shape=box];
+    "0" [style=filled,fillcolor=gray,label="this := @this",];
+    "1" [label="view := @parameter0",];
+    "0"->"1";
+    "2" [label="$r0 = android.support.design.widget.Snackbar.make(view, \"Replace with your own action\", 0)",];
+    "1"->"2";
+    "3" [label="$r1 = $r0.setAction(\"Action\", null)",];
+    "2"->"3";
+    "4" [label="$r1.show()",];
+    "3"->"4";
+    "5" [style=filled,fillcolor=lightgray,label="return",];
+    "4"->"5";
+}

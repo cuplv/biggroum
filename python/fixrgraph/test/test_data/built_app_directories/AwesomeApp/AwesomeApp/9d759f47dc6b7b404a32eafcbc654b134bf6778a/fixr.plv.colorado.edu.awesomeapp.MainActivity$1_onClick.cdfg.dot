@@ -1,0 +1,26 @@
+digraph "void onClick__sliced__(android.view.View)" {
+    label="void onClick__sliced__(android.view.View)";
+    node [shape=box];
+    "7" [style=dashed,shape=ellipse,label="view : android.view.View",];
+    "8" [style=dashed,shape=ellipse,label="$r0 : android.support.design.widget.Snackbar",];
+    "9" [style=dashed,shape=ellipse,label="$r1 : android.support.design.widget.Snackbar",];
+    "0" [style=filled,fillcolor=gray,label="nop",];
+    "1" [label="view := @parameter0",];
+    "0"->"1";
+    "2" [label="$r0 = android.support.design.widget.Snackbar.make(view, \"Replace with your own action\", 0)",];
+    "1"->"2";
+    "1"->"7" [color=blue,];
+    "3" [label="$r1 = $r0.setAction(\"Action\", null)",];
+    "2"->"3";
+    "2"->"8" [color=blue,];
+    "4" [label="$r1.show()",];
+    "3"->"4";
+    "3"->"9" [color=blue,];
+    "5" [label="goto label1",];
+    "4"->"5";
+    "6" [label="label1: nop",];
+    "5"->"6";
+    "7"->"2" [color=red,];
+    "8"->"3" [color=red,];
+    "9"->"4" [color=red,];
+}

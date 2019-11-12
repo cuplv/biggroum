@@ -1,0 +1,15 @@
+    public void <init>__sliced__()
+    {
+        fixr.plv.colorado.edu.awesomeapp.MainActivity this;
+
+        nop;
+
+        this := @this: fixr.plv.colorado.edu.awesomeapp.MainActivity;
+
+        specialinvoke this.<android.support.v7.app.AppCompatActivity: void <init>()>();
+
+        goto label1;
+
+     label1:
+        nop;
+    }

@@ -1,0 +1,17 @@
+digraph "cfg" {
+    label="cfg";
+    label="fixr.plv.colorado.edu.awesomeapp.MainActivity.<init>";
+    node [shape=box];
+    "0" [label="(#0)",group=0,];
+    "4" [label="this.android.support.v7.app.AppCompatActivity.<init>()\n(#1).(#4)()",group=0,];
+    "5" [label="(#5)",group=0,];
+    "4"->"5" [color=black,Damping=0.7,];
+    "6" [label="(#6)",group=0,];
+    "5"->"6" [color=black,Damping=0.7,];
+    "2" [label="(#2)",group=0,];
+    "0"->"2" [color=black,Damping=0.7,];
+    "2"->"4" [color=black,Damping=0.7,];
+    "1" [label="this : fixr.plv.colorado.edu.awesomeapp.MainActivity (# 1)",style=dashed,shape=ellipse,group=1,];
+    "1"->"4" [color=red,Damping=0.7,];
+    "2"->"1" [color=blue,];
+}

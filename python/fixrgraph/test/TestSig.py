@@ -74,6 +74,13 @@ class TestSig(unittest.TestCase):
                     "0_1_android.app.AlertDialog$Builder.<init>_1 -> 1_1_android.app.AlertDialog$Builder.setTitle_1"]
 
         for feat in featExtractor.get_features():
+            if(not feat.desc in features):
+                print("=========")
+                for f in features:
+                    print("   " + f)
+                print("---------")
+                print(feat.desc)
+                print("---------")
             self.assertTrue(feat.desc in features)
 
     def test_db_insertion(self):

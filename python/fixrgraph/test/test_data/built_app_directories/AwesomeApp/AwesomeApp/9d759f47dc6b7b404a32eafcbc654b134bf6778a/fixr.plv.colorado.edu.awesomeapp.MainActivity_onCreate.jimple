@@ -1,0 +1,33 @@
+    protected void onCreate(android.os.Bundle)
+    {
+        fixr.plv.colorado.edu.awesomeapp.MainActivity this;
+        android.os.Bundle savedInstanceState;
+        android.support.v7.widget.Toolbar toolbar;
+        android.support.design.widget.FloatingActionButton fab;
+        android.view.View $r0, $r1;
+        fixr.plv.colorado.edu.awesomeapp.MainActivity$1 $r2;
+
+        this := @this: fixr.plv.colorado.edu.awesomeapp.MainActivity;
+
+        savedInstanceState := @parameter0: android.os.Bundle;
+
+        specialinvoke this.<android.support.v7.app.AppCompatActivity: void onCreate(android.os.Bundle)>(savedInstanceState);
+
+        virtualinvoke this.<fixr.plv.colorado.edu.awesomeapp.MainActivity: void setContentView(int)>(2131427356);
+
+        $r0 = virtualinvoke this.<fixr.plv.colorado.edu.awesomeapp.MainActivity: android.view.View findViewById(int)>(2131230904);
+
+        toolbar = (android.support.v7.widget.Toolbar) $r0;
+
+        virtualinvoke this.<fixr.plv.colorado.edu.awesomeapp.MainActivity: void setSupportActionBar(android.support.v7.widget.Toolbar)>(toolbar);
+
+        $r1 = virtualinvoke this.<fixr.plv.colorado.edu.awesomeapp.MainActivity: android.view.View findViewById(int)>(2131230789);
+
+        fab = (android.support.design.widget.FloatingActionButton) $r1;
+
+        $r2 = new fixr.plv.colorado.edu.awesomeapp.MainActivity$1;
+
+        virtualinvoke fab.<android.support.design.widget.FloatingActionButton: void setOnClickListener(android.view.View$OnClickListener)>($r2);
+
+        return;
+    }

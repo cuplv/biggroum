@@ -1,0 +1,50 @@
+<html><head><script src="https://github.com/mdaines/viz.js/releases/download/v1.3.0/viz.js"></script><script>
+          var acdfgReq = new XMLHttpRequest();
+          acdfgReq.open('GET', 'fixr.plv.colorado.edu.awesomeapp.MainActivity$1_onClick.acdfg.dot', true);
+          acdfgReq.send();
+          acdfgReq.onload = function() {
+            var acdfgText = acdfgReq.responseText;
+            var acdfgContainer = document.getElementById('acdfg');
+            var acdfg = Viz(acdfgText, options={ format: 'svg', engine: 'dot' });
+            acdfgContainer.innerHTML = acdfg;
+          };
+          </script></head><body><h1>fixr.plv.colorado.edu.awesomeapp.MainActivity$1.onClick</h1><div><p>Repository: <a href="http://github.com//Users/s/Documents/source/musedev_deploy/AwesomeApp/AwesomeApp/tree/9d759f47dc6b7b404a32eafcbc654b134bf6778a">/Users/s/Documents/source/musedev_deploy/AwesomeApp/AwesomeApp/9d759f47dc6b7b404a32eafcbc654b134bf6778a</a></p><p>File (line: 30): MainActivity.java<a href="https://github.com//Users/s/Documents/source/musedev_deploy/AwesomeApp/AwesomeApp/find/9d759f47dc6b7b404a32eafcbc654b134bf6778a"> (Find)</a></p><p>Package: fixr.plv.colorado.edu.awesomeapp</p><p>Class: fixr.plv.colorado.edu.awesomeapp.MainActivity$1</p><p>Method: onClick</p></div><h2>Abstract Control Data Flow Graph (ACDFG)</h2><div id="acdfg"></div><h2>Debug informations</h2><div><h3>Jimple</h3><pre><code>    public void onClick(android.view.View)
+    {
+        fixr.plv.colorado.edu.awesomeapp.MainActivity$1 this;
+        android.view.View view;
+        android.support.design.widget.Snackbar $r0, $r1;
+
+        this := @this: fixr.plv.colorado.edu.awesomeapp.MainActivity$1;
+
+        view := @parameter0: android.view.View;
+
+        $r0 = staticinvoke &lt;android.support.design.widget.Snackbar: android.support.design.widget.Snackbar make(android.view.View,java.lang.CharSequence,int)&gt;(view, &quot;Replace with your own action&quot;, 0);
+
+        $r1 = virtualinvoke $r0.&lt;android.support.design.widget.Snackbar: android.support.design.widget.Snackbar setAction(java.lang.CharSequence,android.view.View$OnClickListener)&gt;(&quot;Action&quot;, null);
+
+        virtualinvoke $r1.&lt;android.support.design.widget.Snackbar: void show()&gt;();
+
+        return;
+    }
+</code></pre><h3>Sliced Jimple</h3><pre><code>    public void onClick__sliced__(android.view.View)
+    {
+        fixr.plv.colorado.edu.awesomeapp.MainActivity$1 this;
+        android.view.View view;
+        android.support.design.widget.Snackbar $r0, $r1;
+
+        nop;
+
+        view := @parameter0: android.view.View;
+
+        $r0 = staticinvoke &lt;android.support.design.widget.Snackbar: android.support.design.widget.Snackbar make(android.view.View,java.lang.CharSequence,int)&gt;(view, &quot;Replace with your own action&quot;, 0);
+
+        $r1 = virtualinvoke $r0.&lt;android.support.design.widget.Snackbar: android.support.design.widget.Snackbar setAction(java.lang.CharSequence,android.view.View$OnClickListener)&gt;(&quot;Action&quot;, null);
+
+        virtualinvoke $r1.&lt;android.support.design.widget.Snackbar: void show()&gt;();
+
+        goto label1;
+
+     label1:
+        nop;
+    }
+</code></pre><h3>Control Flow Graph (CFG)</h3><div id="cfg"><img src="fixr.plv.colorado.edu.awesomeapp.MainActivity$1_onClick.cfg.svg" /></div><h3>Control Data Flow Graph (CDFG)</h3><div id="cdfg"><img src="fixr.plv.colorado.edu.awesomeapp.MainActivity$1_onClick.cdfg.svg" /></div><p><em>University of Colorado at Boulder</em></p><p><em>CUPLV Lab</em></p><p><em>DARPA MUSE Round II, Fixr 2016</em></p><p><em>Sergio Mover, Rhys Braginton Pettee Olsen, Sriram Sankaranarayanan (PI)</em></p></div></body></html>

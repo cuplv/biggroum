@@ -1,0 +1,10 @@
+    public void <init>()
+    {
+        fixr.plv.colorado.edu.awesomeapp.MainActivity this;
+
+        this := @this: fixr.plv.colorado.edu.awesomeapp.MainActivity;
+
+        specialinvoke this.<android.support.v7.app.AppCompatActivity: void <init>()>();
+
+        return;
+    }
