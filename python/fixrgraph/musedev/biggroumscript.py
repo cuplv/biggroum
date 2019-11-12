@@ -6,7 +6,7 @@ import json
 import sys
 import logging
 
-from api import CmdInput, biggroum_api_map
+from fixrgraph.musedev.api import CmdInput, biggroum_api_map
 
 """
 Read the json input from the inputstream

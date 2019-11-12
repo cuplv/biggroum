@@ -14,8 +14,8 @@ try:
 except ImportError:
     import unittest
 
-from biggroumscript import main
-from api import biggroum_api_map
+from fixrgraph.musedev.biggroumscript import main
+from fixrgraph.musedev.api import biggroum_api_map
 
 class TestScript(unittest.TestCase):
     FILEPATH = os.path.join(os.path.dirname(__file__), "test_data")

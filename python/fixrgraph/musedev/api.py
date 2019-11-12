@@ -6,8 +6,7 @@ import logging
 import json
 import requests
 
-from residue import Residue
-
+from fixrgraph.musedev.residue import Residue
 
 def get_none(json_data, field):
     if not json_data is None:
