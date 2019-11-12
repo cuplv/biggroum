@@ -30,73 +30,84 @@ from biggroumscript import main
 
 
 class TestScript(unittest.TestCase):
-    FILEPATH = os.path.join(os.path.dirname(__file__),
-                            "test_data/AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java")
-
+    FILEPATH = os.path.join(os.path.dirname(__file__), "test_data")
+    JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
 
     def test_validate(self):
         myinput = StringIO()
         outstream = StringIO()
-
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "applicable"], myinput, outstream) == 0)
+        self.assertTrue(main(["biggroumscript.py",
+                              TestScript.FILEPATH,
+                              TestScript.COMMIT,
+                              "applicable"],
+                              myinput,
+                              outstream) == 0)
         self.assertTrue(outstream.getvalue() == "true")
 
     def test_version(self):
         myinput = StringIO()
         outstream = StringIO()
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "version"], myinput, outstream) == 0)
+        self.assertTrue(main(["biggroumscript.py",
+                              TestScript.FILEPATH,
+                              TestScript.COMMIT,
+                              "version"],
+                              myinput,
+                              outstream) == 0)
         self.assertTrue(outstream.getvalue() == "3")
 
 
     def test_run(self):
         # Mock for calling run multiple times
         runs = []
-        for file_name in ["./test_data/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
-                          "./test_data/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"]:
-            runs.append({
-                "cwd" : "",
-                "cmd" : "",
-                "args" : "",
-                "classpath" : [],
-                    "files": [],
-                "residue": {}
-            })
+        for file_name in [TestScript.JAVAFILE, TestScript.JAVAFILE]:
+            runs.append({"cwd" : "", "cmd" : "", "args" : "",
+                         "classpath" : [],
+                         "files": [file_name]})
 
-        # TODO: Add the results for residues
-        results = [
-            {"residue": {}, "toolNotes": []},
-            {"residue": {}, "toolNotes": []}
-        ]
-        for run,expected_res in zip(runs, results):
-            myinput = StringIO()
+        residue = {"residue" : {}}
+        for run in runs:
             outstream = StringIO()
 
+            myinput = StringIO()
+            run["residue"] = residue["residue"]
             myinput.write(json.dumps(run))
+            myinput.reset()
 
-            self.assertTrue(main(["biggroumscript.py", run, TestScript.COMMIT, "run"],
+            self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH,
+                                  TestScript.COMMIT, "run"],
                                  myinput, outstream) == 0)
 
             try:
-                res = json.loads(outstream.getvalue())
+                residue_json = outstream.getvalue()
+                residue = json.loads(residue_json)
             except:
                 raise Exception("Malformed JSON")
 
-            self.assertTrue(json.dumps(res, sort_keys=True) ==
-                            json.dumps(expected_res, sort_keys=True))
+        expected_res = {
+            "residue": {
+                "compilation_infos" : [{"cwd" : "", "cmd" : "", "args" : "",
+                                        "classpath" : [],
+                                        "files": [file_name]},
+                                       {"cwd" : "", "cmd" : "", "args" : "",
+                                        "classpath" : [],
+                                        "files": [file_name]}
+                ]},
+            "toolNotes": []
+        }
 
-    def test_finalize(self):
-        myinput, outstream = StringIO(), StringIO()
-        myinput.write(json.dumps({}))
+        # print json.dumps(residue, sort_keys=True)
+        # print json.dumps(expected_res, sort_keys=True)
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
+        self.assertTrue(json.dumps(residue, sort_keys=True) ==
+                        json.dumps(expected_res, sort_keys=True))
 
-    def test_finalize(self):
-        myinput, outstream = StringIO(), StringIO()
-        myinput.write(json.dumps({}))
+    # def test_finalize(self):
+    #     myinput, outstream = StringIO(), StringIO()
+    #     myinput.write(json.dumps({}))
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
+    #     self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
 
     def test_talk(self):
         myinput, outstream = StringIO(), StringIO()

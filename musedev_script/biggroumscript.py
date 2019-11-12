@@ -5,6 +5,7 @@ import requests
 import json
 import sys
 import logging
+from residue import Residue
 
 class CmdInput:
     def __init__(self, filepath, commit, cmd,
@@ -36,8 +37,8 @@ def get_mock_tool_notes():
 
 def get_none(json_data, field):
     if not json_data is None:
-        if "field" in json_data:
-            return json_data["field"]
+        if field in json_data:
+            return json_data[field]
         else:
             return None
     else:
@@ -66,116 +67,155 @@ def output_result(cmd_input, json_msg):
 
 def applicable(cmd_input):
     cmd_input.logger.info("Cmd: applicable")
-
     cmd_input.outstream.write("true")
     cmd_input.outstream.flush()
-
     return 0
 
 def version(cmd_input):
     cmd_input.logger.info("Command: version")
-
     cmd_input.outstream.write("3")
     cmd_input.outstream.flush()
-
     return 0
 
 def run(cmd_input):
+    """ We just collect the compilation information.
+    Input:
+    {
+       cwd : Text,
+       cmd : Text,
+       args : [Text],
+       classpath : [Text]?,
+       files: [Text],
+       residue: <JSON value>?
+    }
+
+    Output:
+    {
+        toolNotes: [ToolNote],
+        residue: <JSON value>?,
+    }
+    """
+
     cmd_input.logger.info("Command: run")
 
-    # TODO: validate json_input
-    # {
-    #    cwd :: Text,
-    #    cmd :: Text,
-    #    args :: [Text],
-    #    classpath :: [Text]?,
-    #    files: [Text],
-    #    residue: <JSON value>?
-    # }
-    #
-    # Output format:
-    # {
-    #     toolNotes: [ToolNote],
-    #     residue: <JSON value>?,
-    # }
-    #
+    # TODO: validate input
 
     residue = get_none(cmd_input.json_input, "residue")
-    if residue is None:
-        residue = {
-            "files" : [cmd_input.filepath]
-        }
-    else:
-        residue["files"].append(cmd_input.filepath)
+    compilation_info = {
+       "cwd" : get_none(cmd_input.json_input, "cwd"),
+       "cmd" : get_none(cmd_input.json_input, "cmd"),
+       "args" : get_none(cmd_input.json_input, "args"),
+       "classpath" : get_none(cmd_input.json_input, "classpath"),
+       "files" : get_none(cmd_input.json_input, "files"),
+    }
+    residue = Residue.append_compilation_info(residue,
+                                              compilation_info)
 
-    mock_data = {
+    output = {
         "toolNotes" : [],
         "residue" : residue
     }
 
-    output_result(cmd_input, mock_data)
+    output_result(cmd_input, output)
 
     return 0
 
 def finalize(cmd_input):
+    """ Input:
+    {
+      residue: <JSON Value>,
+    }
+
+    Output
+    {
+      toolNotes: [ToolNote]?
+      summary : Text,
+      residue : <JSON Value>
+    }
+    """
+
     cmd_input.logger.info("Command: finalize")
+
+    # TODO: validate input
 
     residue = get(cmd_input.json_input, "residue")
 
-    # Input:
-    # {
-    #   residue: <JSON Value>,
-    # }
+    # Example: loop throught the compilation info
+    for compilation_info in Residue.get_compilation_infos():
+        for filePath in Residue.get_files(compilation_info):
+            pass
 
-    # Output
-    # {
-    #   toolNotes: [ToolNote]?
-    #   summary : Text,
-    #   residue : <JSON Value>
-    # }
-    mock_data = {
-        "toolNotes" : get_mock_tool_notes(),
-        "summary" : "good job!",
+    # TODO: extract the graphs
+
+    # TODO: organize the data to call the search service
+
+    # TODO: call the web service
+    anomalies = None
+
+    # TODO: Convert the anomalies to toolNotes
+    tool_notes = []
+
+    # Inserts the anomalies in the residue
+    residue = Residue.store_anomalies(residues, anomalies)
+
+    # TODO: compile a summary
+    summary = ""
+
+    output = {
+        "toolNotes" : tool_notes,
+        "summary" : summary,
         "residue" : residue
     }
-    output_result(cmd_input, mock_data)
+
+    output_result(cmd_input, output)
 
     return 0
 
+
 def talk(cmd_input):
-    # Input:
-    # {
-    #   residue: <JSON Value>,
-    #   messageText: Text,
-    #   user: Text,
-    #   noteID: Text?
-    # }
+    """
+    Input:
+    {
+      residue: <JSON Value>,
+      messageText: Text,
+      user: Text,
+      noteID: Text?
+    }
 
-    # Output
-    # {
-    #   message: Text?,
-    #   noteId: Text?,
-    #   toolNotes: [ToolNote]?
-    # }
+    Output
+    {
+      message: Text?,
+      noteId: Text?,
+      toolNotes: [ToolNote]?
+    }
+    """
 
-    mock_data = {
+    # TODO: validate input
+
+    # TODO: process the message text
+
+    output = {
         "message" : "Pattern or fix",
         "noteId" : "1",
         "toolNotes" : []
     }
-    output_result(cmd_input, mock_data)
+    output_result(cmd_input, output)
 
     return 0
 
 def reaction(cmd_input):
-    # Input:
-    # {
-    #     noteId: Text,
-    #     residue: <JSON value>
-    #     positiveCount: Int,
-    #     negativeCount: Int
-    # }
+    """
+    Input:
+    {
+        noteId: Text,
+        residue: <JSON value>
+        positiveCount: Int,
+        negativeCount: Int
+    }
 
+    Output:
+    Nothing
+    """
     return 0
 
 
@@ -194,7 +234,6 @@ def main(input_args, instream, outstream):
     if (len(input_args) != 4):
         return_code = usage()
     else:
-
         filepath = input_args[1]
         commit = input_args[2]
         cmd = input_args[3]
@@ -215,8 +254,8 @@ def main(input_args, instream, outstream):
             # TODO: set logging level and logging output stream
             json_input = read_json(instream)
             cmd_input = CmdInput(filepath, commit, cmd,
-                                     json_input,outstream,
-                                     logger)
+                                 json_input,outstream,
+                                 logger)
             return_code = cmds_map[cmd](cmd_input)
 
     return return_code
