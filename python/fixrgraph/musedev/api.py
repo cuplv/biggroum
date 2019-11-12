@@ -17,10 +17,6 @@ def get_none(json_data, field):
     else:
         return None
 
-def get(json_data, field):
-    res = get_none(json_data, field)
-    return res if res is None else None
-
 def output_result(cmd_input, json_msg):
     json_str = json.dumps(json_msg)
     cmd_input.outstream.write(json_str)
@@ -125,10 +121,10 @@ def finalize(cmd_input):
 
     # TODO: validate input
 
-    residue = get(cmd_input.json_input, "residue")
+    residue = get_none(cmd_input.json_input, "residue")
 
     # Example: loop through the compilation info
-    for compilation_info in Residue.get_compilation_infos():
+    for compilation_info in Residue.get_compilation_infos(residue):
         for filePath in Residue.get_files(compilation_info):
             pass
 
@@ -140,21 +136,27 @@ def finalize(cmd_input):
     anomalies = None
 
     # TODO: Convert the anomalies to toolNotes
-    # Example of tool note
-    # tool_note = {
-    #     "bugType" : "Anomaly",
-    #     "message" : "",
-    #     "file" : "",
-    #     "line" : 1,
-    #     "column" : 1,
-    #     "function" : "",
-    #     "noteId" : "1"
-    # }
-
     tool_notes = []
+    for anomaly in anomalies:
+        # Example of tool note
+        # tool_note = {
+        #     "bugType" : "Anomaly",
+        #     "message" : "",
+        #     "file" : "",
+        #     "line" : 1,
+        #     "column" : 1,
+        #     "function" : "",
+        #     "noteId" : "1"
+        # }
+        #
+        # WARNING: noteId must be set to anomaly.numeric_id here!
+        # tool_note = TODO
+        # tool_notes.append()
+        pass
 
     # Inserts the anomalies in the residue
-    residue = Residue.store_anomalies(residues, anomalies)
+    for anomaly in anomalies:
+        residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
 
     # TODO: compile a summary
     summary = ""
@@ -192,16 +194,55 @@ def talk(cmd_input):
 
     # TODO: validate input
 
-    # TODO: process the message text
+    # Process the message text
+    # The "parsing" of messages is rudimentary for now
+    # The format of commands we expect are:
+    # biggroum inspect
+    # biggroum pattern
+    #
+    residue = get_none(cmd_input.json_input, "residue")
+    note_id = get_none(cmd_input.json_input, "noteID")
+    message_text = get_none(cmd_input.json_input, "messageText")
 
-    output = {
-        "message" : "Pattern or fix",
-        "noteId" : "1",
-        "toolNotes" : []
-    }
-    output_result(cmd_input, output)
+    if (not residue is None):
+        message_text_splitted = message_text.split()
 
-    return 0
+    if (residue is None or message_text is None):
+        output_result(cmd_input, {})
+        return 1
+    elif (len(message_text_splitted) < 1):
+        # We don't know if we have to handle the message.
+        output_result(cmd_input, {})
+        return 0
+    elif (message_text_splitted[0] == "biggroum"):
+        if (len(message_text_splitted) != 2):
+            # Not enough inputs
+            output_result(cmd_input, {})
+            return 1
+        elif not (message_text_splitted[1] == "inspect" or
+                  message_text_splitted[1] == "pattern"):
+            # Wrong commands
+            output_result(cmd_input, {})
+            return 1
+        elif note_id is None:
+            # No note id
+            output_result(cmd_input, {})
+            return 1
+        else:
+            anomaly = Residue.retrieve_anomaly(residue, note_id)
+
+            if anomaly is None:
+                output_result(cmd_input, {})
+                return 1
+            else:
+                # TODO: get the pattern or the fix from the stored anomaly
+                output = {
+                    "message" : "Pattern or fix",
+                    "noteId" : note_id,
+                    "toolNotes" : []
+                }
+                output_result(cmd_input, output)
+                return 0
 
 def reaction(cmd_input):
     """

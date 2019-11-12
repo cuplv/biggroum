@@ -44,21 +44,20 @@ class Residue:
         return compilation_info["files"]
 
     @staticmethod
-    def store_anomalies(residue, anomalies):
+    def store_anomaly(residue, anomaly, note_id):
         if residue is None: residue = {}
-        if residue["anomalies"] is None: residue["anomalies"] = {}
-        for anomaly in anomalies:
-            residue["anomalies"][anomaly.numeric_id] = anomaly
+        if not "anomalies" in residue: residue["anomalies"] = {}
+        residue["anomalies"][note_id] = anomaly
         return residue
 
     @staticmethod
-    def retrieve_anomaly(residue, anomaly_id):
+    def retrieve_anomaly(residue, note_id):
         if residue is None:
             return None
-        elif residue["anomalies"] is None:
+        elif not "anomalies" in residue:
             return None
-        elif residue["anomalies"][anomaly_id] is None:
+        elif not note_id in residue["anomalies"]:
             return None
         else:
-            return residue["anomalies"][anomaly_id]
+            return residue["anomalies"][note_id]
 

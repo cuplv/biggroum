@@ -6,6 +6,7 @@ import sys
 import logging
 import os
 import json
+import copy
 
 from cStringIO import StringIO
 
@@ -16,11 +17,19 @@ except ImportError:
 
 from fixrgraph.musedev.biggroumscript import main
 from fixrgraph.musedev.api import biggroum_api_map
+from fixrgraph.musedev.residue import Residue
+
+
+def compare_json_obj(obj1, obj2):
+    return json.dumps(obj1, sort_keys=True) == json.dumps(obj2, sort_keys=True)
+
 
 class TestScript(unittest.TestCase):
     FILEPATH = os.path.join(os.path.dirname(__file__), "test_data")
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
+
+
 
     def test_validate(self):
         myinput = StringIO()
@@ -87,28 +96,121 @@ class TestScript(unittest.TestCase):
             "toolNotes": []
         }
 
-        # print json.dumps(residue, sort_keys=True)
-        # print json.dumps(expected_res, sort_keys=True)
+        self.assertTrue(compare_json_obj(residue, expected_res))
 
-        self.assertTrue(json.dumps(residue, sort_keys=True) ==
-                        json.dumps(expected_res, sort_keys=True))
-
-    # def test_finalize(self):
-    #     myinput, outstream = StringIO(), StringIO()
-    #     myinput.write(json.dumps({}))
-
-    #     self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
-
-    def test_talk(self):
+    def test_finalize(self):
         myinput, outstream = StringIO(), StringIO()
         myinput.write(json.dumps({}))
+        myinput.reset()
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "talk"], myinput, outstream,
-                             biggroum_api_map) == 0)
+        # TODO: add test when implementation is done
+        # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
+
+    def test_talk(self):
+        residue_empty = {
+            "anomalies" : {}
+        }
+
+        inputs_errors = [
+            {"residue" : {}, "messageText" : "biggroum", "user" : "", "noteID" : ""},
+            {"residue" : {}, "messageText" : "biggroum wrongrequest", "user" : "", "noteID" : ""},
+            {"residue" : {}, "messageText" : "biggroum inspect", "user" : ""},
+            {"residue" : {}, "messageText" : "biggroum pattern", "user" : ""},
+            {"residue" : residue_empty, "messageText" : "biggroum inspect", "user" : "", "noteID" : "1"},
+            {"residue" : residue_empty, "messageText" : "biggroum pattern", "user" : "", "noteID" : "1"},
+        ]
+
+
+        for single_input in inputs_errors:
+            myinput, outstream = StringIO(), StringIO()
+            myinput.write(json.dumps(single_input))
+            myinput.reset()
+            self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+                                 myinput, outstream, biggroum_api_map) != 0)
+
+        residue = {
+            "anomalies" : {
+                "1" : {},
+                "2" : {}
+            }
+        }
+
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({"residue" : residue,
+                                  "messageText" : "biggroum inspect",
+                                  "user" : "", "noteID" : u'1'},))
+        myinput.reset()
+        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+                             myinput, outstream, biggroum_api_map) == 0)
+
+        myinput, outstream = StringIO(), StringIO()
+        myinput.write(json.dumps({"residue" : residue,
+                                  "messageText" : "biggroum pattern",
+                                  "user" : "", "noteID" : "1"},))
+        myinput.reset()
+        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+                             myinput, outstream, biggroum_api_map) == 0)
+
+
+
 
     def test_reaction(self):
         myinput, outstream = StringIO(), StringIO()
         myinput.write(json.dumps({}))
+        myinput.reset()
 
         self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "reaction"], myinput, outstream,
                              biggroum_api_map) == 0)
+
+
+class TestResiude(unittest.TestCase):
+    def test_compilation_info(self):
+        def test_res(residue, expected_residue, ci, fi):
+            self.assertTrue(compare_json_obj(residue, expected_residue))
+            self.assertTrue(compare_json_obj(Residue.get_compilation_infos(residue), ci))
+
+            res_files = []
+            for ci in Residue.get_compilation_infos(residue):
+                res_files = res_files + Residue.get_files(ci)
+            self.assertTrue(set(fi) == set(res_files))
+
+        f1 = ["file1", "file2"]
+        f2 = ["file3", "file4"]
+        ci1 = {
+            "cwd" : "cwd",
+            "cmd" : "cmd",
+            "args" : "args",
+            "classpath" : "classpath",
+            "files" : f1,
+        }
+        ci2 = copy.deepcopy(ci1)
+        ci2["files"] = f2
+
+        expected_residue = {"compilation_infos" : [ci1]}
+        residue = Residue.append_compilation_info(None, ci1)
+        test_res(residue, expected_residue, [ci1], f1)
+
+        expected_residue = {"compilation_infos" : [ci1,ci2]}
+        residue = Residue.append_compilation_info(residue, ci2)
+        test_res(residue, expected_residue, [ci1,ci2], f1+f2)
+
+
+    def test_anomaly(self):
+        # TODO: replace with a real anomaly
+        anomaly1 = {}
+        anomaly2 = {}
+        anomaly3 = {}
+
+        residue = Residue.store_anomaly(None, anomaly1, "1")
+        self.assertTrue(compare_json_obj(residue, {"anomalies" : {"1" : anomaly1}}))
+
+        residue = Residue.store_anomaly(residue, anomaly2, "2")
+        residue = Residue.store_anomaly(residue, anomaly3, "3")
+
+        self.assertTrue(compare_json_obj(anomaly1,
+                                         Residue.retrieve_anomaly(residue, "1")))
+        self.assertTrue(compare_json_obj(anomaly2,
+                                         Residue.retrieve_anomaly(residue, "2")))
+        self.assertTrue(compare_json_obj(anomaly3,
+                                         Residue.retrieve_anomaly(residue, "3")))
+
