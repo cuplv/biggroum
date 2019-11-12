@@ -11,13 +11,20 @@ from fixrgraph.musedev.api import CmdInput, biggroum_api_map
 """
 Read the json input from the inputstream
 """
-def read_json(instream):
+def read_json(instream, logger):
     raw_input = instream.read()
+
+    # Empty input --- return empty json
+    if raw_input.strip() == "":
+        return {}
 
     try:
         json_data = json.loads(raw_input)
     except:
         json_data = None
+        logger.error("Error reading input: %s" % raw_input)
+        raise Exception("blabla")
+
     return json_data
 
 def get_logger():
@@ -25,7 +32,6 @@ def get_logger():
     logger = logging.getLogger('biggroumscript')
     return logger
 
-# ./tool.sh <filepath> <commit> <command>
 # python biggroumscript.sh <filepath> <commit> <command>
 def main(input_args,
          instream,
@@ -59,10 +65,11 @@ def main(input_args,
         if (cmd not in cmds_map):
             return_code = usage("%s is not a valid command" % cmd)
         else:
-            logger.info("Command: reaction")
+            logger.info("About to execute cmd: %s" % cmd)
 
             # TODO: set logging level and logging output stream
-            json_input = read_json(instream)
+            json_input = read_json(instream, logger)
+
             cmd_input = CmdInput(filepath, commit, cmd,
                                  json_input,outstream,
                                  logger)

@@ -7,6 +7,10 @@ import logging
 import os
 import json
 import copy
+import subprocess
+
+from fixrgraph.pipeline.pipeline import Pipeline
+
 
 from cStringIO import StringIO
 
@@ -28,8 +32,6 @@ class TestScript(unittest.TestCase):
     FILEPATH = os.path.join(os.path.dirname(__file__), "test_data")
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
-
-
 
     def test_validate(self):
         myinput = StringIO()
@@ -214,3 +216,48 @@ class TestResiude(unittest.TestCase):
         self.assertTrue(compare_json_obj(anomaly3,
                                          Residue.retrieve_anomaly(residue, "3")))
 
+
+class TestBash(unittest.TestCase):
+    SCRIPTPATH = "biggroumcheck.sh"
+
+    def test_bash(self):
+        previous = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        exec_file = os.path.join(previous, TestBash.SCRIPTPATH)
+
+        # Must fail, wrong command
+        args = [exec_file, TestScript.FILEPATH, TestScript.COMMIT, "nothing"]
+        self.assertFalse(Pipeline._call_sub(args, previous))
+
+        # Must succeed on the run command
+        script_input = {
+            "residue" : {},
+            "cwd" : "",
+            "cmd" : "",
+            "args" : "",
+            "classpath" : [],
+            "files" : ["file1.java", "file2.java"]
+        }
+        args = [exec_file, TestScript.FILEPATH, TestScript.COMMIT, "run"]
+        proc = subprocess.Popen(args, cwd=previous,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+
+        # Write the output
+        proc.stdin.write(json.dumps(script_input))
+        stdout, stderr = proc.communicate()
+        proc.wait()
+        proc.stdin.close()
+
+        return_code = proc.returncode
+
+        self.assertTrue(return_code == 0)
+
+        compare_json_obj(json.loads(stdout),
+                         {
+                             "toolNotes" : [],
+                             "residue" : {
+                                 "compilation_infos" : script_input
+                             }
+                         }
+        )

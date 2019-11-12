@@ -17,11 +17,10 @@ def get_none(json_data, field):
     else:
         return None
 
-def output_result(cmd_input, json_msg):
+def output_json(cmd_input, json_msg):
     json_str = json.dumps(json_msg)
     cmd_input.outstream.write(json_str)
     cmd_input.outstream.flush()
-
 
 class CmdInput:
     """
@@ -99,7 +98,7 @@ def run(cmd_input):
         "residue" : residue
     }
 
-    output_result(cmd_input, output)
+    output_json(cmd_input, output)
 
     return 0
 
@@ -167,7 +166,7 @@ def finalize(cmd_input):
         "residue" : residue
     }
 
-    output_result(cmd_input, output)
+    output_json(cmd_input, output)
 
     return 0
 
@@ -208,31 +207,31 @@ def talk(cmd_input):
         message_text_splitted = message_text.split()
 
     if (residue is None or message_text is None):
-        output_result(cmd_input, {})
+        output_json(cmd_input, {})
         return 1
     elif (len(message_text_splitted) < 1):
         # We don't know if we have to handle the message.
-        output_result(cmd_input, {})
+        output_json(cmd_input, {})
         return 0
     elif (message_text_splitted[0] == "biggroum"):
         if (len(message_text_splitted) != 2):
             # Not enough inputs
-            output_result(cmd_input, {})
+            output_json(cmd_input, {})
             return 1
         elif not (message_text_splitted[1] == "inspect" or
                   message_text_splitted[1] == "pattern"):
             # Wrong commands
-            output_result(cmd_input, {})
+            output_json(cmd_input, {})
             return 1
         elif note_id is None:
             # No note id
-            output_result(cmd_input, {})
+            output_json(cmd_input, {})
             return 1
         else:
             anomaly = Residue.retrieve_anomaly(residue, note_id)
 
             if anomaly is None:
-                output_result(cmd_input, {})
+                output_json(cmd_input, {})
                 return 1
             else:
                 # TODO: get the pattern or the fix from the stored anomaly
@@ -241,7 +240,7 @@ def talk(cmd_input):
                     "noteId" : note_id,
                     "toolNotes" : []
                 }
-                output_result(cmd_input, output)
+                output_json(cmd_input, output)
                 return 0
 
 def reaction(cmd_input):
