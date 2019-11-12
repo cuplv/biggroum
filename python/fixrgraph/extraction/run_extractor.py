@@ -462,7 +462,8 @@ class RepoProcessor:
                        classpath,
                        extractor_jar,
                        build_info,
-                       buildable_repos_path):
+                       buildable_repos_path,
+                       file_filter=None):
 
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
@@ -585,6 +586,13 @@ class RepoProcessor:
                     "-n", repo[0],
                     "-r", repo[1],
                     "-u", repo_url]
+
+            if file_filter is not None:
+                args.append("-q")
+                if isinstance(file_filter, str):
+                    args.append(file_filter)
+                elif isinstance(file_filter, list):
+                    args.append(":".join(file_filter))
 
             args.append("-p")
 
@@ -957,7 +965,7 @@ def main():
         repo_list = RepoProcessor.init_extraction(opts.indir,
                                                   opts.graphdir,
                                                   opts.provdir,
-                                                  app_list_file)
+                                                  opts.applist)
     except Exception as e:
         traceback.print_exc()
         sys.exit(1)
