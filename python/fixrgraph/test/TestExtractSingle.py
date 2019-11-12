@@ -1,8 +1,4 @@
-import random
 import shutil
-import logging
-import unittest
-import sys
 import os
 import tempfile
 from fixrgraph.extraction import extract_single
