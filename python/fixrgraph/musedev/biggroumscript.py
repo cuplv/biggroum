@@ -1,52 +1,12 @@
-""" Mock interface.
+""" Python script implementing the musedev API 3
 """
 
-import requests
+
 import json
 import sys
 import logging
-from residue import Residue
 
-class CmdInput:
-    def __init__(self, filepath, commit, cmd,
-                 json_input,
-                 outstream,
-                 logger):
-        self.filepath = filepath
-        self.commit = commit
-        self.cmd = cmd
-        self.json_input = json_input
-        self.outstream = outstream
-        self.logger = logger
-
-
-def get_mock_tool_notes():
-    def get_mock_tool_note():
-        tool_note = {
-            "bugType" : "Anomaly",
-            "message" : "",
-            "file" : "",
-            "line" : 1,
-            "column" : 1,
-            "function" : "",
-            "noteId" : "1"
-        }
-        return tool_note
-
-    tool_notes = [get_mock_tool_note() for i in range(10)]
-
-def get_none(json_data, field):
-    if not json_data is None:
-        if field in json_data:
-            return json_data[field]
-        else:
-            return None
-    else:
-        return None
-
-def get(json_data, field):
-    res = get_none(json_data, field)
-    return res if res is None else None
+from biggroumapi import CmdInput, biggroum_api_map
 
 """
 Read the json input from the inputstream
@@ -60,197 +20,47 @@ def read_json(instream):
         json_data = None
     return json_data
 
-def output_result(cmd_input, json_msg):
-    json_str = json.dumps(json_msg)
-    cmd_input.outstream.write(json_str)
-    cmd_input.outstream.flush()
-
-def applicable(cmd_input):
-    cmd_input.logger.info("Cmd: applicable")
-    cmd_input.outstream.write("true")
-    cmd_input.outstream.flush()
-    return 0
-
-def version(cmd_input):
-    cmd_input.logger.info("Command: version")
-    cmd_input.outstream.write("3")
-    cmd_input.outstream.flush()
-    return 0
-
-def run(cmd_input):
-    """ We just collect the compilation information.
-    Input:
-    {
-       cwd : Text,
-       cmd : Text,
-       args : [Text],
-       classpath : [Text]?,
-       files: [Text],
-       residue: <JSON value>?
-    }
-
-    Output:
-    {
-        toolNotes: [ToolNote],
-        residue: <JSON value>?,
-    }
-    """
-
-    cmd_input.logger.info("Command: run")
-
-    # TODO: validate input
-
-    residue = get_none(cmd_input.json_input, "residue")
-    compilation_info = {
-       "cwd" : get_none(cmd_input.json_input, "cwd"),
-       "cmd" : get_none(cmd_input.json_input, "cmd"),
-       "args" : get_none(cmd_input.json_input, "args"),
-       "classpath" : get_none(cmd_input.json_input, "classpath"),
-       "files" : get_none(cmd_input.json_input, "files"),
-    }
-    residue = Residue.append_compilation_info(residue,
-                                              compilation_info)
-
-    output = {
-        "toolNotes" : [],
-        "residue" : residue
-    }
-
-    output_result(cmd_input, output)
-
-    return 0
-
-def finalize(cmd_input):
-    """ Input:
-    {
-      residue: <JSON Value>,
-    }
-
-    Output
-    {
-      toolNotes: [ToolNote]?
-      summary : Text,
-      residue : <JSON Value>
-    }
-    """
-
-    cmd_input.logger.info("Command: finalize")
-
-    # TODO: validate input
-
-    residue = get(cmd_input.json_input, "residue")
-
-    # Example: loop throught the compilation info
-    for compilation_info in Residue.get_compilation_infos():
-        for filePath in Residue.get_files(compilation_info):
-            pass
-
-    # TODO: extract the graphs
-
-    # TODO: organize the data to call the search service
-
-    # TODO: call the web service
-    anomalies = None
-
-    # TODO: Convert the anomalies to toolNotes
-    tool_notes = []
-
-    # Inserts the anomalies in the residue
-    residue = Residue.store_anomalies(residues, anomalies)
-
-    # TODO: compile a summary
-    summary = ""
-
-    output = {
-        "toolNotes" : tool_notes,
-        "summary" : summary,
-        "residue" : residue
-    }
-
-    output_result(cmd_input, output)
-
-    return 0
-
-
-def talk(cmd_input):
-    """
-    Input:
-    {
-      residue: <JSON Value>,
-      messageText: Text,
-      user: Text,
-      noteID: Text?
-    }
-
-    Output
-    {
-      message: Text?,
-      noteId: Text?,
-      toolNotes: [ToolNote]?
-    }
-    """
-
-    # TODO: validate input
-
-    # TODO: process the message text
-
-    output = {
-        "message" : "Pattern or fix",
-        "noteId" : "1",
-        "toolNotes" : []
-    }
-    output_result(cmd_input, output)
-
-    return 0
-
-def reaction(cmd_input):
-    """
-    Input:
-    {
-        noteId: Text,
-        residue: <JSON value>
-        positiveCount: Int,
-        negativeCount: Int
-    }
-
-    Output:
-    Nothing
-    """
-    return 0
-
+def get_logger():
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    logger = logging.getLogger('biggroumscript')
+    return logger
 
 # ./tool.sh <filepath> <commit> <command>
 # python biggroumscript.sh <filepath> <commit> <command>
-def main(input_args, instream, outstream):
+def main(input_args,
+         instream,
+         outstream,
+         cmds_map,
+         logger = None):
+
+    if logger is None:
+        logger = get_logger()
+
+    logger.info("Calling main function with arguments: %s" % " ".join(input_args))
 
     def usage(msg=None):
         if (not msg is None):
+            logger.error(msg)
             sys.stderr.write(msg)
             sys.stderr.write("\n")
-        sys.stderr.write("Usage: python biggroumscript.sh <filepath> <commit> <command>\n")
+
+        usage = "Usage: python biggroumscript.sh <filepath> <commit> <command>\n"
+        sys.stderr.write(usage)
         sys.stderr.flush()
         return 1
 
     if (len(input_args) != 4):
-        return_code = usage()
+        return_code = usage("Wrong number of arguments")
     else:
         filepath = input_args[1]
         commit = input_args[2]
         cmd = input_args[3]
 
-        cmds_map = {
-            "applicable" : applicable,
-            "version" : version,
-            "run" : run,
-            "finalize" : finalize,
-            "talk" : talk,
-            "reaction" : reaction,
-        }
-
         if (cmd not in cmds_map):
             return_code = usage("%s is not a valid command" % cmd)
         else:
-            logger = logging.getLogger('biggroumscript')
+            logger.info("Command: reaction")
+
             # TODO: set logging level and logging output stream
             json_input = read_json(instream)
             cmd_input = CmdInput(filepath, commit, cmd,
@@ -258,9 +68,21 @@ def main(input_args, instream, outstream):
                                  logger)
             return_code = cmds_map[cmd](cmd_input)
 
+    logger.info("Main function returns: %d" % return_code)
+
     return return_code
 
 
 if __name__ == '__main__':
-    main(sys.argv, sys.stdin, sys.stdout)
+    logger = get_logger()
+    logger.info("Calling script with arguments: %s" % " ".join(sys.argv))
+
+    return_code = main(sys.argv,
+                       sys.stdin,
+                       sys.stdout,
+                       biggroum_api_map,
+                       get_logger())
+
+    logger.info("Terminating script execution with %d" % return_code)
+
     sys.exit(return_code)

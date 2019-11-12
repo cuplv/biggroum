@@ -15,6 +15,7 @@ except ImportError:
     import unittest
 
 from biggroumscript import main
+from biggroumapi import biggroum_api_map
 
 # Hold on on this
 # @contextmanager
@@ -41,8 +42,9 @@ class TestScript(unittest.TestCase):
                               TestScript.FILEPATH,
                               TestScript.COMMIT,
                               "applicable"],
-                              myinput,
-                              outstream) == 0)
+                             myinput,
+                             outstream,
+                             biggroum_api_map) == 0)
         self.assertTrue(outstream.getvalue() == "true")
 
     def test_version(self):
@@ -53,8 +55,9 @@ class TestScript(unittest.TestCase):
                               TestScript.FILEPATH,
                               TestScript.COMMIT,
                               "version"],
-                              myinput,
-                              outstream) == 0)
+                             myinput,
+                             outstream,
+                             biggroum_api_map) == 0)
         self.assertTrue(outstream.getvalue() == "3")
 
 
@@ -77,7 +80,7 @@ class TestScript(unittest.TestCase):
 
             self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH,
                                   TestScript.COMMIT, "run"],
-                                 myinput, outstream) == 0)
+                                 myinput, outstream, biggroum_api_map) == 0)
 
             try:
                 residue_json = outstream.getvalue()
@@ -107,16 +110,18 @@ class TestScript(unittest.TestCase):
     #     myinput, outstream = StringIO(), StringIO()
     #     myinput.write(json.dumps({}))
 
-    #     self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream) == 0)
+    #     self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
 
     def test_talk(self):
         myinput, outstream = StringIO(), StringIO()
         myinput.write(json.dumps({}))
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "talk"], myinput, outstream) == 0)
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "talk"], myinput, outstream,
+                             biggroum_api_map) == 0)
 
     def test_reaction(self):
         myinput, outstream = StringIO(), StringIO()
         myinput.write(json.dumps({}))
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "reaction"], myinput, outstream) == 0)
+        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "reaction"], myinput, outstream,
+                             biggroum_api_map) == 0)
