@@ -24,6 +24,10 @@ shift
 #   - the URL to the biggroum search service (must be passed to the biggroumscript somehow, e.g., as a new input parameter)
 #   - the path to the graph extractor
 #
+if [[ ! -f /opt/setup_complete ]]
+then
+	source /opt/setup_docker.sh
+fi
 
 
 
