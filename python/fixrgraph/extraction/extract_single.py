@@ -38,7 +38,7 @@ class BuildInfoClassList:
     def __init__(self, classes, jars):
         self.classes = classes
         self.jars = jars
-def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None):
+def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None, logger=None):
 
     build_info = BuildInfoClassList(find_class_files(path), [])
 
@@ -46,7 +46,7 @@ def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None):
     prov_dir_path = os.path.join(out_dir, "repo_prov_dir")
     run_extractor.RepoProcessor.extract_static(
         repo = repo,
-        log=None, # TODO: retain log somewhere?
+        log=logger,
         in_dir=None, #TODO: this doesn't seem to do anything
         android_home=os.environ['ANDROID_HOME'],
         graph_dir=graph_dir_path,

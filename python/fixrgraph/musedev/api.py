@@ -12,14 +12,7 @@ import shutil
 import sys
 import subprocess
 
-def run_cmd(cmd):
-    proc = subprocess.Popen(cmd,
-                            stdout = subprocess.PIPE,
-                            stderr = subprocess.PIPE,
-                            )
-    stdout, stderr = proc.communicate()
 
-    return proc.returncode, stdout, stderr
 
 
 
@@ -146,30 +139,20 @@ def finalize(cmd_input):
             if filePath.endswith(".java"):
                 javafiles.append(filePath)
 
-    # TODO: extract the graphs
+    # extract the graphs
     extractor_jar = os.getenv("GRAPHEXTRACTOR")
     try:
         graphdir = tempfile.mkdtemp(".groum_test_extract_single")
-        #TODO: Calling the graph extractor via popen is used to supress stdout, is there a better way to do this?
 
-        code, out, err = run_cmd([sys.executable, '../extraction/extract_single.py', '--app_directory', cmd_input.filepath,
-                              '--graphdir', graphdir,
-                              '--extractorjar',extractor_jar,
-                              '--organization', "unknown", # TODO: extract org from residue?
-                              '--app_name', "unknown", # TODO: extract app name from residue?
-                              '--hash', cmd_input.commit,
-                              '--filter', ":".join(javafiles)])
-        cmd_input.logger.info("Graph Extractor stdout:\n %s" % out)
-        cmd_input.logger.info("Graph Extractor stderr:\n %s" % err)
-
-        ## To call directly, uncomment the following lines
-        # extract_single.extract_single_class_dir(repo = ["unkown","unknown",cmd_input.commit],
-        #                                         out_dir=graphdir,
-        #                                         extractor_jar=extractor_jar,
-        #                                         path=cmd_input.filepath,
-        #                                         filter=javafiles)
-        print("todo")
-        # extract_single
+        # To call directly, uncomment the following lines
+        #TODO: get github org and repo name
+        extract_single.extract_single_class_dir(repo = ["unkown","unknown",cmd_input.commit],
+                                                out_dir=graphdir,
+                                                extractor_jar=extractor_jar,
+                                                path=cmd_input.filepath,
+                                                filter=javafiles,
+                                                logger=cmd_input.logger)
+        raise Exception("Unimplemented, exception will be removed when implementation completed.")
 
         # TODO: organize the data to call the search service (call wireprotocol compress here)
 
