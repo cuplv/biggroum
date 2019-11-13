@@ -16,7 +16,7 @@ shift
 shift
 shift
 
-# TODO: perform initalization tasks
+# perform initalization tasks
 # - download the fixrgraph python package
 # - set the PYTHONPATH directory
 # - download the graph extractor
