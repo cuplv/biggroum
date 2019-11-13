@@ -7,3 +7,4 @@ git clone https://github.com/cuplv/biggroum.git
 cd biggroum && git checkout musedev_hackaton && git pull
 PYTHONPATH="${PYTHONPATH}:/opt/biggroum/python"
 GRAPHEXTRACTOR="/opt/fixrgraphextractor_2.12-0.1.0-one-jar.jar"
+touch /opt/setup_complete
