@@ -42,8 +42,8 @@ def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None, lo
 
     build_info = BuildInfoClassList(find_class_files(path), [])
 
-    graph_dir_path = os.path.join(out_dir, "repo_graph_dir")
-    prov_dir_path = os.path.join(out_dir, "repo_prov_dir")
+    graph_dir_path = os.path.join(out_dir, "graphs")
+    prov_dir_path = os.path.join(out_dir, "provenance")
     run_extractor.RepoProcessor.extract_static(
         repo = repo,
         log=logger,

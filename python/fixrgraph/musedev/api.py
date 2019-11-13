@@ -6,6 +6,7 @@ import logging
 import json
 import requests
 import fixrgraph.extraction.extract_single as extract_single
+import fixrgraph.wireprotocol.search_service_wire_protocol as wp
 import os
 import tempfile
 import shutil
@@ -152,13 +153,28 @@ def finalize(cmd_input):
                                                 path=cmd_input.filepath,
                                                 filter=javafiles,
                                                 logger=cmd_input.logger)
-        raise Exception("Unimplemented, exception will be removed when implementation completed.")
 
-        # TODO: organize the data to call the search service (call wireprotocol compress here)
+        # Organize the data to call the search service (call wireprotocol compress here)
+        #copy source files to directory to zip
+        sourcesdir = os.path.join(graphdir, "sources")
+        os.mkdir(sourcesdir)
+        for f in javafiles:
+            shutil.copyfile(f,os.path.join(sourcesdir,f.split(os.sep)[-1]))
+
+
+        # compress files to send
+        zipfiles = ["graphs","sources"]
+        for zipfile in zipfiles:
+            graphs_zip_tempfile = os.path.join(graphdir, "%s.zip" %zipfile)
+            wp.compress(os.path.join(graphdir,zipfile), graphs_zip_tempfile)
+
+
+
 
         # TODO: call the web service
         anomalies = None
 
+        raise Exception("Unimplemented, exception will be removed when implementation completed.")
     finally:
         shutil.rmtree(graphdir)
 

@@ -8,7 +8,7 @@ def write_log(log, repo, msg, level="error"):
     log_msg = "%s: %s" % (str(repo), msg)
     if (log != None):
         if level == "error":
-            log.add_error(log_msg)
+            log.error(log_msg)
         if level == "debug":
             log.debug(log_msg)
         if level == "info":

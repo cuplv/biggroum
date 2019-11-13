@@ -27,9 +27,13 @@ from fixrgraph.musedev.residue import Residue
 def compare_json_obj(obj1, obj2):
     return json.dumps(obj1, sort_keys=True) == json.dumps(obj2, sort_keys=True)
 
+def get_logger():
+    logging.basicConfig(stream=sys.stderr, level=logging.ALL)
+    logger = logging.getLogger('biggroumscript')
+    return logger
 
 class TestScript(unittest.TestCase):
-    FILEPATH = os.path.join(os.path.dirname(__file__), "test_data")
+    FILEPATH = os.path.join(os.path.dirname(__file__), "data")
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
 
@@ -101,11 +105,28 @@ class TestScript(unittest.TestCase):
         self.assertTrue(compare_json_obj(residue, expected_res))
 
     def test_finalize(self):
+        os.environ["GRAPHEXTRACTOR"] = os.sep.join([os.path.dirname(__file__),
+                                                    "..","..","..","..","FixrGraphExtractor",
+                                                    "target","scala-2.12","fixrgraphextractor_2.12-0.1.0-one-jar.jar"])
         myinput, outstream = StringIO(), StringIO()
-        myinput.write(json.dumps({}))
+        main_act_path = os.path.join(os.path.dirname(__file__),
+                                     "data/AwesomeApp/app/src/main/java/fixr/plv"
+                                     "/colorado/edu/awesomeapp/MainActivity.java")
+        input_res = {
+            "residue": {
+                "compilation_infos" : [{"cwd" : "", "cmd" : "", "args" : "",
+                                        "classpath" : [],
+                                        "files": [main_act_path]}
+                                       ]},
+            "toolNotes": []
+        }
+        myinput.write(json.dumps(input_res))
         myinput.reset()
-
         # TODO: add test when implementation is done
+
+        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH,
+                              TestScript.COMMIT, "finalize"],
+                             myinput, outstream, biggroum_api_map) == 0,get_logger())
         # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
 
     def test_talk(self):
