@@ -34,13 +34,13 @@ def find_rt_jar():
         raise Exception("java runtime 'rt.jar' file not found")
     return rtjar_file
 
-class BuildInfoSimple:
+class BuildInfoClassList:
     def __init__(self, classes, jars):
         self.classes = classes
         self.jars = jars
 def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None):
 
-    build_info = BuildInfoSimple(find_class_files(path), [])
+    build_info = BuildInfoClassList(find_class_files(path), [])
 
     graph_dir_path = os.path.join(out_dir, "repo_graph_dir")
     prov_dir_path = os.path.join(out_dir, "repo_prov_dir")

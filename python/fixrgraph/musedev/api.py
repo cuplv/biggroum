@@ -5,6 +5,23 @@
 import logging
 import json
 import requests
+import fixrgraph.extraction.extract_single as extract_single
+import os
+import tempfile
+import shutil
+import sys
+import subprocess
+
+def run_cmd(cmd):
+    proc = subprocess.Popen(cmd,
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.PIPE,
+                            )
+    stdout, stderr = proc.communicate()
+
+    return proc.returncode, stdout, stderr
+
+
 
 from fixrgraph.musedev.residue import Residue
 
@@ -123,16 +140,44 @@ def finalize(cmd_input):
     residue = get_none(cmd_input.json_input, "residue")
 
     # Example: loop through the compilation info
+    javafiles = []
     for compilation_info in Residue.get_compilation_infos(residue):
         for filePath in Residue.get_files(compilation_info):
-            pass
+            if filePath.endswith(".java"):
+                javafiles.append(filePath)
 
     # TODO: extract the graphs
+    extractor_jar = os.getenv("GRAPHEXTRACTOR")
+    try:
+        graphdir = tempfile.mkdtemp(".groum_test_extract_single")
+        #TODO: Calling the graph extractor via popen is used to supress stdout, is there a better way to do this?
 
-    # TODO: organize the data to call the search service
+        code, out, err = run_cmd([sys.executable, '../extraction/extract_single.py', '--app_directory', cmd_input.filepath,
+                              '--graphdir', graphdir,
+                              '--extractorjar',extractor_jar,
+                              '--organization', "unknown", # TODO: extract org from residue?
+                              '--app_name', "unknown", # TODO: extract app name from residue?
+                              '--hash', cmd_input.commit,
+                              '--filter', ":".join(javafiles)])
+        cmd_input.logger.info("Graph Extractor stdout:\n %s" % out)
+        cmd_input.logger.info("Graph Extractor stderr:\n %s" % err)
 
-    # TODO: call the web service
-    anomalies = None
+        ## To call directly, uncomment the following lines
+        # extract_single.extract_single_class_dir(repo = ["unkown","unknown",cmd_input.commit],
+        #                                         out_dir=graphdir,
+        #                                         extractor_jar=extractor_jar,
+        #                                         path=cmd_input.filepath,
+        #                                         filter=javafiles)
+        print("todo")
+        # extract_single
+
+        # TODO: organize the data to call the search service (call wireprotocol compress here)
+
+        # TODO: call the web service
+        anomalies = None
+
+    finally:
+        shutil.rmtree(graphdir)
 
     # TODO: Convert the anomalies to toolNotes
     tool_notes = []
