@@ -163,15 +163,20 @@ def finalize(cmd_input):
 
 
         # compress files to send
-        zipfiles = ["graphs","sources"]
+        zipfiles = {"graphs":None,"sources":None}
         for zipfile in zipfiles:
             graphs_zip_tempfile = os.path.join(graphdir, "%s.zip" %zipfile)
+            zipfiles[zipfile] = graphs_zip_tempfile
             wp.compress(os.path.join(graphdir,zipfile), graphs_zip_tempfile)
 
 
 
 
-        # TODO: call the web service
+        # call the web service
+
+        req_result = wp.send_zips(zipfiles["graphs"],zipfiles["sources"])
+
+        # TODO: extract anomalies from response
         anomalies = None
 
         raise Exception("Unimplemented, exception will be removed when implementation completed.")

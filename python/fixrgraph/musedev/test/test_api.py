@@ -108,6 +108,8 @@ class TestScript(unittest.TestCase):
         os.environ["GRAPHEXTRACTOR"] = os.sep.join([os.path.dirname(__file__),
                                                     "..","..","..","..","FixrGraphExtractor",
                                                     "target","scala-2.12","fixrgraphextractor_2.12-0.1.0-one-jar.jar"])
+        # TODO: mock end point for unit test?
+        os.environ["FIXR_ENDPOINT"] = "http://localhost:8081/process_muse_data"
         myinput, outstream = StringIO(), StringIO()
         main_act_path = os.path.join(os.path.dirname(__file__),
                                      "data/AwesomeApp/app/src/main/java/fixr/plv"
