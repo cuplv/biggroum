@@ -15,6 +15,9 @@ cmd=$3
 shift
 shift
 shift
+echo "dir: ${dir}"
+echo "commit: ${commit}"
+echo "cmd: ${cmd}"
 
 
 # perform initalization tasks
@@ -34,7 +37,5 @@ fi
 
 # Call the script invoking biggroum
 cd "$( dirname "${BASH_SOURCE[0]}")"
-echo "============================="
-echo ${PWD}
 python biggroumscript.py "${dir}" "${commit}" "${cmd}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
 exit $?
