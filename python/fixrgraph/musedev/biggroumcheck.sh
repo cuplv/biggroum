@@ -16,6 +16,7 @@ shift
 shift
 shift
 
+
 # perform initalization tasks
 # - download the fixrgraph python package
 # - set the PYTHONPATH directory
@@ -32,5 +33,8 @@ fi
 
 
 # Call the script invoking biggroum
+cd "$( dirname "${BASH_SOURCE[0]}")"
+echo "============================="
+echo ${PWD}
 python biggroumscript.py "${dir}" "${commit}" "${cmd}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
 exit $?
