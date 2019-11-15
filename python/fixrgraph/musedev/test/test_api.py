@@ -9,6 +9,7 @@ import json
 import copy
 import subprocess
 
+from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.pipeline.pipeline import Pipeline
 
 
@@ -23,12 +24,16 @@ from fixrgraph.musedev.biggroumscript import main
 from fixrgraph.musedev.api import biggroum_api_map
 from fixrgraph.musedev.residue import Residue
 
+# anomalies for testing
+anomaly1 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onCreate","id":1}')
+anomaly2 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onResume","id":2}')
+anomaly3 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onPause","id":3}')
 
 def compare_json_obj(obj1, obj2):
     return json.dumps(obj1, sort_keys=True) == json.dumps(obj2, sort_keys=True)
 
 def get_logger():
-    logging.basicConfig(stream=sys.stderr, level=logging.ALL)
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
     logger = logging.getLogger('biggroumscript')
     return logger
 
@@ -155,8 +160,8 @@ class TestScript(unittest.TestCase):
 
         residue = {
             "anomalies" : {
-                "1" : {},
-                "2" : {}
+                "1" : anomaly1.as_json(),
+                "2" : anomaly2.as_json()
             }
         }
 
@@ -221,23 +226,16 @@ class TestResiude(unittest.TestCase):
 
 
     def test_anomaly(self):
-        # TODO: replace with a real anomaly
-        anomaly1 = {}
-        anomaly2 = {}
-        anomaly3 = {}
 
         residue = Residue.store_anomaly(None, anomaly1, "1")
-        self.assertTrue(compare_json_obj(residue, {"anomalies" : {"1" : anomaly1}}))
+        self.assertTrue(compare_json_obj(residue, {"anomalies" : {"1" : anomaly1.as_json()}}))
 
         residue = Residue.store_anomaly(residue, anomaly2, "2")
         residue = Residue.store_anomaly(residue, anomaly3, "3")
 
-        self.assertTrue(compare_json_obj(anomaly1,
-                                         Residue.retrieve_anomaly(residue, "1")))
-        self.assertTrue(compare_json_obj(anomaly2,
-                                         Residue.retrieve_anomaly(residue, "2")))
-        self.assertTrue(compare_json_obj(anomaly3,
-                                         Residue.retrieve_anomaly(residue, "3")))
+        self.assertTrue(anomaly1 == Residue.retrieve_anomaly(residue, "1"))
+        self.assertTrue(anomaly2 == Residue.retrieve_anomaly(residue, "2"))
+        self.assertTrue(anomaly3 == Residue.retrieve_anomaly(residue, "3"))
 
 
 class TestBash(unittest.TestCase):

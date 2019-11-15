@@ -21,6 +21,8 @@ compilation_info is
 An anomaly is --- [TODO]
 
 """
+from fixrgraph.musedev.anomaly import Anomaly
+
 
 class Residue:
     @staticmethod
@@ -47,7 +49,7 @@ class Residue:
     def store_anomaly(residue, anomaly, note_id):
         if residue is None: residue = {}
         if not "anomalies" in residue: residue["anomalies"] = {}
-        residue["anomalies"][note_id] = anomaly
+        residue["anomalies"][note_id] = anomaly.as_json()
         return residue
 
     @staticmethod
@@ -59,5 +61,5 @@ class Residue:
         elif not note_id in residue["anomalies"]:
             return None
         else:
-            return residue["anomalies"][note_id]
+            return Anomaly(residue["anomalies"][note_id])
 

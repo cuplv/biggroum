@@ -13,10 +13,7 @@ import shutil
 import sys
 import subprocess
 
-
-
-
-
+from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.residue import Residue
 
 def get_none(json_data, field):
@@ -176,10 +173,15 @@ def finalize(cmd_input):
 
         req_result = wp.send_zips(zipfiles["graphs"],zipfiles["sources"])
 
-        # TODO: extract anomalies from response
-        anomalies = None
+        #TODO: debug response script with phillip, this is hardcoded to finish dev work
+        response_data = ""
+        with open(os.path.dirname(__file__) + "/test/data/test_response.json",'r') as testfile:
+            response_data = "".join(testfile.readlines())
 
-        raise Exception("Unimplemented, exception will be removed when implementation completed.")
+
+        # extract anomalies from response
+        anomalies = Anomaly.get_anomaly_list(response_data)
+
     finally:
         shutil.rmtree(graphdir)
 
@@ -187,20 +189,20 @@ def finalize(cmd_input):
     tool_notes = []
     for anomaly in anomalies:
         # Example of tool note
-        # tool_note = {
-        #     "bugType" : "Anomaly",
-        #     "message" : "",
-        #     "file" : "",
-        #     "line" : 1,
-        #     "column" : 1,
-        #     "function" : "",
-        #     "noteId" : "1"
-        # }
+        tool_note = {
+            "bugType" : "Anomaly",
+            "message" : anomaly.message,
+            "file" : anomaly.file,
+            "line" : anomaly.line,
+            "column" : anomaly.column,
+            "function" : anomaly.function,
+            "noteId" : anomaly.numeric_id
+        }
         #
+        # TODO: unit tests treated anomaly like a dictionary from parsed json, but it appears to be a class here
+        # Note: I made it a class, if we want to make it a dictionary it is an easy change
         # WARNING: noteId must be set to anomaly.numeric_id here!
-        # tool_note = TODO
-        # tool_notes.append()
-        pass
+        tool_notes.append(tool_note)
 
     # Inserts the anomalies in the residue
     for anomaly in anomalies:
