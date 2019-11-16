@@ -18,25 +18,6 @@ def find_class_files(base_dir):
     #TODO: this logic will probably fail on some repos but works for simple things
     return all_class_files
 
-def isGeneratedFile(file_path):
-    if "app/build/generated/" in file_path:
-        return True
-    fname = file_path.split(os.path.sep)[-1] 
-    if fname == "R.java":
-        return True
-    if fname == "BuildConfig.java":
-        return True
-
-def find_rt_jar():
-    for rtloc in ["jre/lib/rt.jar", "/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar"]:
-        rtjar_file = os.path.join(os.environ['JAVA_HOME'],rtloc)
-        print(rtjar_file)
-        if os.path.exists(rtjar_file):
-            break
-    if rtjar_file is None:
-        raise Exception("java runtime 'rt.jar' file not found")
-    return rtjar_file
-
 class BuildInfoClassList:
     def __init__(self, classes, jars):
         self.classes = classes
