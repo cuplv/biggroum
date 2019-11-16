@@ -6,7 +6,11 @@ import json
 import sys
 import logging
 
-from fixrgraph.musedev.api import CmdInput, biggroum_api_map
+from fixrgraph.musedev.api import (
+    GRAPH_EXTRACTOR_PATH,
+    FIXR_SEARCH_ENDPOINT,
+    CmdInput, biggroum_api_map
+)
 
 """
 Read the json input from the inputstream
@@ -32,7 +36,6 @@ def get_logger():
     logger = logging.getLogger('biggroumscript')
     return logger
 
-# python biggroumscript.sh <filepath> <commit> <command>
 def main(input_args,
          instream,
          outstream,
@@ -50,29 +53,36 @@ def main(input_args,
             sys.stderr.write(msg)
             sys.stderr.write("\n")
 
-        usage = "Usage: python biggroumscript.sh <filepath> <commit> <command>\n"
+        # python biggroumscript.sh <filepath> <commit> <command>
+        #                          <graph_extractor_jar> <fixr_search_address>
+        usage = "Usage: python biggroumscript.sh <filepath> <commit> <command>" \
+                "<graph_extractor_jar> <fixr_search_address>\n"
         sys.stderr.write(usage)
         sys.stderr.flush()
         return 1
 
-    if (len(input_args) != 4):
+    if (len(input_args) != 6):
         return_code = usage("Wrong number of arguments")
     else:
         filepath = input_args[1]
         commit = input_args[2]
         cmd = input_args[3]
+        graph_extractor_jar = input_args[4]
+        fixr_search_endpoint = input_args[5]
 
         if (cmd not in cmds_map):
             return_code = usage("%s is not a valid command" % cmd)
         else:
             logger.info("About to execute cmd: %s" % cmd)
-
-            # TODO: set logging level and logging output stream
             json_input = read_json(instream, logger)
 
             cmd_input = CmdInput(filepath, commit, cmd,
                                  json_input,outstream,
-                                 logger)
+                                 logger,
+                                 options = {
+                                     GRAPH_EXTRACTOR_PATH : graph_extractor_jar,
+                                     FIXR_SEARCH_ENDPOINT : fixr_search_endpoint,
+                                 })
             return_code = cmds_map[cmd](cmd_input)
 
     logger.info("Main function returns: %d" % return_code)

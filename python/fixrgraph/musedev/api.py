@@ -16,6 +16,10 @@ import subprocess
 from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.residue import Residue
 
+
+GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
+FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
+
 def get_none(json_data, field):
     if not json_data is None:
         if field in json_data:
@@ -34,16 +38,16 @@ class CmdInput:
     """
     Input of the main API script
     """
-    def __init__(self, filepath, commit, cmd,
-                 json_input,
-                 outstream,
-                 logger):
+    def __init__(self, filepath, commit,
+                 cmd, json_input, outstream,
+                 logger, options):
         self.filepath = filepath
         self.commit = commit
         self.cmd = cmd
         self.json_input = json_input
         self.outstream = outstream
         self.logger = logger
+        self.options = options
 
 def applicable(cmd_input):
     """ For now the API always
@@ -130,6 +134,14 @@ def finalize(cmd_input):
 
     residue = get_none(cmd_input.json_input, "residue")
 
+    extractor_jar_path = cmd_input.options[GRAPH_EXTRACTOR_PATH]
+    if (not os.path.isfile(extractor_jar_path)):
+        cmd_input.logger.error("Cannot find the graph extractor " +
+                               "jar: %s" % extractor_jar_path)
+        return 1
+
+    search_endpoint = cmd_input.options[FIXR_SEARCH_ENDPOINT]
+
     # Example: loop through the compilation info
     javafiles = []
     for compilation_info in Residue.get_compilation_infos(residue):
@@ -138,26 +150,25 @@ def finalize(cmd_input):
                 javafiles.append(filePath)
 
     # extract the graphs
-    extractor_jar = os.getenv("GRAPHEXTRACTOR")
     try:
         graphdir = tempfile.mkdtemp(".groum_test_extract_single")
 
         # To call directly, uncomment the following lines
         #TODO: get github org and repo name
-        extract_single.extract_single_class_dir(["unkown","unknown",cmd_input.commit],
+        extract_single.extract_single_class_dir(["unkown","unknown",
+                                                 cmd_input.commit],
                                                 graphdir,
-                                                extractor_jar,
+                                                extractor_jar_path,
                                                 cmd_input.filepath,
                                                 javafiles,
                                                 None)
 
-        # Organize the data to call the search service (call wireprotocol compress here)
-        #copy source files to directory to zip
+        # Organize the data to call the search service
+        # Copy source files to directory to zip
         sourcesdir = os.path.join(graphdir, "sources")
         os.mkdir(sourcesdir)
         for f in javafiles:
             shutil.copyfile(f,os.path.join(sourcesdir,f.split(os.sep)[-1]))
-
 
         # compress files to send
         zipfiles = {"graphs":None,"sources":None}
@@ -166,58 +177,56 @@ def finalize(cmd_input):
             zipfiles[zipfile] = graphs_zip_tempfile
             wp.compress(os.path.join(graphdir,zipfile), graphs_zip_tempfile)
 
-
-
-
         # call the web service
-
-        req_result = wp.send_zips(zipfiles["graphs"],zipfiles["sources"])
+        req_result = wp.send_zips(search_endpoint,
+                                  zipfiles["graphs"],zipfiles["sources"])
 
         #TODO: debug response script with phillip, this is hardcoded to finish dev work
         response_data = ""
         with open(os.path.dirname(__file__) + "/test/data/test_response.json",'r') as testfile:
             response_data = "".join(testfile.readlines())
 
-
         # extract anomalies from response
         anomalies = Anomaly.get_anomaly_list(response_data)
 
-    finally:
-        shutil.rmtree(graphdir)
-
-    # TODO: Convert the anomalies to toolNotes
-    tool_notes = []
-    for anomaly in anomalies:
-        # Example of tool note
-        tool_note = {
-            "bugType" : "Anomaly",
-            "message" : anomaly.message,
-            "file" : anomaly.file,
-            "line" : anomaly.line,
-            "column" : anomaly.column,
-            "function" : anomaly.function,
-            "noteId" : anomaly.numeric_id
-        }
+        # TODO: Convert the anomalies to toolNotes
+        tool_notes = []
+        for anomaly in anomalies:
+            # Example of tool note
+            tool_note = {
+                "bugType" : "Anomaly",
+                "message" : anomaly.message,
+                "file" : anomaly.file,
+                "line" : anomaly.line,
+                "column" : anomaly.column,
+                "function" : anomaly.function,
+                "noteId" : anomaly.numeric_id
+            }
         #
         # TODO: unit tests treated anomaly like a dictionary from parsed json, but it appears to be a class here
         # Note: I made it a class, if we want to make it a dictionary it is an easy change
         # WARNING: noteId must be set to anomaly.numeric_id here!
         tool_notes.append(tool_note)
 
-    # Inserts the anomalies in the residue
-    for anomaly in anomalies:
-        residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
+        # Inserts the anomalies in the residue
+        for anomaly in anomalies:
+            residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
 
-    # TODO: compile a summary
-    summary = ""
+        # TODO: compile a summary
+        summary = ""
 
-    output = {
-        "toolNotes" : tool_notes,
-        "summary" : summary,
-        "residue" : residue
-    }
+        output = {
+            "toolNotes" : tool_notes,
+            "summary" : summary,
+            "residue" : residue
+        }
 
-    output_json(cmd_input, output)
+        output_json(cmd_input, output)
+    except Exception as e:
+        cmd_input.logger.error(str(e))
+        return 1
+    finally:
+        shutil.rmtree(graphdir)
 
     return 0
 

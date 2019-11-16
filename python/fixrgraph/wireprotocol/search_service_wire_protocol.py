@@ -26,8 +26,7 @@ def decompress(zip_file, unzip_path):
     with ZipFile(zip_file) as z:
         z.extractall(unzip_path)
 
-def send_zips(graphs_path, sources_path):
-    endpoint = os.getenv("FIXR_ENDPOINT")
+def send_zips(endpoint, graphs_path, sources_path):
     with open(graphs_path,'rb') as graphs_file:
         with open(sources_path,'rb') as sources_file:
             r = requests.post(endpoint, files={'src':sources_file,'graph':graphs_file})

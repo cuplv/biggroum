@@ -8,11 +8,6 @@ import os
 import json
 import copy
 import subprocess
-
-from fixrgraph.musedev.anomaly import Anomaly
-from fixrgraph.pipeline.pipeline import Pipeline
-
-
 from cStringIO import StringIO
 
 try:
@@ -20,9 +15,14 @@ try:
 except ImportError:
     import unittest
 
+from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.biggroumscript import main
-from fixrgraph.musedev.api import biggroum_api_map
+from fixrgraph.musedev.api import (
+    biggroum_api_map,
+    GRAPH_EXTRACTOR_PATH, FIXR_SEARCH_ENDPOINT
+)
 from fixrgraph.musedev.residue import Residue
+import fixrgraph.musedev.test
 
 # anomalies for testing
 anomaly1 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onCreate","id":1}')
@@ -37,18 +37,38 @@ def get_logger():
     logger = logging.getLogger('biggroumscript')
     return logger
 
+def get_extractor_path():
+    # TODO: refactor with TestPipeline (move all tests together)
+    repo_path = os.path.abspath(os.path.dirname(fixrgraph.musedev.test.__file__))
+    repo_path = os.path.join(repo_path, os.pardir)
+    repo_path = os.path.join(repo_path, os.pardir)
+    repo_path = os.path.join(repo_path, os.pardir)
+    repo_path = os.path.join(repo_path, os.pardir)
+    repo_path = os.path.abspath(repo_path)
+    extractor_path = os.path.join(repo_path,
+                                  "FixrGraphExtractor/target/scala-2.12/" \
+                                  "fixrgraphextractor_2.12-0.1.0-one-jar.jar")
+    return extractor_path
+
 class TestScript(unittest.TestCase):
     FILEPATH = os.path.join(os.path.dirname(__file__), "data")
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
 
-    def test_validate(self):
+    @staticmethod
+    def get_args(cmd):
+        return ["biggroumscript.py",
+                TestScript.FILEPATH,
+                TestScript.COMMIT,
+                cmd,
+                get_extractor_path(),
+                "http://localhost:8081/process_muse_data"
+        ]
+
+    def test_applicable(self):
         myinput = StringIO()
         outstream = StringIO()
-        self.assertTrue(main(["biggroumscript.py",
-                              TestScript.FILEPATH,
-                              TestScript.COMMIT,
-                              "applicable"],
+        self.assertTrue(main(TestScript.get_args("applicable"),
                              myinput,
                              outstream,
                              biggroum_api_map) == 0)
@@ -58,10 +78,7 @@ class TestScript(unittest.TestCase):
         myinput = StringIO()
         outstream = StringIO()
 
-        self.assertTrue(main(["biggroumscript.py",
-                              TestScript.FILEPATH,
-                              TestScript.COMMIT,
-                              "version"],
+        self.assertTrue(main(TestScript.get_args("version"),
                              myinput,
                              outstream,
                              biggroum_api_map) == 0)
@@ -85,8 +102,7 @@ class TestScript(unittest.TestCase):
             myinput.write(json.dumps(run))
             myinput.reset()
 
-            self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH,
-                                  TestScript.COMMIT, "run"],
+            self.assertTrue(main(TestScript.get_args("run"),
                                  myinput, outstream, biggroum_api_map) == 0)
 
             try:
@@ -110,11 +126,6 @@ class TestScript(unittest.TestCase):
         self.assertTrue(compare_json_obj(residue, expected_res))
 
     def test_finalize(self):
-        os.environ["GRAPHEXTRACTOR"] = os.sep.join([os.path.dirname(__file__),
-                                                    "..","..","..","..","FixrGraphExtractor",
-                                                    "target","scala-2.12","fixrgraphextractor_2.12-0.1.0-one-jar.jar"])
-        # TODO: mock end point for unit test?
-        os.environ["FIXR_ENDPOINT"] = "http://localhost:8081/process_muse_data"
         myinput, outstream = StringIO(), StringIO()
         main_act_path = os.path.join(os.path.dirname(__file__),
                                      "data/AwesomeApp/app/src/main/java/fixr/plv"
@@ -131,8 +142,7 @@ class TestScript(unittest.TestCase):
         myinput.reset()
         # TODO: add test when implementation is done
 
-        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH,
-                              TestScript.COMMIT, "finalize"],
+        self.assertTrue(main(TestScript.get_args("finalize"),
                              myinput, outstream, biggroum_api_map) == 0,get_logger())
         # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
 
@@ -155,7 +165,7 @@ class TestScript(unittest.TestCase):
             myinput, outstream = StringIO(), StringIO()
             myinput.write(json.dumps(single_input))
             myinput.reset()
-            self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+            self.assertTrue(main(TestScript.get_args("talk"),
                                  myinput, outstream, biggroum_api_map) != 0)
 
         residue = {
@@ -170,7 +180,7 @@ class TestScript(unittest.TestCase):
                                   "messageText" : "biggroum inspect",
                                   "user" : "", "noteID" : u'1'},))
         myinput.reset()
-        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+        self.assertTrue(main(TestScript.get_args("talk"),
                              myinput, outstream, biggroum_api_map) == 0)
 
         myinput, outstream = StringIO(), StringIO()
@@ -178,7 +188,7 @@ class TestScript(unittest.TestCase):
                                   "messageText" : "biggroum pattern",
                                   "user" : "", "noteID" : "1"},))
         myinput.reset()
-        self.assertTrue(main(["biggroumscript.py", TestScript.FILEPATH, TestScript.COMMIT, "talk"],
+        self.assertTrue(main(TestScript.get_args("talk"),
                              myinput, outstream, biggroum_api_map) == 0)
 
 
@@ -189,7 +199,7 @@ class TestScript(unittest.TestCase):
         myinput.write(json.dumps({}))
         myinput.reset()
 
-        self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "reaction"], myinput, outstream,
+        self.assertTrue(main(TestScript.get_args("reaction"), myinput, outstream,
                              biggroum_api_map) == 0)
 
 
@@ -245,9 +255,20 @@ class TestBash(unittest.TestCase):
         previous = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         exec_file = os.path.join(previous, TestBash.SCRIPTPATH)
 
+        my_env = os.environ.copy()
+        my_env[GRAPH_EXTRACTOR_PATH] = get_extractor_path()
+        my_env[FIXR_SEARCH_ENDPOINT] = "http://localhost:8081/process_muse_data"
+        my_env["ENV_SETUP"] = "1"
+
         # Must fail, wrong command
         args = [exec_file, TestScript.FILEPATH, TestScript.COMMIT, "nothing"]
-        self.assertFalse(Pipeline._call_sub(args, previous))
+        proc = subprocess.Popen(args, cwd = previous,
+                                stdin = subprocess.PIPE,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE,
+                                env = my_env)
+        stdout, stderr = proc.communicate()
+        self.assertTrue(proc.returncode == 1)
 
         # Must succeed on the run command
         script_input = {
@@ -259,20 +280,15 @@ class TestBash(unittest.TestCase):
             "files" : ["file1.java", "file2.java"]
         }
         args = [exec_file, TestScript.FILEPATH, TestScript.COMMIT, "run"]
-        proc = subprocess.Popen(args, cwd=previous,
-                                stdin=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-
-        # Write the output
+        proc = subprocess.Popen(args, cwd = previous,
+                                stdin = subprocess.PIPE,
+                                stdout = subprocess.PIPE,
+                                stderr = subprocess.PIPE,
+                                env = my_env)
         proc.stdin.write(json.dumps(script_input))
         stdout, stderr = proc.communicate()
-        proc.wait()
         proc.stdin.close()
-
-        return_code = proc.returncode
-
-        self.assertTrue(return_code == 0)
+        self.assertTrue(proc.returncode == 0)
 
         compare_json_obj(json.loads(stdout),
                          {
