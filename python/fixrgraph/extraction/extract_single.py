@@ -1,7 +1,10 @@
 import argparse
 import fnmatch
 import os
-import run_extractor
+from fixrgraph.extraction.run_extractor import (
+    RepoProcessor,
+    RepoErrorLog
+)
 
 def findFiles(base_dir, extension):
     matches = []
@@ -38,24 +41,30 @@ class BuildInfoClassList:
     def __init__(self, classes, jars):
         self.classes = classes
         self.jars = jars
-def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None, logger=None):
+
+def extract_single_class_dir(repo, out_dir, extractor_jar, path,
+                             filter=None, repo_logger = None):
+
+    assert (repo_logger is None or isinstance(repo_logger, RepoErrorLog))
 
     build_info = BuildInfoClassList(find_class_files(path), [])
 
     graph_dir_path = os.path.join(out_dir, "graphs")
     prov_dir_path = os.path.join(out_dir, "provenance")
-    run_extractor.RepoProcessor.extract_static(
-        repo = repo,
-        log=logger,
-        in_dir=None, #TODO: this doesn't seem to do anything
-        android_home=os.environ['ANDROID_HOME'],
-        graph_dir=graph_dir_path,
-        prov_dir=prov_dir_path,
-        classpath="",
-        extractor_jar=extractor_jar,
-        build_info=build_info,
-        buildable_repos_path=path,
-        file_filter=filter
+    RepoProcessor.extract_static(
+        repo,
+        repo_logger,
+        # indir is used when we do not have the build_info
+        # object --- here we have one
+        None,
+        os.environ['ANDROID_HOME'], # TODO: pass from outside, not rely on env variables
+        graph_dir_path,
+        prov_dir_path,
+        "",
+        extractor_jar,
+        build_info,
+        path,
+        filter
     )
 
 
@@ -72,8 +81,8 @@ if __name__ == "__main__":
     args = p.parse_args()
 
 
-    extract_single_class_dir(repo = [args.organization, args.app_name, args.hash],
-                             out_dir=args.graphdir,
-                             extractor_jar=args.extractorjar,
-                             path=args.app_directory,
-                             filter=args.filter)
+    extract_single_class_dir([args.organization, args.app_name, args.hash],
+                             args.graphdir,
+                             args.extractorjar,
+                             args.app_directory,
+                             args.filter)

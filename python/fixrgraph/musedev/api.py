@@ -144,12 +144,12 @@ def finalize(cmd_input):
 
         # To call directly, uncomment the following lines
         #TODO: get github org and repo name
-        extract_single.extract_single_class_dir(repo = ["unkown","unknown",cmd_input.commit],
-                                                out_dir=graphdir,
-                                                extractor_jar=extractor_jar,
-                                                path=cmd_input.filepath,
-                                                filter=javafiles,
-                                                logger=cmd_input.logger)
+        extract_single.extract_single_class_dir(["unkown","unknown",cmd_input.commit],
+                                                graphdir,
+                                                extractor_jar,
+                                                cmd_input.filepath,
+                                                javafiles,
+                                                None)
 
         # Organize the data to call the search service (call wireprotocol compress here)
         #copy source files to directory to zip

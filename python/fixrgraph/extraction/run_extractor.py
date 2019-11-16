@@ -236,7 +236,6 @@ def read_repo(repo_file):
             if repo_hash == None:
                 logging.warning("Commit hash not found for %s, skipping it " % str(repo))
             else:
-                print repo_hash
                 res.append((repo["user_name"], repo["repo_name"], repo_hash))
     return res
 
@@ -323,26 +322,17 @@ class RepoProcessor:
         """
         logging.info("Executing %s" % " ".join(args))
 
-        if log is None:
-            #TODO: check if this is still the case
-            # not pipe stdout - processes will hang
-            # Known limitation of Popen
-            proc = subprocess.Popen(args, cwd=cwd)
-            proc.wait()
-        else:
-            proc = subprocess.Popen(args, cwd=cwd,
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.PIPE,
-                                    )
-            stdout, stderr = proc.communicate()
-            write_log(log,repo,"Graph extractor stdout %s" % stdout,"debug")
-            write_log(log,repo,"Graph extractor stderr %s" % stderr, "debug")
+        # Warning: not pipe stdout and use wait - processes will hang
+        # Known limitation of Popen
+        proc = subprocess.Popen(args, cwd=cwd,
+                                stdout = sys.stderr,
+                                stderr = sys.stderr)
+        proc.wait()
 
         return_code = proc.returncode
         if (return_code != 0):
             err_msg = "Error code is %s\nCommand line is: %s\n%s" % (str(return_code), str(" ".join(args)),"\n")
             write_log(log, repo, err_msg)
-
             return False
 
         return True
@@ -357,7 +347,6 @@ class RepoProcessor:
             import pygit2
         except Exception as e:
             logging.error("Error importing pygit2.")
-            print "Error importing pygit2."
             self.log.add_error(repo, e.message)
             return None
 
@@ -381,7 +370,6 @@ class RepoProcessor:
 
         except Exception as e:
             traceback.print_exc()
-            print "Error processing %s" % (repo_url)
             logging.error("Error processing %s" % (repo_url))
             self.log.add_error(repo, e.message)
             return None
@@ -470,6 +458,8 @@ class RepoProcessor:
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
 
+        assert (log is None or isinstance(log, RepoErrorLog))
+
         if build_info is None:
             logging.debug("Build information not found...")
             repo_folder = get_repo_path(in_dir, repo)
@@ -540,7 +530,6 @@ class RepoProcessor:
                 class_path = []
                 for p in full_classes_path.split("/"):
                     class_path.append(p)
-                    # print p
                     if p == "classes":
                         break
                 return "/".join(class_path)
@@ -907,9 +896,9 @@ def main():
 
     def usage(msg=""):
         if msg:
-            print "----"
-            print msg
-            print "----\n"
+            print("----")
+            print(msg)
+            print("----\n")
         p.print_help()
         sys.exit(1)
 
