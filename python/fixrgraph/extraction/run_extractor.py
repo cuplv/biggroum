@@ -178,7 +178,7 @@ class ExtractorStatus:
         json_data["repo"] = repo_string
 
 
-class ErrorLog:
+class RepoErrorLog:
     """Keeps a list of error messages separated per repo.
     """
 
@@ -209,14 +209,6 @@ class ErrorLog:
         for error in self.log[repo]:
             outStream.write("%s\n" % str(error))
             outStream.write("\n")
-
-    def printErrors(self, outStream):
-        for key, val in self.log.iteritems():
-            outStream.write("Repo %s\n" % str(key))
-            for error in val:
-                outStream.write("%s\n" % str(error))
-            outStream.write("\n")
-
 
 def read_repo(repo_file):
     """Read the repo_file as a json file and returns a list of couples.
@@ -287,7 +279,7 @@ class RepoProcessor:
                  tot_workers=1,
                  read_apk=False):
         # Keeps the error log for each repo
-        self.log = ErrorLog()
+        self.log = RepoErrorLog()
         # Directory where download the repositories
         self.in_dir = in_dir
         self.graph_dir = graph_dir
@@ -329,7 +321,7 @@ class RepoProcessor:
     def _call_sub(log, repo, args, cwd=None, wait=True):
         """Call a subprocess.
         """
-        write_log(log,repo,"Executing %s" % " ".join(args),"info")
+        logging.info("Executing %s" % " ".join(args))
 
         if log is None:
             #TODO: check if this is still the case
@@ -476,10 +468,10 @@ class RepoProcessor:
 
 
         """Extract the graph for repo."""
-        write_log(log,repo,"Extracting graphs for repo","info")
+        logging.info("Extracting graphs for repo: " + str(repo))
 
         if build_info is None:
-            write_log(log,repo,"Build information not found...","debug")
+            logging.debug("Build information not found...")
             repo_folder = get_repo_path(in_dir, repo)
 
             app_gradle_file_path = getAndroidAppPlugin(log, repo, repo_folder)
@@ -491,7 +483,7 @@ class RepoProcessor:
                 return None
 
             app_gradle_file = os.path.join(app_gradle_file_path, "build.gradle")
-            write_log(log,repo,"App gradle file is %s" % app_gradle_file,"debug")
+            logging.debug("App gradle file is %s" % app_gradle_file)
             (min_apk, max_apk, version_number) = get_version_from_gradle(app_gradle_file)
 
             # set the process_dir: we look for the classes.jar file created
@@ -502,7 +494,7 @@ class RepoProcessor:
             else:
                 process_dirs = [single_dir]
         else:
-            write_log(log,repo,"Found information...","debug")
+            logging.debug("Found information...")
             repo_folder = os.path.join("/tmp", "%s.%s.%s" % (repo[0], repo[1], repo[2]))
             version_number = 25
 
@@ -522,17 +514,18 @@ class RepoProcessor:
         android_jar_path = get_android_jar(android_home, version_number)
         if None == android_jar_path:
             msg = "Cannot find the jar for %s/%s" % (repo[0], repo[1])
-            write_log(log,repo,msg,"debug")
+            logging.debug(msg)
             write_log(log, repo, msg)
             return None
 
         if 0 == len(process_dirs):
             # Error, classes.jar not found
-            write_log(log,repo,"Cannot find classes.jar","error")
+            logging.debug("Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
+            write_log(log, repo, "Cannot find classes.jar for %s/%s" % (repo[0], repo[1]))
             return None
 
         # Small try on support libraries
-        write_log(log,repo,"Android jar path: %s for %s/%s" % (android_jar_path, repo[0], repo[1]),"debug")
+        logging.debug("Android jar path: %s for %s/%s" % (android_jar_path, repo[0], repo[1]))
 
         try:
             repo_graph_dir = get_repo_path(graph_dir, repo)
@@ -624,17 +617,18 @@ class RepoProcessor:
             is_ok = RepoProcessor._call_sub(log, repo, args)
             if not is_ok:
                 msg = "call_sub ended in error for %s/%s" % (repo[0], repo[1])
+                logging.debug(msg)
                 write_log(log, repo, msg)
                 return None
 
         except Exception as e:
             traceback.print_exc()
 
-            write_log(log,repo,"Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]),"debug")
+            logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
             write_log(log, repo, e.message)
             return None
 
-        write_log(log,repo,"Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]),"debug")
+        logging.debug("Extraction of graph ended for %s/%s/%s" % (repo[0], repo[1],repo[2]))
         return repo
 
     @staticmethod
@@ -871,10 +865,6 @@ class RepoProcessor:
         for t in threads:
             t.join()
 
-    def printErrors(self, out):
-        self.log.printErrors(out)
-
-
     @staticmethod
     def init_extraction(indir, graphdir, provdir, applist):
         # create the indir, graphdir and provdir if they do not exist
@@ -894,7 +884,6 @@ class RepoProcessor:
         graphdir  = os.path.join(output_dir, "graphs")
         provdir = os.path.join(output_dir, "provenance")
         return (indir, graphdir, provdir)
-        
 
 def main():
     p = optparse.OptionParser()

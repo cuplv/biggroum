@@ -5,16 +5,11 @@ from xml.dom.minidom import parse, parseString
 
 
 def write_log(log, repo, msg, level="error"):
-    log_msg = "%s: %s" % (str(repo), msg)
     if (log != None):
-        if level == "error":
-            log.error(log_msg)
-        if level == "debug":
-            log.debug(log_msg)
-        if level == "info":
-            log.info(log_msg)
+        log.add_error(repo, msg)
     else:
-        logging.debug(log_msg)
+        logging.debug("%s: %s" % (str(repo), msg))
+
 
 def get_android_jar(android_home, version):
     """Find the right android.jar"""
