@@ -8,9 +8,11 @@ import os
 import json
 import copy
 import subprocess
+import tempfile
+import shutil
+
 from flask import Flask, Response
 from multiprocessing import Process
-
 from cStringIO import StringIO
 
 try:
@@ -18,6 +20,7 @@ try:
 except ImportError:
     import unittest
 
+from fixrgraph.wireprotocol.search_service_wire_protocol import decompress
 from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.biggroumscript import main
 from fixrgraph.musedev.api import (
@@ -26,6 +29,7 @@ from fixrgraph.musedev.api import (
 )
 from fixrgraph.musedev.residue import Residue
 import fixrgraph.musedev.test
+
 
 # anomalies for testing
 anomaly1 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onCreate","id":1}')
@@ -56,13 +60,31 @@ class TestScript(unittest.TestCase):
     class TestSearchService:
         @staticmethod
         def process():
-            testfile = open(os.path.join(os.path.dirname(__file__),
-                                         "data",
-                                         "test_response.json"),
-                            'r')
-            expected_res = json.load(restfile)
+            expected_output = [
+              {"className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
+               "methodName": "showDialog",
+               "error": "missing method calls", "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+               "pattern": "android.app.AlertDialog$Builder.<init>($r11, $r12);\n$r13 = android.app.AlertDialog$Builder.setTitle(builder, \"\\u027e\\ufffd\\ufffd\");\n",
+               "packageName": "fixr.plv.colorado.edu.awesomeapp",
+               "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
+               "line": 47,
+               "id": 1,
+              "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
+              },
+              {
+                "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
+                "methodName": "showDialog",
+                "error": "missing method calls",
+                "pattern": "android.app.AlertDialog$Builder.<init>($r0, this);\n$r1 = android.app.AlertDialog$Builder.setTitle($r0, \"Exit\");\n",
+                "packageName": "fixr.plv.colorado.edu.awesomeapp",
+                "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
+                "line": 47,
+                "id": 2,
+                "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
+              }
+            ]
 
-            return Response(json.dumps(expected_res),
+            return Response(json.dumps(expected_output),
                             status=200,
                             mimetype='application/json')
 
@@ -157,30 +179,41 @@ class TestScript(unittest.TestCase):
 
     def test_finalize(self):
         myinput, outstream = StringIO(), StringIO()
-        main_act_path = os.path.join(os.path.dirname(__file__),
-                                     "data/AwesomeApp/app/src/main/java/fixr/plv"
-                                     "/colorado/edu/awesomeapp/MainActivity.java")
-        input_res = {
-            "residue": {
-                "compilation_infos" : [{"cwd" : "", "cmd" : "", "args" : "",
-                                        "classpath" : [],
-                                        "files": [main_act_path]}
-                                       ]},
-            "toolNotes": []
-        }
-        myinput.write(json.dumps(input_res))
-        myinput.reset()
 
-        service = TestScript.TestSearchService()
-
+        # Extract the app data
+        tmpdir = tempfile.mkdtemp("tmp_test_finalize")
         try:
-            self.assertTrue(main(TestScript.get_args("finalize"),
-                                 myinput, outstream, biggroum_api_map) == 0)
-            # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
+            app_zip = os.path.join(os.path.dirname(__file__), "data", "AwesomeApp.zip")
+            decompress(app_zip, tmpdir)
 
+            # Create a mock residue from run
+            main_act_path = os.path.join(tmpdir,
+                                         "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java")
+            input_res = {
+                "residue": {
+                    "compilation_infos" : [{"cwd" : "", "cmd" : "", "args" : "",
+                                            "classpath" : [],
+                                            "files": [main_act_path]}
+                                           ]},
+                "toolNotes": []
+            }
+            myinput.write(json.dumps(input_res))
+            myinput.reset()
+
+            # Start a mock service
+            service = TestScript.TestSearchService()
+            try:
+                args = TestScript.get_args("finalize")
+                args[1] = tmpdir # set the working directory
+
+                api_res = main(args, myinput, outstream, biggroum_api_map)
+                self.assertTrue(api_res == 0)
+                # Check output
+                # self.assertTrue(
+            finally:
+                service.stop()
         finally:
-            service.stop()
-
+            shutil.rmtree(tmpdir)
 
     def test_talk(self):
         residue_empty = {

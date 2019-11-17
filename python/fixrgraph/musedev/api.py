@@ -181,17 +181,16 @@ def finalize(cmd_input):
         req_result = wp.send_zips(search_endpoint,
                                   zipfiles["graphs"],zipfiles["sources"])
 
-        # TODO: debug response script with phillip, this is hardcoded to finish dev work
-        response_data = ""
-        with open(os.path.dirname(__file__) + "/test/data/test_response.json",'r') as testfile:
-            response_data = "".join(testfile.readlines())
+        if (req_result.status_code != 200):
+            cmd_input.logger.error("Error invoking the service")
+            return 1
 
-        # extract anomalies from response
-        anomalies = Anomaly.get_anomaly_list(response_data)
-
+        response_data = req_result.json()
         tool_notes = []
-        for anomaly in anomalies:
-            # Example of tool note
+        for response_anomaly in response_data:
+            anomaly = Anomaly(response_anomaly)
+
+            # Create a tool note for the anomaly
             tool_note = {
                 "bugType" : "Anomaly",
                 "message" : anomaly.message,
@@ -203,9 +202,10 @@ def finalize(cmd_input):
             }
             tool_notes.append(tool_note)
 
-        # Inserts the anomalies in the residue
-        for anomaly in anomalies:
-            residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
+            # Insert the anomaly in the residue
+            residue = Residue.store_anomaly(residue,
+                                            anomaly,
+                                            anomaly.numeric_id)
 
         summary = "BigGroum found %d anomalies." % (len(tool_notes))
 
@@ -217,7 +217,7 @@ def finalize(cmd_input):
 
         output_json(cmd_input, output)
     except Exception as e:
-        # cmd_input.logger.error(error)
+        cmd_input.logger.error(str(e))
         return 1
     finally:
         shutil.rmtree(graphdir)
