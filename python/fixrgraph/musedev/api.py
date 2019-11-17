@@ -12,7 +12,6 @@ import shutil
 import sys
 import subprocess
 
-from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.residue import Residue
 
 
@@ -187,25 +186,24 @@ def finalize(cmd_input):
 
         response_data = req_result.json()
         tool_notes = []
-        for response_anomaly in response_data:
-            anomaly = Anomaly(response_anomaly)
+        for anomaly in response_data:
 
             # Create a tool note for the anomaly
             tool_note = {
                 "bugType" : "Anomaly",
-                "message" : anomaly.message,
-                "file" : anomaly.file,
-                "line" : anomaly.line,
-                "column" : anomaly.column,
-                "function" : anomaly.function,
-                "noteId" : anomaly.numeric_id
+                "message" : anomaly["error"],
+                "file" : anomaly["fileName"],
+                "line" : anomaly["line"],
+                "column" : "0",
+                "function" : anomaly["methodName"],
+                "noteId" : anomaly["id"]
             }
             tool_notes.append(tool_note)
 
             # Insert the anomaly in the residue
             residue = Residue.store_anomaly(residue,
                                             anomaly,
-                                            anomaly.numeric_id)
+                                            anomaly["id"])
 
         summary = "BigGroum found %d anomalies." % (len(tool_notes))
 

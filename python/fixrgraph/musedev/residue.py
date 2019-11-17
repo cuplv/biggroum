@@ -21,9 +21,6 @@ compilation_info is
 An anomaly is --- [TODO]
 
 """
-from fixrgraph.musedev.anomaly import Anomaly
-
-
 class Residue:
     @staticmethod
     def append_compilation_info(residue, compilation_info):
@@ -49,7 +46,7 @@ class Residue:
     def store_anomaly(residue, anomaly, note_id):
         if residue is None: residue = {}
         if not "anomalies" in residue: residue["anomalies"] = {}
-        residue["anomalies"][note_id] = anomaly.as_json()
+        residue["anomalies"][note_id] = anomaly
         return residue
 
     @staticmethod
@@ -61,5 +58,5 @@ class Residue:
         elif not note_id in residue["anomalies"]:
             return None
         else:
-            return Anomaly(residue["anomalies"][note_id])
+            return residue["anomalies"][note_id]
 

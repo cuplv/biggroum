@@ -21,7 +21,6 @@ except ImportError:
     import unittest
 
 from fixrgraph.wireprotocol.search_service_wire_protocol import decompress
-from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.biggroumscript import main
 from fixrgraph.musedev.api import (
     biggroum_api_map,
@@ -30,13 +29,11 @@ from fixrgraph.musedev.api import (
 from fixrgraph.musedev.residue import Residue
 import fixrgraph.musedev.test
 
-
-# anomalies for testing
-anomaly1 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onCreate","id":1}')
-anomaly2 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onResume","id":2}')
-anomaly3 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10,"methodName":"onPause","id":3}')
-
 def compare_json_obj(obj1, obj2):
+
+    # print(json.dumps(obj1, indent=2, sort_keys=True))
+    # print(json.dumps(obj2, indent=2, sort_keys=True))
+
     return json.dumps(obj1, sort_keys=True) == json.dumps(obj2, sort_keys=True)
 
 def get_extractor_path():
@@ -57,33 +54,34 @@ class TestScript(unittest.TestCase):
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
 
+    ANOMALY1 = {
+        "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
+        "methodName": "showDialog",
+        "error": "missing method calls", "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+        "pattern": "android.app.AlertDialog$Builder.<init>($r11, $r12);\n$r13 = android.app.AlertDialog$Builder.setTitle(builder, \"\\u027e\\ufffd\\ufffd\");\n",
+        "packageName": "fixr.plv.colorado.edu.awesomeapp",
+        "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
+        "line": 47,
+        "id": 1,
+        "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
+    }
+
+    ANOMALY2 = {
+        "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
+        "methodName": "showDialog",
+        "error": "missing method calls",
+        "pattern": "android.app.AlertDialog$Builder.<init>($r0, this);\n$r1 = android.app.AlertDialog$Builder.setTitle($r0, \"Exit\");\n",
+        "packageName": "fixr.plv.colorado.edu.awesomeapp",
+        "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
+        "line": 47,
+        "id": 2,
+        "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
+    }
+
     class TestSearchService:
         @staticmethod
         def process():
-            expected_output = [
-              {"className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
-               "methodName": "showDialog",
-               "error": "missing method calls", "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
-               "pattern": "android.app.AlertDialog$Builder.<init>($r11, $r12);\n$r13 = android.app.AlertDialog$Builder.setTitle(builder, \"\\u027e\\ufffd\\ufffd\");\n",
-               "packageName": "fixr.plv.colorado.edu.awesomeapp",
-               "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
-               "line": 47,
-               "id": 1,
-              "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
-              },
-              {
-                "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
-                "methodName": "showDialog",
-                "error": "missing method calls",
-                "pattern": "android.app.AlertDialog$Builder.<init>($r0, this);\n$r1 = android.app.AlertDialog$Builder.setTitle($r0, \"Exit\");\n",
-                "packageName": "fixr.plv.colorado.edu.awesomeapp",
-                "patch": "public void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}",
-                "line": 47,
-                "id": 2,
-                "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)"
-              }
-            ]
-
+            expected_output = [TestScript.ANOMALY1, TestScript.ANOMALY2]
             return Response(json.dumps(expected_output),
                             status=200,
                             mimetype='application/json')
@@ -208,8 +206,20 @@ class TestScript(unittest.TestCase):
 
                 api_res = main(args, myinput, outstream, biggroum_api_map)
                 self.assertTrue(api_res == 0)
-                # Check output
-                # self.assertTrue(
+
+                out_json = json.loads(outstream.getvalue())
+
+                res_path = os.path.abspath(os.path.dirname(fixrgraph.musedev.test.__file__))
+                res_path = os.path.join(res_path, "data", "finalize_result.json")
+                with open(res_path, 'r') as f:
+                    expected_res = json.load(f)
+
+                self.assertTrue(compare_json_obj(out_json["toolNotes"],
+                                                 expected_res["toolNotes"]))
+
+                self.assertTrue(compare_json_obj(out_json["residue"]["anomalies"],
+                                                 expected_res["residue"]["anomalies"]))
+
             finally:
                 service.stop()
         finally:
@@ -239,8 +249,8 @@ class TestScript(unittest.TestCase):
 
         residue = {
             "anomalies" : {
-                "1" : anomaly1.as_json(),
-                "2" : anomaly2.as_json()
+                "1" : TestScript.ANOMALY1,
+                "2" : TestScript.ANOMALY2
             }
         }
 
@@ -252,6 +262,8 @@ class TestScript(unittest.TestCase):
         self.assertTrue(main(TestScript.get_args("talk"),
                              myinput, outstream, biggroum_api_map) == 0)
 
+        # TODO: test output
+
         myinput, outstream = StringIO(), StringIO()
         myinput.write(json.dumps({"residue" : residue,
                                   "messageText" : "biggroum pattern",
@@ -259,6 +271,8 @@ class TestScript(unittest.TestCase):
         myinput.reset()
         self.assertTrue(main(TestScript.get_args("talk"),
                              myinput, outstream, biggroum_api_map) == 0)
+
+        # TODO: test output
 
 
     def test_reaction(self):
@@ -270,7 +284,7 @@ class TestScript(unittest.TestCase):
                              biggroum_api_map) == 0)
 
 
-class TestResiude(unittest.TestCase):
+class TestResidue(unittest.TestCase):
     def test_compilation_info(self):
         def test_res(residue, expected_residue, ci, fi):
             self.assertTrue(compare_json_obj(residue, expected_residue))
@@ -303,16 +317,12 @@ class TestResiude(unittest.TestCase):
 
 
     def test_anomaly(self):
+        residue = Residue.store_anomaly(None, TestScript.ANOMALY1, "1")
+        self.assertTrue(compare_json_obj(residue, {"anomalies" : {"1" : TestScript.ANOMALY1}}))
 
-        residue = Residue.store_anomaly(None, anomaly1, "1")
-        self.assertTrue(compare_json_obj(residue, {"anomalies" : {"1" : anomaly1.as_json()}}))
-
-        residue = Residue.store_anomaly(residue, anomaly2, "2")
-        residue = Residue.store_anomaly(residue, anomaly3, "3")
-
-        self.assertTrue(anomaly1 == Residue.retrieve_anomaly(residue, "1"))
-        self.assertTrue(anomaly2 == Residue.retrieve_anomaly(residue, "2"))
-        self.assertTrue(anomaly3 == Residue.retrieve_anomaly(residue, "3"))
+        residue = Residue.store_anomaly(residue, TestScript.ANOMALY2, "2")
+        self.assertTrue(compare_json_obj(TestScript.ANOMALY1, Residue.retrieve_anomaly(residue, "1")))
+        self.assertTrue(compare_json_obj(TestScript.ANOMALY2, Residue.retrieve_anomaly(residue, "2")))
 
 
 class TestBash(unittest.TestCase):
