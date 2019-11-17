@@ -1,7 +1,5 @@
 """ Python script implementing the musedev API 3
 """
-
-
 import json
 import sys
 import logging

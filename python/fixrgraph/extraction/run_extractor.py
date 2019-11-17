@@ -19,11 +19,9 @@ import os
 import stat
 import optparse
 import logging
-import traceback
 import shutil
 import json
 import subprocess
-import traceback
 import string
 
 try:
@@ -369,7 +367,6 @@ class RepoProcessor:
             logging.debug("Downloaded %s" % (repo_url))
 
         except Exception as e:
-            traceback.print_exc()
             logging.error("Error processing %s" % (repo_url))
             self.log.add_error(repo, e.message)
             return None
@@ -611,7 +608,6 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-            traceback.print_exc()
 
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
             write_log(log, repo, e.message)
@@ -705,7 +701,6 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-            traceback.print_exc()
 
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
             write_log(log, repo, e.message)
@@ -779,7 +774,6 @@ class RepoProcessor:
                 repo = f(repo)
             except Exception as e:
                 logging.info("Execution broken at %s." % task)
-                traceback.print_exc()
 
             if repo is None:
                 logging.info("Execution broken at %s." % task)
@@ -803,8 +797,6 @@ class RepoProcessor:
             try:
                 repoProcessor.processRepoFromStep(repo, task_index)
             except Exception:
-                traceback.print_exc()
-
                 logging.error("Thread: error processing repo " \
                               "%d/%d" % (repo_index, tot_repos))
                 logging.error("Thread: error processing repo " \
@@ -943,7 +935,6 @@ def main():
             try:
                 os.mkdir(d)
             except OSError as e:
-                traceback.print_exc()
                 sys.exit(1)
 
     try:
@@ -952,7 +943,6 @@ def main():
                                                   opts.provdir,
                                                   opts.applist)
     except Exception as e:
-        traceback.print_exc()
         sys.exit(1)
 
 
@@ -985,7 +975,6 @@ def main():
     #                 out_file.close()
 
     # except Exception as e:
-    #     traceback.print_exc()
     #     sys.exit(1)
 
 

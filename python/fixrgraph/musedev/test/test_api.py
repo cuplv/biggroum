@@ -8,6 +8,9 @@ import os
 import json
 import copy
 import subprocess
+from flask import Flask, Response
+from multiprocessing import Process
+
 from cStringIO import StringIO
 
 try:
@@ -32,11 +35,6 @@ anomaly3 = Anomaly('{"error":"missing call","fileName":"somefile.java","line":10
 def compare_json_obj(obj1, obj2):
     return json.dumps(obj1, sort_keys=True) == json.dumps(obj2, sort_keys=True)
 
-def get_logger():
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-    logger = logging.getLogger('biggroumscript')
-    return logger
-
 def get_extractor_path():
     # TODO: refactor with TestPipeline (move all tests together)
     repo_path = os.path.abspath(os.path.dirname(fixrgraph.musedev.test.__file__))
@@ -54,6 +52,38 @@ class TestScript(unittest.TestCase):
     FILEPATH = os.path.join(os.path.dirname(__file__), "data")
     JAVAFILE = "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java"
     COMMIT = "04f68b69a6f9fa254661b481a757fa1c834b52e1"
+
+    class TestSearchService:
+        @staticmethod
+        def process():
+            testfile = open(os.path.join(os.path.dirname(__file__),
+                                         "data",
+                                         "test_response.json"),
+                            'r')
+            expected_res = json.load(restfile)
+
+            return Response(json.dumps(expected_res),
+                            status=200,
+                            mimetype='application/json')
+
+        @staticmethod
+        def run_service(app):
+            app.run(
+                host = "localhost",
+                port = 8081
+            )
+
+        def __init__(self):
+            self.app = Flask(__name__)
+            self.app.route('/process_muse_data', methods=['POST'])(
+                TestScript.TestSearchService.process)
+            self.server = Process(target=TestScript.TestSearchService.run_service,
+                                  args=[(self.app)])
+            self.server.start()
+
+        def stop(self):
+            self.server.terminate()
+            self.server.join()
 
     @staticmethod
     def get_args(cmd):
@@ -140,11 +170,17 @@ class TestScript(unittest.TestCase):
         }
         myinput.write(json.dumps(input_res))
         myinput.reset()
-        # TODO: add test when implementation is done
 
-        self.assertTrue(main(TestScript.get_args("finalize"),
-                             myinput, outstream, biggroum_api_map) == 0,get_logger())
-        # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
+        service = TestScript.TestSearchService()
+
+        try:
+            self.assertTrue(main(TestScript.get_args("finalize"),
+                                 myinput, outstream, biggroum_api_map) == 0)
+            # self.assertTrue(main(["biggroumscript.py", "aaa","aaa", "finalize"], myinput, outstream, biggroum_api_map) == 0)
+
+        finally:
+            service.stop()
+
 
     def test_talk(self):
         residue_empty = {
@@ -190,8 +226,6 @@ class TestScript(unittest.TestCase):
         myinput.reset()
         self.assertTrue(main(TestScript.get_args("talk"),
                              myinput, outstream, biggroum_api_map) == 0)
-
-
 
 
     def test_reaction(self):

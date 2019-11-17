@@ -1,6 +1,5 @@
+""" Implement the MuseDev API.
 """
-"""
-
 
 import logging
 import json
@@ -17,6 +16,7 @@ from fixrgraph.musedev.anomaly import Anomaly
 from fixrgraph.musedev.residue import Residue
 
 
+# Constants used to set free options in the CmdInput class
 GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
 FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
@@ -154,7 +154,7 @@ def finalize(cmd_input):
         graphdir = tempfile.mkdtemp(".groum_test_extract_single")
 
         # To call directly, uncomment the following lines
-        #TODO: get github org and repo name
+        # TODO: get github org and repo name
         extract_single.extract_single_class_dir(["unkown","unknown",
                                                  cmd_input.commit],
                                                 graphdir,
@@ -171,7 +171,7 @@ def finalize(cmd_input):
             shutil.copyfile(f,os.path.join(sourcesdir,f.split(os.sep)[-1]))
 
         # compress files to send
-        zipfiles = {"graphs":None,"sources":None}
+        zipfiles = {"graphs" : None, "sources" : None}
         for zipfile in zipfiles:
             graphs_zip_tempfile = os.path.join(graphdir, "%s.zip" %zipfile)
             zipfiles[zipfile] = graphs_zip_tempfile
@@ -181,7 +181,7 @@ def finalize(cmd_input):
         req_result = wp.send_zips(search_endpoint,
                                   zipfiles["graphs"],zipfiles["sources"])
 
-        #TODO: debug response script with phillip, this is hardcoded to finish dev work
+        # TODO: debug response script with phillip, this is hardcoded to finish dev work
         response_data = ""
         with open(os.path.dirname(__file__) + "/test/data/test_response.json",'r') as testfile:
             response_data = "".join(testfile.readlines())
@@ -189,7 +189,6 @@ def finalize(cmd_input):
         # extract anomalies from response
         anomalies = Anomaly.get_anomaly_list(response_data)
 
-        # TODO: Convert the anomalies to toolNotes
         tool_notes = []
         for anomaly in anomalies:
             # Example of tool note
@@ -202,18 +201,13 @@ def finalize(cmd_input):
                 "function" : anomaly.function,
                 "noteId" : anomaly.numeric_id
             }
-        #
-        # TODO: unit tests treated anomaly like a dictionary from parsed json, but it appears to be a class here
-        # Note: I made it a class, if we want to make it a dictionary it is an easy change
-        # WARNING: noteId must be set to anomaly.numeric_id here!
-        tool_notes.append(tool_note)
+            tool_notes.append(tool_note)
 
         # Inserts the anomalies in the residue
         for anomaly in anomalies:
             residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
 
-        # TODO: compile a summary
-        summary = ""
+        summary = "BigGroum found %d anomalies." % (len(tool_notes))
 
         output = {
             "toolNotes" : tool_notes,
@@ -223,7 +217,7 @@ def finalize(cmd_input):
 
         output_json(cmd_input, output)
     except Exception as e:
-        cmd_input.logger.error(str(e))
+        # cmd_input.logger.error(error)
         return 1
     finally:
         shutil.rmtree(graphdir)
