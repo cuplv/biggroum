@@ -20,14 +20,14 @@
         "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
         "error": "missing method calls",
         "line": 47,
-        "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+        "fileName": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
         "id": 1
       },
       "2": {
         "methodName": "showDialog",
         "pattern": "android.app.AlertDialog$Builder.<init>($r0, this);\n$r1 = android.app.AlertDialog$Builder.setTitle($r0, \"Exit\");\n",
         "packageName": "fixr.plv.colorado.edu.awesomeapp",
-        "fileName": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+        "fileName": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
         "className": "fixr.plv.colorado.edu.awesomeapp.MainActivity",
         "error": "missing method calls",
         "line": 47,
@@ -41,7 +41,7 @@
       "function": "showDialog",
       "column": "0",
       "line": 47,
-      "file": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+      "file": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
       "bugType": "Anomaly",
       "message": "missing method calls",
       "noteId": 1
@@ -50,7 +50,7 @@
       "function": "showDialog",
       "column": "0",
       "line": 47,
-      "file": "[MainActivity.java](https://github.com/smover/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
+      "file": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
       "bugType": "Anomaly",
       "message": "missing method calls",
       "noteId": 2

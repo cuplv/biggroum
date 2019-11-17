@@ -25,7 +25,7 @@ def read_json(instream, logger):
     except:
         json_data = None
         logger.error("Error reading input: %s" % raw_input)
-        raise Exception("blabla")
+        return None
 
     return json_data
 
@@ -73,15 +73,17 @@ def main(input_args,
         else:
             logger.info("About to execute cmd: %s" % cmd)
             json_input = read_json(instream, logger)
-
-            cmd_input = CmdInput(filepath, commit, cmd,
-                                 json_input,outstream,
-                                 logger,
-                                 options = {
-                                     GRAPH_EXTRACTOR_PATH : graph_extractor_jar,
-                                     FIXR_SEARCH_ENDPOINT : fixr_search_endpoint,
-                                 })
-            return_code = cmds_map[cmd](cmd_input)
+            if (json_input is None):
+                return_code = 1
+            else:
+                cmd_input = CmdInput(filepath, commit, cmd,
+                                     json_input,outstream,
+                                     logger,
+                                     options = {
+                                         GRAPH_EXTRACTOR_PATH : graph_extractor_jar,
+                                         FIXR_SEARCH_ENDPOINT : fixr_search_endpoint,
+                                     })
+                return_code = cmds_map[cmd](cmd_input)
 
     logger.info("Main function returns: %d" % return_code)
 
