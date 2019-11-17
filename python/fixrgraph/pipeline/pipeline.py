@@ -19,10 +19,13 @@ class Pipeline(object):
     """ Utility method used to call an external process
     """
     @staticmethod
-    def _call_sub(args, cwd=None):
+    def _call_sub(args, cwd=None, env=None):
         # do not pipe stdout - processes will hang
         # we can pipe another stream
-        proc = subprocess.Popen(args, cwd=cwd)
+        if (env is None):
+            proc = subprocess.Popen(args, cwd=cwd)
+        else:
+            proc = subprocess.Popen(args, cwd=cwd, env=env)
         proc.wait()
 
         return_code = proc.returncode
