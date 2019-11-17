@@ -21,7 +21,6 @@ compilation_info is
 An anomaly is --- [TODO]
 
 """
-
 class Residue:
     @staticmethod
     def append_compilation_info(residue, compilation_info):

@@ -1,12 +1,23 @@
+""" Implement the MuseDev API.
 """
-"""
-
 
 import logging
 import json
 import requests
+import fixrgraph.extraction.extract_single as extract_single
+import fixrgraph.wireprotocol.search_service_wire_protocol as wp
+import os
+import tempfile
+import shutil
+import sys
+import subprocess
 
 from fixrgraph.musedev.residue import Residue
+
+
+# Constants used to set free options in the CmdInput class
+GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
+FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
 def get_none(json_data, field):
     if not json_data is None:
@@ -26,16 +37,16 @@ class CmdInput:
     """
     Input of the main API script
     """
-    def __init__(self, filepath, commit, cmd,
-                 json_input,
-                 outstream,
-                 logger):
+    def __init__(self, filepath, commit,
+                 cmd, json_input, outstream,
+                 logger, options):
         self.filepath = filepath
         self.commit = commit
         self.cmd = cmd
         self.json_input = json_input
         self.outstream = outstream
         self.logger = logger
+        self.options = options
 
 def applicable(cmd_input):
     """ For now the API always
@@ -122,51 +133,92 @@ def finalize(cmd_input):
 
     residue = get_none(cmd_input.json_input, "residue")
 
+    extractor_jar_path = cmd_input.options[GRAPH_EXTRACTOR_PATH]
+    if (not os.path.isfile(extractor_jar_path)):
+        cmd_input.logger.error("Cannot find the graph extractor " +
+                               "jar: %s" % extractor_jar_path)
+        return 1
+
+    search_endpoint = cmd_input.options[FIXR_SEARCH_ENDPOINT]
+
     # Example: loop through the compilation info
+    javafiles = []
     for compilation_info in Residue.get_compilation_infos(residue):
         for filePath in Residue.get_files(compilation_info):
-            pass
+            if filePath.endswith(".java"):
+                javafiles.append(filePath)
 
-    # TODO: extract the graphs
+    # extract the graphs
+    try:
+        graphdir = tempfile.mkdtemp(".groum_test_extract_single")
 
-    # TODO: organize the data to call the search service
+        # To call directly, uncomment the following lines
+        # TODO: get github org and repo name
+        extract_single.extract_single_class_dir(["unkown","unknown",
+                                                 cmd_input.commit],
+                                                graphdir,
+                                                extractor_jar_path,
+                                                cmd_input.filepath,
+                                                javafiles,
+                                                None)
 
-    # TODO: call the web service
-    anomalies = None
+        # Organize the data to call the search service
+        # Copy source files to directory to zip
+        sourcesdir = os.path.join(graphdir, "sources")
+        os.mkdir(sourcesdir)
+        for f in javafiles:
+            shutil.copyfile(f,os.path.join(sourcesdir,f.split(os.sep)[-1]))
 
-    # TODO: Convert the anomalies to toolNotes
-    tool_notes = []
-    for anomaly in anomalies:
-        # Example of tool note
-        # tool_note = {
-        #     "bugType" : "Anomaly",
-        #     "message" : "",
-        #     "file" : "",
-        #     "line" : 1,
-        #     "column" : 1,
-        #     "function" : "",
-        #     "noteId" : "1"
-        # }
-        #
-        # WARNING: noteId must be set to anomaly.numeric_id here!
-        # tool_note = TODO
-        # tool_notes.append()
-        pass
+        # compress files to send
+        zipfiles = {"graphs" : None, "sources" : None}
+        for zipfile in zipfiles:
+            graphs_zip_tempfile = os.path.join(graphdir, "%s.zip" %zipfile)
+            zipfiles[zipfile] = graphs_zip_tempfile
+            wp.compress(os.path.join(graphdir,zipfile), graphs_zip_tempfile)
 
-    # Inserts the anomalies in the residue
-    for anomaly in anomalies:
-        residue = Residue.store_anomaly(residue, anomaly, anomaly.numeric_id)
+        # call the web service
+        req_result = wp.send_zips(search_endpoint,
+                                  zipfiles["graphs"],zipfiles["sources"])
 
-    # TODO: compile a summary
-    summary = ""
+        if (req_result.status_code != 200):
+            cmd_input.logger.error("Error invoking the service")
+            return 1
 
-    output = {
-        "toolNotes" : tool_notes,
-        "summary" : summary,
-        "residue" : residue
-    }
+        response_data = req_result.json()
+        tool_notes = []
+        for anomaly in response_data:
 
-    output_json(cmd_input, output)
+            # Create a tool note for the anomaly
+            tool_note = {
+                "bugType" : "Anomaly",
+                "message" : anomaly["error"],
+                "file" : anomaly["fileName"],
+                "line" : anomaly["line"],
+                "column" : "0",
+                "function" : anomaly["methodName"],
+                "noteId" : anomaly["id"]
+            }
+            tool_notes.append(tool_note)
+
+            # Insert the anomaly in the residue
+            residue = Residue.store_anomaly(residue,
+                                            anomaly,
+                                            anomaly["id"])
+
+        summary = "BigGroum found %d anomalies." % (len(tool_notes))
+
+        output = {
+            "toolNotes" : tool_notes,
+            "summary" : summary,
+            "residue" : residue
+        }
+
+        output_json(cmd_input, output)
+    except Exception as e:
+        cmd_input.logger.error(str(e))
+        return 1
+    finally:
+        shutil.rmtree(graphdir)
 
     return 0
 

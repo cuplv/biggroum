@@ -1,7 +1,10 @@
 import argparse
 import fnmatch
 import os
-import run_extractor
+from fixrgraph.extraction.run_extractor import (
+    RepoProcessor,
+    RepoErrorLog
+)
 
 def findFiles(base_dir, extension):
     matches = []
@@ -15,47 +18,34 @@ def find_class_files(base_dir):
     #TODO: this logic will probably fail on some repos but works for simple things
     return all_class_files
 
-def isGeneratedFile(file_path):
-    if "app/build/generated/" in file_path:
-        return True
-    fname = file_path.split(os.path.sep)[-1] 
-    if fname == "R.java":
-        return True
-    if fname == "BuildConfig.java":
-        return True
-
-def find_rt_jar():
-    for rtloc in ["jre/lib/rt.jar", "/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar"]:
-        rtjar_file = os.path.join(os.environ['JAVA_HOME'],rtloc)
-        print(rtjar_file)
-        if os.path.exists(rtjar_file):
-            break
-    if rtjar_file is None:
-        raise Exception("java runtime 'rt.jar' file not found")
-    return rtjar_file
-
-class BuildInfoSimple:
+class BuildInfoClassList:
     def __init__(self, classes, jars):
         self.classes = classes
         self.jars = jars
-def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None):
 
-    build_info = BuildInfoSimple(find_class_files(path), [])
+def extract_single_class_dir(repo, out_dir, extractor_jar, path,
+                             filter=None, repo_logger = None):
 
-    graph_dir_path = os.path.join(out_dir, "repo_graph_dir")
-    prov_dir_path = os.path.join(out_dir, "repo_prov_dir")
-    run_extractor.RepoProcessor.extract_static(
-        repo = repo,
-        log=None, # TODO: retain log somewhere?
-        in_dir=None, #TODO: this doesn't seem to do anything
-        android_home=os.environ['ANDROID_HOME'],
-        graph_dir=graph_dir_path,
-        prov_dir=prov_dir_path,
-        classpath="",
-        extractor_jar=extractor_jar,
-        build_info=build_info,
-        buildable_repos_path=path,
-        file_filter=filter
+    assert (repo_logger is None or isinstance(repo_logger, RepoErrorLog))
+
+    build_info = BuildInfoClassList(find_class_files(path), [])
+
+    graph_dir_path = os.path.join(out_dir, "graphs")
+    prov_dir_path = os.path.join(out_dir, "provenance")
+    RepoProcessor.extract_static(
+        repo,
+        repo_logger,
+        # indir is used when we do not have the build_info
+        # object --- here we have one
+        None,
+        os.environ['ANDROID_HOME'], # TODO: pass from outside, not rely on env variables
+        graph_dir_path,
+        prov_dir_path,
+        "",
+        extractor_jar,
+        build_info,
+        path,
+        filter
     )
 
 
@@ -72,8 +62,8 @@ if __name__ == "__main__":
     args = p.parse_args()
 
 
-    extract_single_class_dir(repo = [args.organization, args.app_name, args.hash],
-                             out_dir=args.graphdir,
-                             extractor_jar=args.extractorjar,
-                             path=args.app_directory,
-                             filter=args.filter)
+    extract_single_class_dir([args.organization, args.app_name, args.hash],
+                             args.graphdir,
+                             args.extractorjar,
+                             args.app_directory,
+                             args.filter)
