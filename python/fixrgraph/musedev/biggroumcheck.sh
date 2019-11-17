@@ -62,5 +62,5 @@ fi
 
 # Call the script invoking biggroum
 cd "$(dirname "${BASH_SOURCE[0]}")"
-python biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
+python biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
 exit $?
