@@ -154,7 +154,7 @@ def finalize(cmd_input):
 
         # To call directly, uncomment the following lines
         # TODO: get github org and repo name
-        extract_single.extract_single_class_dir(["unkown","unknown",
+        extract_single.extract_single_class_dir(["notset","notset",
                                                  cmd_input.commit],
                                                 graphdir,
                                                 extractor_jar_path,
