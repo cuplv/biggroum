@@ -1,0 +1,23 @@
+version: '2.2'
+services:
+  biggroum_search:
+    image: biggroum_search
+    ports:
+    - "8081:8081"
+    links:
+    - srcfinder
+    hostname: biggroum_search
+    volumes:
+    - ../FixrGraphPatternSearch/fixrsearch/test/data:/persist
+    cpu_count: 1
+    mem_limit: 1024000000
+    network_mode: bridge 
+
+  srcfinder:
+    image: srcfinder
+    ports:
+    - "8080:8080"
+    hostname: srcfinder
+    cpu_count: 1
+    mem_limit: 1024000000
+    network_mode: bridge 
