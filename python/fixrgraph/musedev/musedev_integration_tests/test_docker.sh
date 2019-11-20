@@ -28,11 +28,17 @@ function run_test {
 	
 	# Check that the reference file contains equivilant json to the command output
 	# Note: this avoids issues with whitespace and ordering
-	if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
-	then
+	cat $TMPFILE | jq >> /dev/null
+	if [ $? -ne 0 ]
+       	then 
 		echo "-------------------Command $COMMAND: Failed"
 	else
-		echo "-------------------Command $COMMAND: OK"
+		if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
+		then
+			echo "-------------------Command $COMMAND: Failed"
+		else
+			echo "-------------------Command $COMMAND: OK"
+		fi
 	fi
 	echo "=output:"
 	cat $TMPFILE
