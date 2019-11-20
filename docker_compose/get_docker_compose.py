@@ -92,7 +92,6 @@ def main(input_args=None):
     p.add_option('-m', '--musedev_analyst', help="Start the musedev analyst", action="store_true")
     p.add_option('-d', '--use_test_data', help="attach test data to containers", action="store_true")
 
-
     def usage(msg=""):
         if msg: print "----%s----\n" % msg
         p.print_help()
@@ -113,11 +112,9 @@ def main(input_args=None):
 
         for key,value in get_remote_images(rep, opts.use_test_data).iteritems():
             new_val = _substitute(value, {"VERSION" : opts.version})
-
             remote_map[key] = new_val
-        
-        
         df = _substitute(DOCKER_FILE, remote_map)
+
         if opts.musedev_analyst:
             df = df + get_musedev_analyst()
 

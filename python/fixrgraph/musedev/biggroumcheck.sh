@@ -21,8 +21,8 @@ echo "cmd: ${cmd}" 1>&2
 
 #Change to java 8 if update-alternatives exists
 hash update-alternatives >> pre_setup_log 2>&1 &&\
-	JAVA8=$(update-alternatives --list java |grep "java-8" |head -n 1) >> pre_setup_log 2>&1 &&\
-	update-alternatives --set java ${JAVA8} >> pre_setup_log 2>&1
+        JAVA8=$(update-alternatives --list java |grep "java-8" |head -n 1) >> pre_setup_log 2>&1 &&\
+        update-alternatives --set java ${JAVA8} >> pre_setup_log 2>&1
 
 # perform initalization tasks
 # - download the biggroum repository with the fixrgraph python package
@@ -38,7 +38,7 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
     # Getting back here when the setup is done --- do everything in the home
     pushd . >> pre_setup_log 2>&1 && \
         mkdir -p ${HOME}/biggroumsetup >> pre_setup_log 2>&1 &&\
-	sdkmanager "platforms;android-25" >> setup_log 2>&1 && \
+        sdkmanager "platforms;android-25" >> setup_log 2>&1 && \
         cd ${HOME}/biggroumsetup >>setup_log 2>&1 && \
         apt install -y wget python-pip >>setup_log 2>&1 && \
         pip install --quiet nose requests >>setup_log 2>&1 && \
@@ -47,9 +47,9 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
         cd biggroum >>setup_log 2>&1 && \
         git checkout musedev_hackaton >>setup_log 2>&1 && \
         git pull >>setup_log 2>&1 && \
-	echo "success" >> /root/biggroumsetup_completed 2>&1
+        echo "success" >> /root/biggroumsetup_completed 2>&1
 
-	#TODO: check return status of last command exit if fail and log error
+        #TODO: check return status of last command exit if fail and log error
     # TODO: Fix, not robust if initial pushd fails
     popd >>setup_log 2>&1
 fi
