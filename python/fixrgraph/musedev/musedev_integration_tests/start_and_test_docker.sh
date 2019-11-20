@@ -8,16 +8,21 @@ python get_docker_compose.py --remote -v latest -m -d
 
 docker-compose up --force-recreate &
 
-while [[ ! $(docker ps |grep compose_fixrgraph) ]]
-do
-	sleep 2
-	echo "Waiting for containers to start..."
-done
+function wait_for_container {
+	while [[ ! $(docker ps |grep $1) ]]
+	do
+		sleep 2
+		echo "Waiting for containers to start..."
+	done
+}
+
+wait_for_container "compose_fixrgraph"
+wait_for_container "compose_srcfinder"
 
 ANALYST_NAME=$(docker ps --format "{{.Names}}" |grep fixrgraph)
 
 bash ../python/fixrgraph/musedev/musedev_integration_tests/test_docker.sh ${ANALYST_NAME}
 
-#docker-compose down
+docker-compose down
 
 popd
