@@ -33,7 +33,7 @@ function run_test {
        	then 
 		echo "-------------------Command $COMMAND: Failed"
 	else
-		if [[ $3 == "strict" ]]
+		if [[ $4 == "strict" ]]
 		then
 			if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
 			then
