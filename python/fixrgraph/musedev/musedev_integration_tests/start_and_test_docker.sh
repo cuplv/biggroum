@@ -8,7 +8,7 @@ python get_docker_compose.py --remote -v latest -m -d
 
 docker-compose up --force-recreate &
 
-while [[ ! $(docker ps |grep dockercompose_fixrgraph) ]]
+while [[ ! $(docker ps |grep compose_fixrgraph) ]]
 do
 	sleep 2
 	echo "Waiting for containers to start..."
