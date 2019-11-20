@@ -28,7 +28,7 @@ function run_test {
 	
 	# Check that the reference file contains equivilant json to the command output
 	# Note: this avoids issues with whitespace and ordering
-	cat $TMPFILE | jq >> /dev/null
+	cat $TMPFILE | jq . >> /dev/null
 	if [ $? -ne 0 ]
        	then 
 		echo "-------------------Command $COMMAND: Failed"
