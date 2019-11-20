@@ -33,11 +33,14 @@ function run_test {
        	then 
 		echo "-------------------Command $COMMAND: Failed"
 	else
-		if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
+		if [[ $3 == "strict" ]]
 		then
-			echo "-------------------Command $COMMAND: Failed"
-		else
-			echo "-------------------Command $COMMAND: OK"
+			if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
+			then
+				echo "-------------------Command $COMMAND: Failed"
+			else
+				echo "-------------------Command $COMMAND: OK"
+			fi
 		fi
 	fi
 	echo "=output:"
@@ -47,7 +50,10 @@ function run_test {
 	echo $(cat $OUTPUT_FILE)
 }
 
-run_test "example_version_input.json" "version" "expected_version_output.json"
-run_test "example_applicable_input.json" "applicable" "expected_applicable_output.json"
-run_test "example_run_input.json" "run" "example_run_output.json"
-run_test "example_finalize_input.json" "finalize" "example_finalize_output.json"
+# Output of version, applicable, and run must be exact
+run_test "example_version_input.json" "version" "expected_version_output.json" strict
+run_test "example_applicable_input.json" "applicable" "expected_applicable_output.json" strict
+run_test "example_run_input.json" "run" "example_run_output.json" strict
+
+# Accept any valid json for finalize
+run_test "example_finalize_input.json" "finalize" "example_finalize_output.json" any 
