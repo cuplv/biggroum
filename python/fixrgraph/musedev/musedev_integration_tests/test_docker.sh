@@ -2,6 +2,18 @@
 ## Run Docker Container
 
 CONTAINER_NAME=$1
+
+if [[ ! -z $2 ]]
+then
+	echo "Using remote host: $2"
+	REMOTE="-e FIXR_SEARCH_ENDPOINT=$2"
+	#REMOTE="-e FIXR_SSH_SEARCH_ENDPOINT=$2"
+	## copy credentials
+	#docker cp $3 ${CONTAINER_NAME}:/root/
+else
+	REMOTE=""
+fi
+
 shift
 ## Copy biggroum script and app
 BASE_DIR=$(dirname "${BASH_SOURCE[0]}")
@@ -24,25 +36,28 @@ function run_test {
 	echo $(cat $INPUT_FILE)
 	echo "="
 	TMPFILE=$(mktemp)
-	cat $INPUT_FILE | docker exec -i ${CONTAINER_NAME} /bin/bash -c "/root/biggroumcheck.sh /root/AwesomeApp 1245abc $COMMAND" 1>"$TMPFILE" 2>> "${BASE_DIR}/error_log"
+
+	cat $INPUT_FILE | docker exec $REMOTE  -i ${CONTAINER_NAME} /bin/bash -c "/root/biggroumcheck.sh /root/AwesomeApp 1245abc $COMMAND" 1>"$TMPFILE" 2>> "${BASE_DIR}/error_log"
 	
 	# Check that the reference file contains equivilant json to the command output
 	# Note: this avoids issues with whitespace and ordering
 	cat $TMPFILE | jq . >> /dev/null
-	if [ $? -ne 0 ]
-       	then 
-		echo "-------------------Command $COMMAND: Failed"
-	else
-		if [[ $4 == "strict" ]]
-		then
-			if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
-			then
-				echo "-------------------Command $COMMAND: Failed"
-			else
-				echo "-------------------Command $COMMAND: OK"
-			fi
-		fi
-	fi
+	#TODO: checking code is unreliable, this should be fixed, for now manually inspect
+	echo "-------------------Command: $COMMAND"
+	#if [ $? -ne 0 ]
+       	#then 
+	#	echo "-------------------Command $COMMAND: Failed"
+	#else
+	#	if [[ $4 == "strict" ]]
+	#	then
+	#		if [[ $(cmp <(jq -cS . $OUTPUT_FILE) <(jq -cS . $TMPFILE)) ]]
+	#		then
+	#			echo "-------------------Command $COMMAND: Failed"
+	#		else
+	#			echo "-------------------Command $COMMAND: OK"
+	#		fi
+	#	fi
+	#fi
 	echo "=output:"
 	cat $TMPFILE
 	printf "\n="
