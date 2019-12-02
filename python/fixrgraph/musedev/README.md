@@ -165,12 +165,12 @@ docker-compose up
 3) Run the musedev/analyst docker container:
 
 ```
-docker run -it musedev/analyst bash
+docker run -it musedev/analyst bash -e FIXR_SEARCH_ENDPOINT=[endpoint address]
 ```
 
-  - To use the local deployment from steps 1 and 2: ```FIXR_SEARCH_ENDPOINT="http://localhost:8081/process_muse_data"```
+  - To use the local deployment from steps 1 and 2: ```-e FIXR_SEARCH_ENDPOINT="http://localhost:8081/process_muse_data"```
 
-  - To use our deployment: ```FIXR_SEARCH_ENDPOINT="http://3.135.214.26:8081/process_muse_data"```
+  - To use our deployment: ```-e FIXR_SEARCH_ENDPOINT="http://3.135.214.26:8081/process_muse_data"```
 
 4) Copy [biggroumcheck.sh](biggroumcheck.sh) into the docker container in `/root/biggroumcheck.sh`:
 
