@@ -7,12 +7,18 @@ the MuseDev platform (https://muse.dev).
 The script [biggroumcheck.sh](biggroumcheck.sh) implements the [MuseDev
 API version 3](http://)) and can be invoked as:
 
-```bash
+```
+bash
 $ ./biggroumcheck.sh <filepath> <commit> <command>
 ```
 
 where `<command>` is one among `applicable`, `version`,
 `run`,`finalize`, `talk`, `reaction`.
+
+The Fixr service endpoint can be specified with an environment variable.  The following command points the service at our running deployment.
+```FIXR_SSH_SEARCH_ENDPOINT=3.135.214.26```
+
+Please contact us with a public ssh key to get access.
 
 BigGroum implements the API commands as follows:
 - `applicable`: returns `yes`;
