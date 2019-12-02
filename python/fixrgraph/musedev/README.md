@@ -85,9 +85,9 @@ providing one of the available values for `<command>` and the following inputs (
 
 - finalize:  [example_finalize_input.json](./musedev_integration_tests/example_finalize_input.json)
 
-- talk (**TODO** Missing, to add):  [example_talk_input.json](./musedev_integration_tests/example_talk_input.json)
+- talk:  [example_talk_input.json](./musedev_integration_tests/example_talk_input.json)
 
-- reaction (**TODO** Missing, to add): [example_reaction_input.json](./musedev_integration_tests/example_reaction_input.json)
+- reaction: [example_reaction_input.json](./musedev_integration_tests/example_reaction_input.json)
 
 The script returns the content of the following files on the standard output:
 
@@ -99,9 +99,9 @@ The script returns the content of the following files on the standard output:
 
 - finalize: [example_finalize_output.json](./musedev_integration_tests/example_finalize_output.json)
 
-- talk (**TODO** Missing): [example_talk_output.json](./musedev_integration_tests/example_talk_output.json)
+- talk: [example_talk_output.json](./musedev_integration_tests/example_talk_output.json)
 
-- reaction (**TODO** Missing): [example_reaction_output.json](./musedev_integration_tests/example_reaction_output.json)
+- reaction: [example_reaction_output.json](./musedev_integration_tests/example_reaction_output.json)
 
 
 ## Testing the API on a Local Machine
