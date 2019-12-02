@@ -15,8 +15,9 @@ $ ./biggroumcheck.sh <filepath> <commit> <command>
 where `<command>` is one among `applicable`, `version`,
 `run`,`finalize`, `talk`, `reaction`.
 
-The Fixr service endpoint can be specified with an environment variable.  The following command points the service at our running deployment.
-```FIXR_SSH_SEARCH_ENDPOINT=3.135.214.26```
+The Fixr service is deployed at the following location.  The environment variable FIXR_SEARCH_ENDPOINT is read by the biggroumcheck.sh script.
+
+```FIXR_SEARCH_ENDPOINT="http://3.135.214.26:8081/process_muse_data"```
 
 Please contact us with a public ssh key to get access.
 
@@ -85,9 +86,9 @@ providing one of the available values for `<command>` and the following inputs (
 
 - finalize:  [example_finalize_input.json](./musedev_integration_tests/example_finalize_input.json)
 
-- talk:  [example_talk_input.json](./musedev_integration_tests/example_talk_input.json)
+- talk (**TODO** Missing, to add):  [example_talk_input.json](./musedev_integration_tests/example_talk_input.json)
 
-- reaction: [example_reaction_input.json](./musedev_integration_tests/example_reaction_input.json)
+- reaction (**TODO** Missing, to add): [example_reaction_input.json](./musedev_integration_tests/example_reaction_input.json)
 
 The script returns the content of the following files on the standard output:
 
@@ -99,9 +100,9 @@ The script returns the content of the following files on the standard output:
 
 - finalize: [example_finalize_output.json](./musedev_integration_tests/example_finalize_output.json)
 
-- talk: [example_talk_output.json](./musedev_integration_tests/example_talk_output.json)
+- talk (**TODO** Missing): [example_talk_output.json](./musedev_integration_tests/example_talk_output.json)
 
-- reaction: [example_reaction_output.json](./musedev_integration_tests/example_reaction_output.json)
+- reaction (**TODO** Missing): [example_reaction_output.json](./musedev_integration_tests/example_reaction_output.json)
 
 
 ## Testing the API on a Local Machine
@@ -160,16 +161,25 @@ python get_docker_compose.py --remote -v latest -d
 docker-compose up
 ```
 
-3) Run the musedev/analyst docker container setting the `FIXR_SEARCH_ENDPOINT` environment variable to the deployment url of the Fixr search service (it should be `localhost` if you want to use the services you just started).
+
+3) Run the musedev/analyst docker container:
 
 ```
-TODO: HOW?
+docker run -it musedev/analyst bash
 ```
+
+  - To use the local deployment from steps 1 and 2: ```FIXR_SEARCH_ENDPOINT="http://localhost:8081/process_muse_data"```
+
+  - To use our deployment: ```FIXR_SEARCH_ENDPOINT="http://3.135.214.26:8081/process_muse_data"```
 
 4) Copy [biggroumcheck.sh](biggroumcheck.sh) into the docker container in `/root/biggroumcheck.sh`:
 
 ```
-TODO: HOW?
+# get the container id
+docker ps
+
+# copy the script
+docker cp biggroum/python/fixrgraph/musedev/biggroumcheck.sh [container id]:/root/
 ```
 
 5) Copy a built android application into the container.
@@ -179,7 +189,8 @@ You can use the Android app in the archive
 content in the `root` folder of the container.
 
 ```
-TODO: HOW?
+unzip AwesomeApp.zip
+docker cp AwesomeApp [container id]:/root/
 ```
 
 
