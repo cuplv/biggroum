@@ -242,7 +242,7 @@ def talk(cmd_input):
     """
 
     cmd_input.logger.info("Command: talk")
-
+    
     # TODO: validate input
 
     # Process the message text
@@ -281,14 +281,16 @@ def talk(cmd_input):
             return 1
         else:
             anomaly = Residue.retrieve_anomaly(residue, note_id)
-
             if anomaly is None:
                 output_json(cmd_input, {})
                 return 1
             else:
-                # TODO: get the pattern or the fix from the stored anomaly
+                if message_text_splitted[1] == "inspect":
+                    msg = anomaly["patch"]
+                else:
+                    msg = anomaly["pattern"]
                 output = {
-                    "message" : "Pattern or fix",
+                    "message" : msg,
                     "noteId" : note_id,
                     "toolNotes" : []
                 }
