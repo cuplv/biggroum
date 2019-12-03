@@ -33,29 +33,27 @@ BigGroum implements the API commands as follows:
 - `talk`: queries the results contained in the residue for the patch
   that should solve an anomaly and the pattern that explain an
   anomaly.
-- `reaction`: the API does nothing on the reaction command.
+- `reaction`: does nothing and returns no output
+
 The source code in [api.py](api.py) documents the details of each
 command.
 
 
-In the following we explain:
+In this document we explain:
 - How to install the BigGroum custom tool on your repository
 - The test cases we provide for the API
 - How you can test the API on your local machine
 
 
 ## Installing the BigGroum custom tool on your repository
-**TODO:** Document how we can write a `.muse.toml` file in a
-repository specifying to use `biggroumcheck.sh` as a custom tool.
+**TODO:** Document how to write a `.muse.toml` file in a
+repository specifying the use of `biggroumcheck.sh` as a custom tool.
 We should follow the instruction to [configure a
 repository](https://docs.muse.dev/docs/repository-configuration/#inrepooptions)
 from  MuseDev.
 
 
 ## Test Cases for the API
-
-**TODO**: The API requires to access to the service remotely, so we
-should specify the address and eventual keys to access the server.
 
 We test the API using the Android App
 [AwesomeApp](https://github.com/cuplv/AwesomeApp) at commit
@@ -127,10 +125,7 @@ cd biggroum/python/fixrgraph/musedev/musedev_integration_tests
 ./start_and_test_docker.sh
 ```
 
-The script first downloads (from DockerHub) the docker images
-and implementing the BigGroum search services.
-The script then runs the two docker containers implementing the BigGroum
-search services and the musedev analyst docker container (you need to
+The script first downloads (from DockerHub) and runs the two docker containers implementing the BigGroum search services and the musedev analyst docker container (you need to
 have access to the musedev/analyst image to run this container). Finally, the
 script runs the test cases for the `version`, `applicable`, `run`, and
 `finalize` commands.
