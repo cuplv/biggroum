@@ -2,7 +2,6 @@
 Store the features in a database
 """
 
-import MySQLdb
 import logging
 from fixrgraph.stat_sig.feat import Feat
 
