@@ -34,7 +34,6 @@ RUN sudo apt-get install -y sbt
 # 4. Python 2
 RUN sudo apt-get install -y python
 RUN sudo apt-get install -y python-pip
-RUN sudo apt-get install -y python-sqlalchemy
 RUN sudo pip install protobuf
 
 # 5. Google protobuffer
@@ -92,8 +91,16 @@ RUN sudo mkdir app \
     && cmake --build . --target install \
     && sudo ldconfig \
     && rm -rf /app
-RUN sudo pip install pygit2
+
 RUN sudo apt-get install time
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN sudo apt-get install -y libmysqlclient-dev python-dev
+RUN sudo pip install sqlalchemy
+RUN sudo pip install mysqlclient
+RUN sudo pip install mysql-python
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
 
 ################################################################################
 # Set up user
@@ -122,7 +129,8 @@ RUN mkdir "$ANDROID_HOME" .android \
   && curl -o sdk.zip $SDK_URL \
   && unzip sdk.zip \
   && rm sdk.zip \
-  && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+  && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses \
+  && touch /home/biggroum/.android/repositories.cfg
 
 # Install Gradle
 RUN wget $GRADLE_URL -O gradle.zip \
@@ -140,6 +148,10 @@ RUN cd android-sdk-linux/tools/bin \
 RUN git clone https://github.com/cuplv/biggroum \
     && cd biggroum \
     && git submodule update --init --recursive
+
+# TODO: remove this line
+# COPY /home/phillip/biggroum/python/fixrgraph/stat_sig/db.py /home/biggroum/biggroum/python/fixrgraph/stat_sig/db.py
+
 
 # Build the graph extractor
 RUN cd biggroum/FixrGraphExtractor/ \
@@ -160,7 +172,6 @@ RUN protoc -I=./biggroum/FixrGraphExtractor/src/main/protobuf --python_out=./big
 
 # Include the project in the PYTHONPATH variable
 ENV PYTHONPATH=/home/biggroum/biggroum/python:$PYTHONPATH
-
 
 USER biggroum
 WORKDIR /home/biggroum
