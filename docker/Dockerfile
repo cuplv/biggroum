@@ -94,13 +94,7 @@ RUN sudo mkdir app \
 
 RUN sudo apt-get install time
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN sudo apt-get install -y libmysqlclient-dev python-dev
 RUN sudo pip install sqlalchemy
-RUN sudo pip install mysqlclient
-RUN sudo pip install mysql-python
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
 
 ################################################################################
 # Set up user
@@ -147,11 +141,8 @@ RUN cd android-sdk-linux/tools/bin \
 # Clone our repositories
 RUN git clone https://github.com/cuplv/biggroum \
     && cd biggroum \
-    && git submodule update --init --recursive
-
-# TODO: remove this line
-# COPY /home/phillip/biggroum/python/fixrgraph/stat_sig/db.py /home/biggroum/biggroum/python/fixrgraph/stat_sig/db.py
-
+    && git submodule update --init --recursive \
+    && git checkout fix_docker
 
 # Build the graph extractor
 RUN cd biggroum/FixrGraphExtractor/ \
