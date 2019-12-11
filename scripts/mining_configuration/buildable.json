@@ -1,0 +1,26 @@
+{
+    "results": [
+        {
+            "_id": "0",
+            "apps": {
+                "bin": {
+                    "apk": [
+                        "/home/phillip/Documents/FDroidDownloader/data/apps/deep.ryd.rydplayer/2.0.5/apk/deep.ryd.rydplayer_55.apk"
+                    ],
+                    "cls": [],
+                    "jar": [],
+                    "src": []
+                }
+            },
+            "builds": [],
+            "dt_committed": 0,
+            "dt_created": 0,
+            "dt_modified": 0,
+            "hash": "2.0.5",
+            "ptype": "",
+            "repo": "deep.ryd.rydplayer",
+            "store": 0,
+            "user": "fdroid"
+        }
+    ]
+}

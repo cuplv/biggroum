@@ -142,10 +142,11 @@ RUN cd android-sdk-linux/tools/bin \
 RUN git clone https://github.com/cuplv/biggroum \
     && cd biggroum \
     && git submodule update --init --recursive \
-    && git checkout develop
+    && git checkout fix_docker
 
 # Build the graph extractor
 RUN cd biggroum/FixrGraphExtractor/ \
+    && git checkout multidex \
     && sbt oneJar \
     && cd ../
 
