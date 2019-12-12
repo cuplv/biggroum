@@ -63,7 +63,7 @@ def generate_repo_list_item(fdroid_project_base_dir):
         metadata = json.load(json_file)
         data["hash"] = metadata["versionName"]
         # user name is containing directory for compatibility
-        data["user_name"] = fdroid_project_base_dir.split(os.sep)[-1]
+        data["user_name"] = fdroid_project_base_dir.split(os.sep)[-2]
         data["repo_name"] = metadata["packageName"]
     return data
 
