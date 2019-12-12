@@ -29,8 +29,9 @@ def generate_repo_list(path,out_path = None, extract_sources=None, limit_number 
         raise Exception("Output directory %s does not exist" % out_path)
     if (not os.path.isdir(path)):
         print("Error: directory \"%s\" does not exist" % path)
-    if (not os.path.exists(os.path.join(out_path,CONFIG_DIR))):
-        os.mkdir(CONFIG_DIR)
+    configuration_directory_path = os.path.join(out_path, CONFIG_DIR)
+    if (not os.path.exists(configuration_directory_path)):
+        os.mkdir(configuration_directory_path)
         
     repo_list = []
     buildable_list = []
