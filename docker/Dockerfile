@@ -173,6 +173,7 @@ RUN cat /etc/passwd
 # Run the tests
 RUN cd biggroum/python/fixrgraph/test \
     && nosetests
+RUN mkdir /home/biggroum/data
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
