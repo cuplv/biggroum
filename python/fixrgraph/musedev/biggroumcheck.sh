@@ -2,7 +2,14 @@
 
 # Use:  In the .muse.toml specify:
 # ```
-# customTools = "https://raw.githubusercontent.com/cuplv/biggroum/master/python/fixrgraph/musedev/biggroumcheck.sh"
+# build          = "gradlew"
+# arguments      = [ "assembleAndroidTest" ]
+# jdk11          = false
+# androidVersion = 28
+# tools          = []
+# customTools    = [
+# "https://raw.githubusercontent.com/cuplv/biggroum/develop/python/fixrgraph/musedev/biggroumcheck.sh"
+# ]
 # ```
 #
 # to invoke the script: ./biggroumcheck.sh <filepath> <commit> <command>
@@ -73,5 +80,5 @@ else
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-python biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
+python $HOME/biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
 exit $?
