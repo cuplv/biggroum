@@ -80,5 +80,5 @@ else
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-python $HOME/biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
+python $HOME/biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /root/biggroumscript_err_log.txt
 exit $?
