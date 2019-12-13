@@ -73,8 +73,8 @@ else
 fi
 
 if [[ -z "${FIXR_SEARCH_ENDPOINT}" ]]; then
-    # DEFAULT ADDRESS FOR THE SERVER --- TO SET UP WHEN WE DEPLOY IT!
-    fixr_search_endpoint="http://localhost:8081/process_muse_data" 1>&2
+    # DEFAULT ADDRESS FOR THE SERVER
+    fixr_search_endpoint="http://3.135.214.26:8081/process_muse_data" 1>&2
 else
     fixr_search_endpoint="${FIXR_SEARCH_ENDPOINT}" 1>&2
 fi
