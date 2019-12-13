@@ -88,7 +88,8 @@ def generate_build_list_item(fdroid_project_base_dir, extract_sources=None):
     data["repo"] = spl[-2]
     data["user"] = spl[-3]
     bin_data = {}
-    apk_paths = [p.split(fdroid_project_base_dir)[1] for p in find_with_extension(fdroid_project_base_dir,".apk")]
+    apk_paths = [p.split(fdroid_project_base_dir)[1][1:]
+                 for p in find_with_extension(fdroid_project_base_dir,".apk")]
     bin_data["apk"] = apk_paths
     bin_data["jar"] = []
     bin_data["src"] = []
