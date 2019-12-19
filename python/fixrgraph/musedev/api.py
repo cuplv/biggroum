@@ -90,6 +90,7 @@ def run(cmd_input):
     """
 
     cmd_input.logger.info("Command: run")
+    cmd_input.logger.info("cmd_input: %s" % json.dumps(cmd_input.json_input))
 
     # TODO: validate input
 
@@ -101,6 +102,7 @@ def run(cmd_input):
        "classpath" : get_none(cmd_input.json_input, "classpath"),
        "files" : get_none(cmd_input.json_input, "files"),
     }
+
     residue = Residue.append_compilation_info(residue,
                                               compilation_info)
 
@@ -128,6 +130,7 @@ def finalize(cmd_input):
     """
 
     cmd_input.logger.info("Command: finalize")
+    cmd_input.logger.info("cmd_input: %s" % json.dumps(cmd_input.json_input))
 
     # TODO: validate input
 
