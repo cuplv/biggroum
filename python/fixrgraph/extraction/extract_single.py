@@ -15,8 +15,14 @@ def findFiles(base_dir, extension):
 
 def find_class_files(base_dir):
     all_class_files = findFiles(base_dir,"class")
+    dirs = set()
+    for cf in all_class_files:
+        spl = cf.split(os.path.sep)
+        ncf = os.path.sep.join(spl[:-1])
+        dirs.add(ncf)
     #TODO: this logic will probably fail on some repos but works for simple things
-    return all_class_files
+    return dirs
+
 
 class BuildInfoClassList:
     def __init__(self, classes, jars):
