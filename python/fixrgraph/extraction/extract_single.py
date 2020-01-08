@@ -17,10 +17,14 @@ def find_class_files(base_dir):
     all_class_files = findFiles(base_dir,"class")
     dirs = set()
     for cf in all_class_files:
-        spl = cf.split(os.path.sep)
-        ncf = os.path.sep.join(spl[:-1])
-        dirs.add(ncf)
-    #TODO: this logic will probably fail on some repos but works for simple things
+        classesdirs = ["classes", "kotlin-classes"]
+        # TODO: hardcoded method to find class directory, this needs to be fixed!
+        # TODO: refactor to use apk file to avoid this
+        for classesdir in classesdirs:
+            if(classesdir in cf):
+                spl = cf.split(os.path.sep + classesdir + os.path.sep)
+                ncf = os.path.join(spl[1],classesdir)
+                dirs.add(ncf)
     return dirs
 
 
