@@ -624,7 +624,8 @@ class RepoProcessor:
                            prov_dir,
                            extractor_jar,
                            build_info,
-                           buildable_repos_path):
+                           buildable_repos_path,
+                           file_filter = None):
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
 
@@ -689,6 +690,12 @@ class RepoProcessor:
                     "-p", apk_full_path,
                     "-w", platforms_path]
 
+            if file_filter is not None:
+                args.append("-q")
+            if isinstance(file_filter, str):
+                args.append(file_filter)
+            elif isinstance(file_filter, list):
+                args.append(":".join(file_filter))
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])

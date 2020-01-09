@@ -49,7 +49,7 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
         cd ${HOME}/biggroumsetup >>setup_log 2>&1 && \
         apt install -y wget python-pip >>setup_log 2>&1 && \
         pip install --quiet nose requests >>setup_log 2>&1 && \
-        wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.0-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
+	wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.1-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
         git clone https://github.com/cuplv/biggroum.git >>setup_log 2>&1 && \
         cd biggroum >>setup_log 2>&1 && \
         git checkout fix_docker >>setup_log 2>&1 && \
