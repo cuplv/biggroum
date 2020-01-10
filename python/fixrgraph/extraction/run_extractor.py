@@ -319,7 +319,7 @@ class RepoProcessor:
         """Call a subprocess.
         """
         from subprocess import PIPE
-        logging.info("Executing %s" % " ".join(args))
+        sys.stderr.write("Executing %s" % " ".join(args))
 
         # Warning: not pipe stdout and use wait - processes will hang
         # Known limitation of Popen

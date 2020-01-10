@@ -228,6 +228,9 @@ def finalize(cmd_input):
         output_json(cmd_input, output)
     except Exception as e:
         cmd_input.logger.error(str(e))
+        import traceback
+        tb = traceback.format_exc()
+        cmd_input.logger.error(tb)
         return 1
     finally:
         shutil.rmtree(graphdir)
