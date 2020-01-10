@@ -191,7 +191,8 @@ def finalize(cmd_input):
                                   zipfiles["graphs"],zipfiles["sources"])
 
         if (req_result.status_code != 200):
-            cmd_input.logger.error("Error invoking the service")
+            cmd_input.logger.error("Error invoking the service:")
+            cmd_input.logger.error("Endpoint: %s" % search_endpoint)
             return 1
 
         response_data = req_result.json()

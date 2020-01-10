@@ -318,14 +318,23 @@ class RepoProcessor:
     def _call_sub(log, repo, args, cwd=None, wait=True):
         """Call a subprocess.
         """
+        from subprocess import PIPE
         logging.info("Executing %s" % " ".join(args))
 
         # Warning: not pipe stdout and use wait - processes will hang
         # Known limitation of Popen
         proc = subprocess.Popen(args, cwd=cwd,
-                                stdout = sys.stderr,
-                                stderr = sys.stderr)
-        proc.wait()
+                                stdout = PIPE,
+                                stderr = PIPE,
+                                universal_newlines=True)
+        # proc.stderr.read()
+        # proc.stdout.read()
+        procout,procerrout = proc.communicate()
+        sys.stderr.write("** Graph Extractor Output **\n")
+        sys.stderr.write(procout)
+        sys.stderr.write("** Graph Extractor Err Output **\n")
+        sys.stderr.write(procerrout)
+        sys.stderr.write("** End Graph Extractor Output")
 
         return_code = proc.returncode
         if (return_code != 0):
@@ -708,8 +717,10 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-
+            import traceback
+            tb = traceback.format_exc(e)
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
+            logging.debug("Traceback:  %s" % tb)
             write_log(log, repo, e.message)
             return None
 
