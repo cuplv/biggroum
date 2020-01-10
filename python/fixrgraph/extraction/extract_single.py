@@ -1,6 +1,7 @@
 import argparse
 import fnmatch
 import os
+import sys
 from fixrgraph.extraction.run_extractor import (
     RepoProcessor,
     RepoErrorLog
@@ -78,7 +79,8 @@ def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None, repo_log
                                          build_info,
                                          path,
                                          filter)
-        break # Only extract one apk file
+        return # Only extract one apk file
+    sys.stderr.write("Error: No apk file found")
 
 
 if __name__ == "__main__":
