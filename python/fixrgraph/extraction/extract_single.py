@@ -80,7 +80,7 @@ def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None, repo_log
                                          path,
                                          filter)
         return # Only extract one apk file
-    sys.stderr.write("Error: No apk file found in directory: %s" % path)
+    sys.stderr.write("Error: No apk file found in directory: %s\n" % path)
 
 
 if __name__ == "__main__":
