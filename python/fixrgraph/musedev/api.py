@@ -200,11 +200,13 @@ def finalize(cmd_input):
         tool_notes = []
         for anomaly in response_data:
 
+            candidateFiles = [j for j in javafiles if (j.endswith(anomaly["filePath"])) and
+                              extract_single.matches_package(j,anomaly["packageName"])]
             # Create a tool note for the anomaly
             tool_note = {
                 "type" : "Anomaly",
                 "message" : anomaly["error"],
-                "file" : anomaly["fileName"],
+                "file" : candidateFiles[0] if len(candidateFiles) > 0 else anomaly["filePath"],
                 "line" : anomaly["line"],
                 "column" : 0,
                 "function" : anomaly["methodName"],

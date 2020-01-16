@@ -7,6 +7,9 @@ from fixrgraph.extraction.run_extractor import (
     RepoErrorLog
 )
 
+def matchesPackage(filename, package):
+    return True
+
 def findFiles(base_dir, extension):
     matches = []
     for root, dirnames, filenames in os.walk(base_dir):
