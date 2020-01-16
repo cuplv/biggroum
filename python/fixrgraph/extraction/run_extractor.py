@@ -639,7 +639,7 @@ class RepoProcessor:
         logging.info("Extracting graphs for repo: " + str(repo))
 
         assert (not build_info is None)
-        
+
         # Base path to the repo
         base_buildable_repo_folder = os.path.join(buildable_repos_path,
                                                   repo[0],
@@ -701,10 +701,19 @@ class RepoProcessor:
 
             if file_filter is not None:
                 args.append("-q")
-            if isinstance(file_filter, str):
-                args.append(file_filter)
-            elif isinstance(file_filter, list):
-                args.append(":".join(file_filter))
+                if isinstance(file_filter, str):
+                    args.append(file_filter)
+                elif isinstance(file_filter, list):
+                    args.append(":".join(file_filter))
+                else:
+                    # file_filter should be either a string or a list
+                    assert False
+
+                # ignore the apk package name when we supply
+                # the source code we are interested in
+                args.append("--package-autodetect")
+                args.append("false")
+
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
