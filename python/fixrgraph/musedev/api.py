@@ -202,11 +202,11 @@ def finalize(cmd_input):
 
             # Create a tool note for the anomaly
             tool_note = {
-                "bugType" : "Anomaly",
+                "type" : "Anomaly",
                 "message" : anomaly["error"],
                 "file" : anomaly["fileName"],
                 "line" : anomaly["line"],
-                "column" : "0",
+                "column" : 0,
                 "function" : anomaly["methodName"],
                 "noteId" : anomaly["id"]
             }
