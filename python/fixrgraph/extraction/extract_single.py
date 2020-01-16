@@ -8,6 +8,7 @@ from fixrgraph.extraction.run_extractor import (
 )
 
 def matchesPackage(filename, package):
+    # TODO: this should distinguish a file without a path by the directory structure and package
     return True
 
 def findFiles(base_dir, extension):
