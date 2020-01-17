@@ -199,9 +199,10 @@ def finalize(cmd_input):
         response_data = req_result.json()
         tool_notes = []
         for anomaly in response_data:
-            sourcefiles = extract_single.findFiles(sourcesdir,"java")
-            candidateFiles = [j for j in sourcefiles if (anomaly["className"] in j) and
-                              extract_single.matches_package(j,anomaly["packageName"])]
+            sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
+            split = anomaly["className"].split(".")
+            simpleClassName = split[-1] if len(split) > 1 else anomaly["className"]
+            candidateFiles = [j.split(cmd_input.filepath)[-1] for j in sourcefiles if (simpleClassName in j) and extract_single.matchesPackage(j,anomaly["packageName"])]
             # Create a tool note for the anomaly
             tool_note = {
                 "type" : "Anomaly",
