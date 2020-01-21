@@ -60,24 +60,6 @@ cd AwesomeApp
 ../trymuse.sh > ../analysis_output.json
 ```
 
-### Configuring a new project
-The config file should be placed in a directory at the root of the project called `.muse` and be named `config`.
-
-The contents of this config file should be as follows:
-```
-build          = "gradlew"
-arguments      = [ "assembleDebug" ]
-jdk11          = false
-androidVersion = 28
-tools          = []
-customTools    = [
-"https://raw.githubusercontent.com/cuplv/biggroum/fix_docker/python/fixrgraph/musedev/biggroumcheck.sh"
-]
-```
-
-If your project generates multiple APK files on build, please specify a build target that generates only one.
-The build target is specified by the `arguments` parameter.
-
 ### Output
 On success of the run, the tool will output a list of anomalies in JSON format.
 ```
@@ -110,16 +92,49 @@ Within the contents, each anomaly is listed.
               "tag": "CustomTool",
               "contents": "/muse/custom-tool-scripts/biggroumcheck.sh"
             },
-            "tnResidue": null
+            "tnResidue": ...
           },
 ```
 
 ## Installing the BigGroum custom tool on your repository
-**TODO:** Document how to write a `.muse.toml` file in a
-repository specifying the use of `biggroumcheck.sh` as a custom tool.
-We should follow the instruction to [configure a
-repository](https://docs.muse.dev/docs/repository-configuration/#inrepooptions)
-from  MuseDev.
+
+The config file should be placed in a directory at the root of the project called `.muse` and be named `config`.  
+In order to run correctly, the `.muse/config` file must be checked into the repository.   
+A typical file structure for an android app is shown below. 
+
+```
+AppName
+├── .muse
+│   └── config
+├── README.md
+├── app
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       ├── test
+│       └── ...
+├── build.gradle
+└── gradlew
+```
+
+The contents of this config file should be as follows:
+```
+build          = "gradlew"
+arguments      = [ "assembleDebug" ]
+jdk11          = false
+androidVersion = 28
+tools          = []
+customTools    = [
+"https://raw.githubusercontent.com/cuplv/biggroum/fix_docker/python/fixrgraph/musedev/biggroumcheck.sh"
+]
+```
+
+If your project generates multiple APK files on build, please specify a build target that generates only one.
+The build target is specified by the `arguments` parameter.  If multiple APK files are generated, our tool 
+will arbitrarily choose one to analyze.
+
+More detail about configuring muse can be found at 
+[configure a repository](https://docs.muse.dev/docs/repository-configuration/#inrepooptions))
 
 
 ## Test Cases for the API
