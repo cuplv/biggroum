@@ -40,10 +40,79 @@ command.
 
 
 In this document we explain:
+- Running Biggroum with the trymuse.sh script
 - How to install the BigGroum custom tool on your repository
 - The test cases we provide for the API
 - How you can test the API on your local machine
 
+## Running Biggroum with Musedev
+The following assumes that you have access to the Musedev docker image and the 
+`trymuse.sh` script.
+
+To try a pre configured project, check out the repository as follows:
+`git clone git@github.com:cuplv/AwesomeApp.git`
+
+Run trymuse by changing to the directory and executing the script.  
+We assume the `trymuse.sh` script has been previously downloaded to 
+the current working directory. 
+```
+cd AwesomeApp
+../trymuse.sh > ../analysis_output.json
+```
+
+### Configuring a new project
+The config file should be placed in a directory at the root of the project called `.muse` and be named `config`.
+
+The contents of this config file should be as follows:
+```
+build          = "gradlew"
+arguments      = [ "assembleDebug" ]
+jdk11          = false
+androidVersion = 28
+tools          = []
+customTools    = [
+"https://raw.githubusercontent.com/cuplv/biggroum/fix_docker/python/fixrgraph/musedev/biggroumcheck.sh"
+]
+```
+
+If your project generates multiple APK files on build, please specify a build target that generates only one.
+The build target is specified by the `arguments` parameter.
+
+### Output
+On success of the run, the tool will output a list of anomalies in JSON format.
+```
+[
+  [
+    {
+      "tag": "CustomTool",
+      "contents": "https://raw.githubusercontent.com/cuplv/biggroum/fix_docker/python/fixrgraph/musedev/biggroumcheck.sh"
+    },
+    {
+      "tag": "ToolSuccess",
+      "contents": [
+```
+
+Within the contents, each anomaly is listed.
+
+```
+          {
+            "tnType": "Anomaly",
+            "tnDesc": "missing method calls",
+            "tnFile": "/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
+            "tnLine": 49,
+            "tnColumn": 0,
+            "tnPatch": ...,
+            "tnCodeLine": ...,
+            "tnProcedure": "showDialog",
+            "tnIdentifier": ...,
+            "tnPhase": "PhaseUnknown",
+            "tnTool": {
+              "tag": "CustomTool",
+              "contents": "/muse/custom-tool-scripts/biggroumcheck.sh"
+            },
+            "tnResidue": null
+          },
+```
 
 ## Installing the BigGroum custom tool on your repository
 **TODO:** Document how to write a `.muse.toml` file in a
