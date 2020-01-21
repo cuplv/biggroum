@@ -75,7 +75,7 @@ fi
 
 if [[ -z "${FIXR_SEARCH_ENDPOINT}" ]]; then
     # DEFAULT ADDRESS FOR THE SERVER
-    fixr_search_endpoint="http://3.135.214.26:8081/process_muse_data" 1>&2
+    fixr_search_endpoint="http://192.12.243.76:8081/process_muse_data" 1>&2
 else
     fixr_search_endpoint="${FIXR_SEARCH_ENDPOINT}" 1>&2
 fi
