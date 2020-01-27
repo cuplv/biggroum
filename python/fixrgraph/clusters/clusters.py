@@ -7,7 +7,7 @@ import string
 
 class Clusters:
 
-    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
+    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} ${REL_FREQ_PARAMS} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
 """
 
     """
@@ -70,7 +70,9 @@ class Clusters:
                  timeout, # timeout to compute the patter for a cluster
                  frequency_cutoff,
                  graphisopath, # path
-                 frequentsubgraph_path):
+                 frequentsubgraph_path,
+                 use_relative_frequency = False,
+                 relative_frequency = 0.1):
         def get_cluster_list(base_cluster_path):
             cluster_path = os.path.join(base_cluster_path, "all_clusters")
             clusters = []
@@ -95,13 +97,20 @@ class Clusters:
             f.write("ALL: %s\n\t\n" % (target_string))
 
             for (cluster,clusterid) in clusters:
+
+                if (not use_relative_frequency):
+                  rel_req_param = ""
+                else:
+                  rel_req_param = "-r %f" % relative_frequency
+
                 params = {"TIMEOUT" : timeout,
                           "FREQUENCY" : frequency_cutoff,
                           "CLUSTER_PATH" : os.path.join(base_cluster_path,
                                                         "all_clusters",
                                                         "cluster_%s" % clusterid),
                           "CLUSTER_ID" : str(clusterid),
-                          "FIXRGRAPHISOBIN" : frequentsubgraph_path}
+                          "FIXRGRAPHISOBIN" : frequentsubgraph_path,
+                          "REL_FREQ_PARAMS" : rel_req_param}
 
                 comp_cmd = string.Template(Clusters.CMD_FOR_MAKE).safe_substitute(params)
                 target_name = "cluster_%s" % clusterid

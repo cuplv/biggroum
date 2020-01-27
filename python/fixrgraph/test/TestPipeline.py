@@ -82,8 +82,8 @@ class TestPipeline(unittest.TestCase):
                     # Workaround
                     acdfg_simple_name = os.path.basename(file_name_path)
                     acdfg_simple_name = acdfg_simple_name.strip()
-                    acdfg_simple_name = acdfg_simple_name.lower()                
-                    
+                    acdfg_simple_name = acdfg_simple_name.lower()
+
                     if not acdfg_simple_name in existing_files:
                         groums_list.append(file_name_path)
                         existing_files.add(acdfg_simple_name)
@@ -185,7 +185,6 @@ class TestPipeline(unittest.TestCase):
                                     "methods_1.txt")
         self.assertTrue(os.path.exists(methods_file))
 
-        # cleanup 
         if DELETE_FILES and os.path.exists(cluster_path):
             shutil.rmtree(cluster_path)
 
@@ -201,32 +200,33 @@ class TestPipeline(unittest.TestCase):
         cluster_path = os.path.join(test_data_path, "clusters_data")
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
-        config = Pipeline.ComputePatternsConfig(groums_path,
+        configs = [Pipeline.ComputePatternsConfig(groums_path,
                                                 cluster_path,
                                                 cluster_file_path,
                                                 10,
                                                 2,
-                                                frequentsubgraphs_path)
+                                                frequentsubgraphs_path)]
 
-        Pipeline.computePatterns(config)
+        for config in configs:
+          Pipeline.computePatterns(config)
 
-        cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
-        created = [os.path.join(cluster_path, "makefile"),
-                   os.path.join(cluster_1_path, "run1.err.out"),
-                   os.path.join(cluster_1_path, "run1.out"),
-                   os.path.join(cluster_1_path, "cluster_1_info.txt"),
-                   os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
-                   os.path.join(cluster_1_path, "pop_1.dot"),
-                   os.path.join(cluster_1_path, "pop_2.dot"),
-                   os.path.join(cluster_1_path, "anom_1.dot")]
+          cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
+          created = [os.path.join(cluster_path, "makefile"),
+                     os.path.join(cluster_1_path, "run1.err.out"),
+                     os.path.join(cluster_1_path, "run1.out"),
+                     os.path.join(cluster_1_path, "cluster_1_info.txt"),
+                     os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
+                     os.path.join(cluster_1_path, "pop_1.dot"),
+                     os.path.join(cluster_1_path, "pop_2.dot"),
+                     os.path.join(cluster_1_path, "anom_1.dot")]
 
-        for c in created:
-            logging.debug("Checking creation of %s..." % c)
-            self.assertTrue(os.path.exists(c))
-            # cleanup
-            if DELETE_FILES:
-                print "Removing..."
-                os.remove(c)
+          for c in created:
+              logging.debug("Checking creation of %s..." % c)
+              self.assertTrue(os.path.exists(c))
+              # cleanup
+              if DELETE_FILES:
+                  print "Removing..."
+                  os.remove(c)
 
     @unittest.skip("skip test_create_html")
     def test_create_html(self):
