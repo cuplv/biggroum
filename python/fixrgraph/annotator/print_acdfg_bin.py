@@ -5,6 +5,7 @@
 Start with building the DOT for the lattice.
 """
 
+import sys
 import logging
 import os
 
@@ -14,8 +15,9 @@ from string import Template
 from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 from fixrgraph.annotator.protobuf.proto_acdfg_bin_pb2 import Lattice
 from collections import deque
+import optparse
 
-# Weird circular dependency
+# Weird circular dependency, to fix
 from fixrsearch.codegen.acdfg_repr import AcdfgRepr
 
 DOT_ACDFGBIN_DOT="""${ID} [shape=box,style=filled,color="${COLOR}",label="${LABEL} ${FREQUENCY} ${POPULARITY}",href="${HREF}"];
@@ -23,7 +25,7 @@ DOT_ACDFGBIN_DOT="""${ID} [shape=box,style=filled,color="${COLOR}",label="${LABE
 
 DOT_ACDFGBIN_DOT="""${ID} [shape=box,style=filled,color="${COLOR}",
 label=<<table>
-<tr><td href="${PROVENANCE_PATH}">${LABEL} ${FREQUENCY} ${POPULARITY}</td></tr>
+<tr><td href="${PROVENANCE_PATH}">${LABEL} ${FREQUENCY} ${POPULARITY} ${RELFREQ}</td></tr>
 <tr><td href="${HREF}">pattern</td></tr>
 </table>>];
 """
@@ -66,7 +68,7 @@ def printNodes(lattice, dot_stream, stats, f_filter, prefix_provenance):
     if not f_filter(acdfgBin):
       continue
 
-    (freq, pop) = stats[acdfgBin.id]
+    (freq, pop, relfreq) = stats[acdfgBin.id]
 
     node_repr = node_template.substitute(
       {"ID" : str(acdfgBin.id),
@@ -74,10 +76,12 @@ def printNodes(lattice, dot_stream, stats, f_filter, prefix_provenance):
        "LABEL" : get_node_label(acdfgBin),
        "FREQUENCY" : freq,
        "POPULARITY" : pop,
+       "RELFREQ" : "%.2f" % relfreq,
        "PROVENANCE_PATH" : html.escape(get_repr_page(acdfgBin, prefix_provenance)),
        "HREF" : "%s.svg" % str(acdfgBin.id),
       })
     dot_stream.write(node_repr)
+
 
 def get_stats(lattice, idToBin, trans_rel):
   """
@@ -92,6 +96,7 @@ def get_stats(lattice, idToBin, trans_rel):
   # Find the top nodes in the lattice
   to_visit = deque(lattice.bins)
   visited = set()
+  total = 0
   while len(to_visit) > 0:
     acdfgBin = to_visit.pop()
 
@@ -105,6 +110,8 @@ def get_stats(lattice, idToBin, trans_rel):
     if all_visited:
       assert not acdfgBin.id in idToStats
 
+      total += get_freq(acdfgBin)
+
       pop = get_freq(acdfgBin)
       while len(successors) > 0:
         nextId = successors.pop()
@@ -115,10 +122,16 @@ def get_stats(lattice, idToBin, trans_rel):
           if a == nextBin.id:
             successors.append(b)
 
-      idToStats[acdfgBin.id] = (get_freq(acdfgBin), pop)
+      idToStats[acdfgBin.id] = [get_freq(acdfgBin), pop, 0]
       visited.add(acdfgBin.id)
     else:
       to_visit.appendleft(acdfgBin)
+
+
+  for acdfgBin in lattice.bins:
+    l = idToStats[acdfgBin.id]
+    relfreq = (acdfgBin.cumulative_frequency * 1.0) / total
+    idToStats[acdfgBin.id] = [get_freq(acdfgBin), acdfgBin.cumulative_frequency, relfreq]
 
   return idToStats
 
@@ -192,6 +205,7 @@ def create_dot_lattice(lattice, dot_stream,
 
 def get_repr_page(acdfgBin, prefix_provenance="./"):
   acdfg_proto = acdfgBin.acdfg_repr
+
   fname = ".".join(["_".join([acdfg_proto.source_info.class_name,
                               acdfg_proto.source_info.method_name]),
                     "html"])
@@ -212,18 +226,27 @@ def main():
   logging.basicConfig(level=logging.DEBUG)
   logger = logging.getLogger(__name__)
 
-  prefix_provenance = "/Users/sergiomover/works/projects/muse/musedev_demo/other/datasets/provenance"
+  p = optparse.OptionParser()
+  p.add_option('-l', '--lattice_file', help="Path to the lattice file to display")
+  p.add_option('-o', '--output_folder', help="Path for the svg to output")
+  p.add_option('-p', '--provenance_path', help="Path to the provenance folder (for cross links)")
+  opts, args = p.parse_args()
 
-  lattice_file_path = "/Users/sergiomover/works/projects/muse/musedev_demo/other/clusters/all_clusters/cluster_31/cluster_31_lattice.bin" # toast
+  if not opts.lattice_file or not os.path.isfile(opts.lattice_file):
+    print("Lattice not provided or not found")
+    sys.exit(1)
+  elif not opts.output_folder or not os.path.isdir(opts.output_folder):
+    print("Output folder not provided")
+    sys.exit(1)
 
-  cluster_id = 31 # toast
-  # cluster_id = 171 # dialog
-  # cluster_id = 675 # fragment transaction, preferences
-  # cluster_id = 567 # db query, db close
-  # cluster_id = 963 # color, only constatns and data flow, unuseful
-  # cluster_id = 1083 # media player
-  # cluster_id = 778 # SQL other stuff
-  lattice_file_path = "/Users/sergiomover/works/projects/muse/musedev_demo/other/clusters/all_clusters/cluster_%s/cluster_%d_lattice.bin" % (cluster_id, cluster_id)
+  # prefix_provenance = "/Users/sergiomover/works/projects/muse/musedev_demo/other/datasets/provenance"
+  if opts.provenance_path:
+    prefix_provenance = opts.provenance_path
+  else:
+    prefix_provenance = ""
+
+  lattice_file_path = opts.lattice_file
+  out_dir = opts.output_folder
 
   # Read lattice
   lattice = Lattice()
@@ -231,14 +254,19 @@ def main():
     lattice.ParseFromString(file_lattice.read())
 
     # Build the dot representation of the lattice
-    with open("out.dot", "wt") as dot_stream:
+    outfile = os.path.join(out_dir, "out.dot")
+    with open(outfile, "wt") as dot_stream:
       create_dot_lattice(lattice, dot_stream, prefix_provenance)
 
     # Create dot for bins
     for acdfgBin in lattice.bins:
-      with open("%s.dot" % str(acdfgBin.id), "wt") as dot_stream:
+      with open(os.path.join(out_dir, "%s.dot" % str(acdfgBin.id)), "wt") as dot_stream:
         create_dot_acdfg_bin(acdfgBin, dot_stream)
 
+
+
+    print("""Run this command to generate all the SVGs:
+for f in `ls -c1 *.dot`; do name="${f%.*}"; dot -Tsvg -o${name}.svg $f; done""")
 
 
 if __name__ == '__main__':
