@@ -59,7 +59,7 @@ def run_extraction(config):
     pattern_config = None
     itemset_config = None
     cluster_path = None
-    cluster_file_path = None    
+    cluster_file_path = None
 
     out_path = os.path.join(config.get("extraction", "out_path"))
     groums_path = os.path.join(out_path, "graphs")
@@ -99,12 +99,24 @@ def run_extraction(config):
                                                     cluster_file_path)
 
     if (not disable_pattern):
+        try:
+            use_relative_frequency = config.getboolean("pattern", "use_relative_frequency")
+        except:
+            use_relative_frequency = False
+
+        try:
+            relative_frequency = config.getfloat("pattern", "relative_frequency")
+        except:
+            relative_frequency = 0.1
+
         pattern_config = Pipeline.ComputePatternsConfig(groums_path,
                                                         cluster_path,
                                                         cluster_file_path,
                                                         config.get("pattern", "timeout"),
                                                         config.get("pattern", "frequency_cutoff"),
-                                                        frequentsubgraphs_path)
+                                                        frequentsubgraphs_path,
+                                                        use_relative_frequency,
+                                                        relative_frequency)
 
     # Extract the graphs
     if (not disable_extraction):

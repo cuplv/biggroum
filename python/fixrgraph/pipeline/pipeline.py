@@ -182,13 +182,19 @@ class Pipeline(object):
                      cluster_file,
                      timeout,
                      frequency_cutoff,
-                     frequentsubgraphs_path):
+                     frequentsubgraphs_path,
+                     use_relative_frequency = False,
+                     relative_frequency = 0.1):
             self.groums_path = groums_path
             self.cluster_path = cluster_path
             self.cluster_file = cluster_file
             self.timeout = timeout
             self.frequency_cutoff = frequency_cutoff
             self.frequentsubgraphs_path = frequentsubgraphs_path
+            self.use_relative_frequency = use_relative_frequency
+
+            assert 0 <= relative_frequency and relative_frequency <= 1
+            self.relative_frequency = relative_frequency
 
     """
     Run the computation of the of the cluster using make
@@ -202,7 +208,9 @@ class Pipeline(object):
                           config.timeout,
                           config.frequency_cutoff,
                           config.groums_path,
-                          config.frequentsubgraphs_path)
+                          config.frequentsubgraphs_path,
+                          config.use_relative_frequency,
+                          config.relative_frequency)
 
         # Run make
         args = ["make", "-f", makefile_path]
@@ -250,10 +258,10 @@ class Pipeline(object):
             for dotfile in os.listdir(html_files_path):
                 if not dotfile.endswith(".dot"):
                     continue
-                    
+
                 basename = os.path.basename(dotfile)
                 pngfile = "%s.png" % basename[:-4]
-                
+
                 args = ["dot",
                         "-Tpng",
                         "-o%s" % pngfile,

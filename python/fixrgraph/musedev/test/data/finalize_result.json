@@ -39,19 +39,19 @@
   "toolNotes": [
     {
       "function": "showDialog",
-      "column": "0",
+      "column": 0,
       "line": 47,
-      "file": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
-      "bugType": "Anomaly",
+      "file": "/AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
+      "type": "Anomaly",
       "message": "missing method calls",
       "noteId": 1
     },
     {
       "function": "showDialog",
-      "column": "0",
+      "column": 0,
       "line": 47,
-      "file": "[MainActivity.java](https://github.com/cuplv/AwesomeApp/blob/04f68b69a6f9fa254661b481a757fa1c834b52e1/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java)",
-      "bugType": "Anomaly",
+      "file": "/AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
+      "type": "Anomaly",
       "message": "missing method calls",
       "noteId": 2
     }

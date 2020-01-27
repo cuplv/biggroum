@@ -328,6 +328,7 @@ class TestResidue(unittest.TestCase):
 class TestBash(unittest.TestCase):
     SCRIPTPATH = "biggroumcheck.sh"
 
+    @unittest.skip("Skip, this must be fixed according to issue #64")
     def test_bash(self):
         previous = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         exec_file = os.path.join(previous, TestBash.SCRIPTPATH)
