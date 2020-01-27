@@ -318,14 +318,23 @@ class RepoProcessor:
     def _call_sub(log, repo, args, cwd=None, wait=True):
         """Call a subprocess.
         """
-        logging.info("Executing %s" % " ".join(args))
+        from subprocess import PIPE
+        sys.stderr.write("Executing %s" % " ".join(args))
 
         # Warning: not pipe stdout and use wait - processes will hang
         # Known limitation of Popen
         proc = subprocess.Popen(args, cwd=cwd,
-                                stdout = sys.stderr,
-                                stderr = sys.stderr)
-        proc.wait()
+                                stdout = PIPE,
+                                stderr = PIPE,
+                                universal_newlines=True)
+        # proc.stderr.read()
+        # proc.stdout.read()
+        procout,procerrout = proc.communicate()
+        sys.stderr.write("** Graph Extractor Output **\n")
+        sys.stderr.write(procout)
+        sys.stderr.write("** Graph Extractor Err Output **\n")
+        sys.stderr.write(procerrout)
+        sys.stderr.write("** End Graph Extractor Output")
 
         return_code = proc.returncode
         if (return_code != 0):
@@ -624,12 +633,13 @@ class RepoProcessor:
                            prov_dir,
                            extractor_jar,
                            build_info,
-                           buildable_repos_path):
+                           buildable_repos_path,
+                           file_filter = None):
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
 
         assert (not build_info is None)
-        
+
         # Base path to the repo
         base_buildable_repo_folder = os.path.join(buildable_repos_path,
                                                   repo[0],
@@ -689,6 +699,21 @@ class RepoProcessor:
                     "-p", apk_full_path,
                     "-w", platforms_path]
 
+            if file_filter is not None:
+                args.append("-q")
+                if isinstance(file_filter, str):
+                    args.append(file_filter)
+                elif isinstance(file_filter, list):
+                    args.append(":".join(file_filter))
+                else:
+                    # file_filter should be either a string or a list
+                    assert False
+
+                # ignore the apk package name when we supply
+                # the source code we are interested in
+                args.append("--package-autodetect")
+                args.append("false")
+
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
@@ -701,8 +726,10 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-
+            import traceback
+            tb = traceback.format_exc(e)
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
+            logging.debug("Traceback:  %s" % tb)
             write_log(log, repo, e.message)
             return None
 

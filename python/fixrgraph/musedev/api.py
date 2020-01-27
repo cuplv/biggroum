@@ -90,6 +90,7 @@ def run(cmd_input):
     """
 
     cmd_input.logger.info("Command: run")
+    cmd_input.logger.info("cmd_input: %s" % json.dumps(cmd_input.json_input))
 
     # TODO: validate input
 
@@ -101,6 +102,7 @@ def run(cmd_input):
        "classpath" : get_none(cmd_input.json_input, "classpath"),
        "files" : get_none(cmd_input.json_input, "files"),
     }
+
     residue = Residue.append_compilation_info(residue,
                                               compilation_info)
 
@@ -128,6 +130,7 @@ def finalize(cmd_input):
     """
 
     cmd_input.logger.info("Command: finalize")
+    cmd_input.logger.info("cmd_input: %s" % json.dumps(cmd_input.json_input))
 
     # TODO: validate input
 
@@ -154,7 +157,14 @@ def finalize(cmd_input):
 
         # To call directly, uncomment the following lines
         # TODO: get github org and repo name
-        extract_single.extract_single_class_dir(["notset","notset",
+        # extract_single.extract_single_class_dir(["notset","notset",
+        #                                          cmd_input.commit],
+        #                                         graphdir,
+        #                                         extractor_jar_path,
+        #                                         cmd_input.filepath,
+        #                                         javafiles,
+        #                                         None)
+        extract_single.extract_single_apk(["notset","notset",
                                                  cmd_input.commit],
                                                 graphdir,
                                                 extractor_jar_path,
@@ -181,20 +191,25 @@ def finalize(cmd_input):
                                   zipfiles["graphs"],zipfiles["sources"])
 
         if (req_result.status_code != 200):
-            cmd_input.logger.error("Error invoking the service")
+            cmd_input.logger.error("Error invoking the service:")
+            cmd_input.logger.error("Endpoint: %s" % search_endpoint)
+            cmd_input.logger.error("Status Code: %i" % req_result.status_code)
             return 1
 
         response_data = req_result.json()
         tool_notes = []
         for anomaly in response_data:
-
+            sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
+            split = anomaly["className"].split(".")
+            simpleClassName = split[-1] if len(split) > 1 else anomaly["className"]
+            candidateFiles = [j.split(cmd_input.filepath)[-1] for j in sourcefiles if (simpleClassName in j) and extract_single.matchesPackage(j,anomaly["packageName"])]
             # Create a tool note for the anomaly
             tool_note = {
-                "bugType" : "Anomaly",
+                "type" : "Anomaly",
                 "message" : anomaly["error"],
-                "file" : anomaly["fileName"],
+                "file" : candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File",
                 "line" : anomaly["line"],
-                "column" : "0",
+                "column" : 0,
                 "function" : anomaly["methodName"],
                 "noteId" : anomaly["id"]
             }
@@ -216,6 +231,9 @@ def finalize(cmd_input):
         output_json(cmd_input, output)
     except Exception as e:
         cmd_input.logger.error(str(e))
+        import traceback
+        tb = traceback.format_exc()
+        cmd_input.logger.error(tb)
         return 1
     finally:
         shutil.rmtree(graphdir)

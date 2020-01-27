@@ -2,7 +2,14 @@
 
 # Use:  In the .muse.toml specify:
 # ```
-# customTools = "https://raw.githubusercontent.com/cuplv/biggroum/master/python/fixrgraph/musedev/biggroumcheck.sh"
+# build          = "gradlew"
+# arguments      = [ "assembleAndroidTest" ]
+# jdk11          = false
+# androidVersion = 28
+# tools          = []
+# customTools    = [
+# "https://raw.githubusercontent.com/cuplv/biggroum/develop/python/fixrgraph/musedev/biggroumcheck.sh"
+# ]
 # ```
 #
 # to invoke the script: ./biggroumcheck.sh <filepath> <commit> <command>
@@ -42,10 +49,11 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
         cd ${HOME}/biggroumsetup >>setup_log 2>&1 && \
         apt install -y wget python-pip >>setup_log 2>&1 && \
         pip install --quiet nose requests >>setup_log 2>&1 && \
-        wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.0-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
+	wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.2-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
+	wget https://github.com/cuplv/ApkInfo/releases/download/0.11/apkinfo_2.12-0.11-one-jar.jar >>setup_log 2>&1 && \
         git clone https://github.com/cuplv/biggroum.git >>setup_log 2>&1 && \
         cd biggroum >>setup_log 2>&1 && \
-        git checkout musedev_hackaton >>setup_log 2>&1 && \
+        git checkout fix_docker >>setup_log 2>&1 && \
         git pull >>setup_log 2>&1 && \
         echo "success" >> /root/biggroumsetup_completed 2>&1
 
@@ -66,12 +74,14 @@ else
 fi
 
 if [[ -z "${FIXR_SEARCH_ENDPOINT}" ]]; then
-    # DEFAULT ADDRESS FOR THE SERVER --- TO SET UP WHEN WE DEPLOY IT!
-    fixr_search_endpoint="http://localhost:8081/process_muse_data" 1>&2
+    # DEFAULT ADDRESS FOR THE SERVER
+    fixr_search_endpoint="http://192.12.243.76:8081/process_muse_data" 1>&2
 else
     fixr_search_endpoint="${FIXR_SEARCH_ENDPOINT}" 1>&2
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-python biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2> /dev/stderr
+
+echo "biggroumcheck.sh command: ${cmd}" >> /root/biggroumscript_err_log.txt
+python $HOME/biggroumsetup/biggroum/python/fixrgraph/musedev/biggroumscript.py "${dir}" "${commit}" "${cmd}" "${graph_extractor_path}" "${fixr_search_endpoint}" < /dev/stdin 1> /dev/stdout 2>> /root/biggroumscript_err_log.txt
 exit $?

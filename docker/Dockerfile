@@ -95,6 +95,7 @@ RUN sudo mkdir app \
 RUN sudo apt-get install time
 
 RUN sudo pip install sqlalchemy
+RUN sudo apt install -y graphviz
 
 ################################################################################
 # Set up user
@@ -141,11 +142,11 @@ RUN cd android-sdk-linux/tools/bin \
 # Clone our repositories
 RUN git clone https://github.com/cuplv/biggroum \
     && cd biggroum \
-    && git submodule update --init --recursive \
-    && git checkout develop
+    && git submodule update --init --recursive
 
 # Build the graph extractor
 RUN cd biggroum/FixrGraphExtractor/ \
+    && git checkout multidex \
     && sbt oneJar \
     && cd ../
 
@@ -169,9 +170,16 @@ WORKDIR /home/biggroum
 
 RUN cat /etc/passwd
 
+RUN cd biggroum \
+    && git checkout fix_docker && git pull\
+    && cd FixrGraphExtractor \
+    && git checkout multidex && git pull \
+    && cd ../../
+
 # Run the tests
 RUN cd biggroum/python/fixrgraph/test \
     && nosetests
+RUN mkdir /home/biggroum/data
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
