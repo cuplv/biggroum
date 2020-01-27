@@ -201,26 +201,36 @@ class TestPipeline(unittest.TestCase):
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
         configs = [Pipeline.ComputePatternsConfig(groums_path,
-                                                cluster_path,
-                                                cluster_file_path,
-                                                10,
-                                                2,
-                                                frequentsubgraphs_path)]
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  True,
+                                                  0.1)]
 
-        for config in configs:
+        cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
+        created = [os.path.join(cluster_path, "makefile"),
+                   os.path.join(cluster_1_path, "run1.err.out"),
+                   os.path.join(cluster_1_path, "run1.out"),
+                   os.path.join(cluster_1_path, "cluster_1_info.txt"),
+                   os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
+                   os.path.join(cluster_1_path, "pop_1.dot"),
+                   os.path.join(cluster_1_path, "pop_2.dot")]
+
+        results = [[os.path.join(cluster_1_path, "anom_1.dot")] + created,
+                   [os.path.join(cluster_1_path, "pop_3.dot")] + created]
+
+        for config, res in zip(configs, results):
           Pipeline.computePatterns(config)
 
-          cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
-          created = [os.path.join(cluster_path, "makefile"),
-                     os.path.join(cluster_1_path, "run1.err.out"),
-                     os.path.join(cluster_1_path, "run1.out"),
-                     os.path.join(cluster_1_path, "cluster_1_info.txt"),
-                     os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
-                     os.path.join(cluster_1_path, "pop_1.dot"),
-                     os.path.join(cluster_1_path, "pop_2.dot"),
-                     os.path.join(cluster_1_path, "anom_1.dot")]
-
-          for c in created:
+          for c in res:
               logging.debug("Checking creation of %s..." % c)
               self.assertTrue(os.path.exists(c))
               # cleanup
