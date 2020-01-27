@@ -192,6 +192,11 @@ The minimum frequency (number of groums) that a pattern must have to be consider
 
 - binary: the path to the frequent subgraph computation binary (optional if using the one in FixrGraphIso path relative to the repository)
 
+- use_relative_frequency: true if using the relative frequency (cumulative) to select the popullar patterns
+
+- relative_frequency: threshold of relatve frequency for a pattern to be popular (must be between 0 and 1)
+
+
 #### Setting for the `[html]` section
 
 - disabled: if True disable the computation of the html representation of the patterns
