@@ -3,6 +3,7 @@
 
 from fixrgraph.extraction.run_extractor import RepoProcessor
 from fixrgraph.clusters.clusters import Clusters
+from fixrgraph.annotator.print_acdfg_bin import print_clusters
 
 import logging
 import os
@@ -228,11 +229,13 @@ class Pipeline(object):
                      cluster_path,
                      cluster_count,
                      gather_results_path,
-                     gen_png=False):
+                     gen_png=False,
+                     prefix_provenance=""):
             self.cluster_path = cluster_path
             self.cluster_count = cluster_count
             self.gather_results_path = gather_results_path
             self.gen_png = gen_png
+            self.prefix_provenance = prefix_provenance
 
     @staticmethod
     def computeHtml(config):
@@ -254,7 +257,6 @@ class Pipeline(object):
             raise Exception("Error computing the html pages")
 
         if config.gen_png:
-
             for dotfile in os.listdir(html_files_path):
                 if not dotfile.endswith(".dot"):
                     continue
@@ -273,6 +275,11 @@ class Pipeline(object):
                     logging.warning("Error computing the html pages "
                                     "for %s" % basename)
 
+        print_clusters(config.cluster_path,
+                       config.cluster_count,
+                       html_files_path,
+                       True,
+                       config.prefix_provenance)
 
 
 

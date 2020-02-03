@@ -16,9 +16,13 @@ from fixrgraph.annotator.protobuf.proto_acdfg_pb2 import Acdfg
 from fixrgraph.annotator.protobuf.proto_acdfg_bin_pb2 import Lattice
 from collections import deque
 import optparse
+import subprocess
 
 # Weird circular dependency, to fix
 from fixrsearch.codegen.acdfg_repr import AcdfgRepr
+
+
+
 
 DOT_ACDFGBIN_DOT="""${ID} [shape=box,style=filled,color="${COLOR}",label="${LABEL} ${FREQUENCY} ${POPULARITY}",href="${HREF}"];
 """
@@ -29,6 +33,24 @@ label=<<table>
 <tr><td href="${HREF}">pattern</td></tr>
 </table>>];
 """
+
+def _call_sub(args, cwd=None, env=None):
+  # do not pipe stdout - processes will hang
+  # we can pipe another stream
+  if (env is None):
+    proc = subprocess.Popen(args, cwd=cwd)
+  else:
+    proc = subprocess.Popen(args, cwd=cwd, env=env)
+  proc.wait()
+
+  return_code = proc.returncode
+  if (return_code != 0):
+    err_msg = "Error code is %s\nCommand line is: %s\n%s" % (str(return_code),
+                                                                 str(" ".join(args)),"\n")
+    logging.error("Error executing: %s\n" % (err_msg))
+    return False
+  return True
+
 
 def check_eq(rel, non_trans):
   closure = set(non_trans)
@@ -222,6 +244,79 @@ def create_dot_acdfg_bin(acdfgBin, dot_stream, prefix_provenance=""):
   acdfg_repr = AcdfgRepr(acdfg_proto)
   acdfg_repr.print_dot(dot_stream, filter_set = {})
 
+def create_svgs(svgs_file_path):
+  for dotfile in os.listdir(svgs_file_path):
+    if not dotfile.endswith(".dot"):
+      continue
+
+    basename = os.path.basename(dotfile)
+    svgfile = "%s.svg" % basename[:-4]
+    args = ["dot", "-Tsvg", "-o%s" % svgfile, basename]
+
+    success = _call_sub(args, svgs_file_path)
+
+    if not success:
+      logging.warning("Error computing the svg images "
+                      "for %s" % basename)
+
+
+def print_lattices(lattice_file_path, out_dir, prefix_provenance):
+  # Read lattice
+  lattice = Lattice()
+  with open(lattice_file_path,'rb') as file_lattice:
+    lattice.ParseFromString(file_lattice.read())
+
+    # Build the dot representation of the lattice
+    outfile = os.path.join(out_dir, "out.dot")
+    with open(outfile, "wt") as dot_stream:
+      create_dot_lattice(lattice, dot_stream, prefix_provenance)
+
+    # Create dot for bins
+    for acdfgBin in lattice.bins:
+      with open(os.path.join(out_dir, "%s.dot" % str(acdfgBin.id)), "wt") as dot_stream:
+        create_dot_acdfg_bin(acdfgBin, dot_stream)
+
+
+def print_clusters(cluster_path,
+                   cluster_count, # all_clusters path
+                   html_files_path,
+                   gen_svgs=True,
+                   prefix_provenance=None):
+
+  logger = logging.getLogger(__name__)
+
+  all_lattices_svgs=[]
+
+  # Goes through the lattice files
+  for cluster_index in range(int(cluster_count)):
+    cluster_index = cluster_index + 1
+    cluster_index_path = os.path.join(cluster_path, "all_clusters", "cluster_%d" % cluster_index)
+
+    if (not os.path.isdir(cluster_index_path)):
+      logger.debug("%s path does not exists" % cluster_index_path)
+
+    lattice_path = os.path.join(cluster_index_path,
+                                "cluster_%d_lattice.bin" % cluster_index)
+    if (not os.path.isfile(lattice_path)):
+      # This is ok, the lattice may have not been computed due to to
+      logger.debug("Lattice %s does not exists" % lattice_path)
+
+    out_dir = os.path.join(html_files_path, "cluster_%d" % cluster_index)
+    all_lattices_svgs.append(os.path.join(out_dir, "out.svg"))
+
+    try:
+      os.mkdir(out_dir)
+
+      print_lattices(lattice_path,
+                     out_dir,
+                     prefix_provenance)
+      create_svgs(out_dir)
+    except OSError as error:
+      logger.debug("Error creating the output directory: %s" % out_dir)
+    except Exception:
+      logger.debug("Error creating the lattices for cluster:"
+                   "%d" % cluster_index)
+
 def main():
   logging.basicConfig(level=logging.DEBUG)
   logger = logging.getLogger(__name__)
@@ -248,25 +343,8 @@ def main():
   lattice_file_path = opts.lattice_file
   out_dir = opts.output_folder
 
-  # Read lattice
-  lattice = Lattice()
-  with open(lattice_file_path,'rb') as file_lattice:
-    lattice.ParseFromString(file_lattice.read())
-
-    # Build the dot representation of the lattice
-    outfile = os.path.join(out_dir, "out.dot")
-    with open(outfile, "wt") as dot_stream:
-      create_dot_lattice(lattice, dot_stream, prefix_provenance)
-
-    # Create dot for bins
-    for acdfgBin in lattice.bins:
-      with open(os.path.join(out_dir, "%s.dot" % str(acdfgBin.id)), "wt") as dot_stream:
-        create_dot_acdfg_bin(acdfgBin, dot_stream)
-
-
-
-    print("""Run this command to generate all the SVGs:
-for f in `ls -c1 *.dot`; do name="${f%.*}"; dot -Tsvg -o${name}.svg $f; done""")
+  print_lattices(lattice_file_path, out_dir, prefix_provenance)
+  create_svgs(out_dir)
 
 
 if __name__ == '__main__':
