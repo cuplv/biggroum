@@ -159,10 +159,12 @@ def run_extraction(config):
             except: 
                 genpng = False
 
+            provenance_path = os.path.join(out_path,"provenance")
             html_config = Pipeline.ComputeHtmlConfig(cluster_path,
                                                      max_cluster,
                                                      gather_results_path,
-                                                     genpng)
+                                                     genpng,
+                                                     provenance_path)
             Pipeline.computeHtml(html_config)
 
         else:
