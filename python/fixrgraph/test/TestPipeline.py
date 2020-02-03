@@ -238,7 +238,6 @@ class TestPipeline(unittest.TestCase):
                   print "Removing..."
                   os.remove(c)
 
-    @unittest.skip("skip test_create_html")
     def test_create_html(self):
         # Set the paths
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
@@ -259,9 +258,15 @@ class TestPipeline(unittest.TestCase):
                    "cluster_1_anom_1.dot",
                    "cluster_1_pop_1.dot",
                    "cluster_1_pop_2.dot",
-                   "index.html"]
-        created = [os.path.join(html_path, s) for s in created]
+                   "index.html",
+                   os.path.join("cluster_1","0.dot"),
+                   os.path.join("cluster_1","1.dot"),
+                   os.path.join("cluster_1","2.dot"),
+                   os.path.join("cluster_1","3.dot"),
+                   os.path.join("cluster_1","4.dot"),
+                   os.path.join("cluster_1","out.dot")]
 
+        created = [os.path.join(html_path, s) for s in created]
 
         for c in created:
             self.assertTrue(os.path.exists(c))
