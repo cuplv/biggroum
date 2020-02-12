@@ -204,10 +204,13 @@ def finalize(cmd_input):
             simpleClassName = split[-1] if len(split) > 1 else anomaly["className"]
             candidateFiles = [j.split(cmd_input.filepath)[-1] for j in sourcefiles if (simpleClassName in j) and extract_single.matchesPackage(j,anomaly["packageName"])]
             # Create a tool note for the anomaly
+            candidate_file = candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File"
+            if len(candidate_file) > 0 and candidate_file[0] == "/":
+                candidate_file = candidate_file[1:]
             tool_note = {
                 "type" : "Anomaly",
                 "message" : anomaly["error"],
-                "file" : candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File",
+                "file" : candidate_file,
                 "line" : anomaly["line"],
                 "column" : 0,
                 "function" : anomaly["methodName"],
