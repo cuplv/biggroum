@@ -115,6 +115,13 @@ def run(cmd_input):
 
     return 0
 
+def java_code_from_json(json, key):
+    if key in json:
+        return "```java\n%s\n```" % str(json[key])
+    else:
+        return str("")
+
+
 def finalize(cmd_input):
     """ Input:
     {
@@ -207,9 +214,15 @@ def finalize(cmd_input):
             candidate_file = candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File"
             if len(candidate_file) > 0 and candidate_file[0] == "/":
                 candidate_file = candidate_file[1:]
+
+            message = anomaly["error"] + "\n\nPattern\n---------------------\n" + \
+                      java_code_from_json(anomaly, "pattern") + \
+                      "\n\nPatch\n---------------------\n" + \
+                      java_code_from_json(anomaly, "patch")
+
             tool_note = {
                 "type" : "Anomaly",
-                "message" : anomaly["error"],
+                "message" : message,
                 "file" : candidate_file,
                 "line" : anomaly["line"],
                 "column" : 0,
