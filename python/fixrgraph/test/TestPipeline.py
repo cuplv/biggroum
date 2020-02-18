@@ -220,6 +220,7 @@ class TestPipeline(unittest.TestCase):
                                                   frequentsubgraphs_path,
                                                   False,
                                                   0.1,
+                                                  False,
                                                   False),
                    Pipeline.ComputePatternsConfig(groums_path,
                                                   cluster_path,
@@ -229,6 +230,17 @@ class TestPipeline(unittest.TestCase):
                                                   frequentsubgraphs_path,
                                                   False,
                                                   0.1,
+                                                  True,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  False,
+                                                  0.1,
+                                                  True,
                                                   True),
                    Pipeline.ComputePatternsConfig(groums_path,
                                                   cluster_path,
@@ -238,6 +250,7 @@ class TestPipeline(unittest.TestCase):
                                                   frequentsubgraphs_path,
                                                   True,
                                                   0.1,
+                                                  False,
                                                   False),
                    Pipeline.ComputePatternsConfig(groums_path,
                                                   cluster_path,
@@ -247,7 +260,18 @@ class TestPipeline(unittest.TestCase):
                                                   frequentsubgraphs_path,
                                                   True,
                                                   0.1,
-                                                  False)]
+                                                  False,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  True,
+                                                  0.1,
+                                                  False,
+                                                  True)]
 
         cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
         created = [os.path.join(cluster_path, "makefile"),
@@ -259,14 +283,11 @@ class TestPipeline(unittest.TestCase):
                    os.path.join(cluster_1_path, "pop_2.dot"),
                    os.path.join(cluster_1_path, "all_acdfg_bin.txt")]
 
-        results = [[os.path.join(cluster_1_path, "anom_1.dot")] + created,
-                   [os.path.join(cluster_1_path, "anom_1.dot")] + created,
-                   [os.path.join(cluster_1_path, "pop_3.dot"),
-                    os.path.join(cluster_1_path, "pop_4.dot"),
-                    os.path.join(cluster_1_path, "pop_5.dot")] + created,
-                   [os.path.join(cluster_1_path, "pop_3.dot"),
-                    os.path.join(cluster_1_path, "pop_4.dot"),
-                    os.path.join(cluster_1_path, "pop_5.dot")] + created]
+        r0 = [os.path.join(cluster_1_path, "anom_1.dot")] + created
+        r1 = [os.path.join(cluster_1_path, "pop_3.dot"),
+              os.path.join(cluster_1_path, "pop_4.dot"),
+              os.path.join(cluster_1_path, "pop_5.dot")] + created
+        results = [r0,r0,r0, r1,r1,r1]
 
         for config, res in zip(configs, results):
             Pipeline.computePatterns(config)
