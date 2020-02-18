@@ -294,12 +294,14 @@ def print_clusters(cluster_path,
 
     if (not os.path.isdir(cluster_index_path)):
       logger.debug("%s path does not exists" % cluster_index_path)
+      continue
 
     lattice_path = os.path.join(cluster_index_path,
                                 "cluster_%d_lattice.bin" % cluster_index)
     if (not os.path.isfile(lattice_path)):
       # This is ok, the lattice may have not been computed due to to
       logger.debug("Lattice %s does not exists" % lattice_path)
+      continue
 
     out_dir = os.path.join(html_files_path, "cluster_%d" % cluster_index)
     all_lattices_svgs.append(os.path.join(out_dir, "out.svg"))
