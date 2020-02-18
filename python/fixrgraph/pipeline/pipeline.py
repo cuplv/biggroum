@@ -190,7 +190,8 @@ class Pipeline(object):
                      frequency_cutoff,
                      frequentsubgraphs_path,
                      use_relative_frequency = False,
-                     relative_frequency = 0.1):
+                     relative_frequency = 0.1,
+                     is_anytime = False):
             self.groums_path = groums_path
             self.cluster_path = cluster_path
             self.cluster_file = cluster_file
@@ -201,6 +202,7 @@ class Pipeline(object):
 
             assert 0 <= relative_frequency and relative_frequency <= 1
             self.relative_frequency = relative_frequency
+            self.is_anytime = is_anytime
 
     """
     Run the computation of the of the cluster using make
@@ -215,7 +217,8 @@ class Pipeline(object):
                           config.groums_path,
                           config.frequentsubgraphs_path,
                           config.use_relative_frequency,
-                          config.relative_frequency)
+                          config.relative_frequency,
+                          config.is_anytime)
 
         # Run make
         args = ["make", "-f", makefile_path]

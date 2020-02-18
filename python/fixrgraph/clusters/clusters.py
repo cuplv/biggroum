@@ -8,7 +8,7 @@ import string
 class Clusters:
 
     CMD_BUILD_ACDFG_LIST="""find ${CLUSTER_PATH} -name "*acdfg.bin" > ${ACDFG_LIST_FILE}"""
-    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} ${REL_FREQ_PARAMS} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin -i ${ACDFG_LIST_FILE} > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
+    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} ${REL_FREQ_PARAMS} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${IS_ANYTIME} -i ${ACDFG_LIST_FILE} > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
 """
 
 
@@ -74,7 +74,8 @@ class Clusters:
                  graphisopath, # path
                  frequentsubgraph_path,
                  use_relative_frequency = False,
-                 relative_frequency = 0.1):
+                 relative_frequency = 0.1,
+                 is_anytime = False):
         def get_cluster_list(base_cluster_path):
             cluster_path = os.path.join(base_cluster_path, "all_clusters")
             clusters = []
@@ -111,6 +112,11 @@ class Clusters:
                 acdfg_list_file = os.path.join(cluster_path,
                                                "all_acdfg_bin.txt")
 
+                if is_anytime:
+                    is_anytime_params = "-a -s"
+                else:
+                    is_anytime_params = ""
+
                 acdfg_params = {"CLUSTER_PATH" : cluster_path,
                                 "ACDFG_LIST_FILE" : acdfg_list_file}
                 params = {"TIMEOUT" : timeout,
@@ -119,7 +125,8 @@ class Clusters:
                           "ACDFG_LIST_FILE" : acdfg_list_file,
                           "CLUSTER_ID" : str(clusterid),
                           "FIXRGRAPHISOBIN" : frequentsubgraph_path,
-                          "REL_FREQ_PARAMS" : rel_req_param}
+                          "REL_FREQ_PARAMS" : rel_req_param,
+                          "IS_ANYTIME" : is_anytime_params}
 
                 acdfg_list_cmd = string.Template(Clusters.CMD_BUILD_ACDFG_LIST).safe_substitute(acdfg_params)
                 comp_cmd = string.Template(Clusters.CMD_FOR_MAKE).safe_substitute(params)
