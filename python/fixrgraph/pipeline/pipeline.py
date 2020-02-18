@@ -5,6 +5,7 @@ from fixrgraph.extraction.run_extractor import RepoProcessor
 from fixrgraph.clusters.clusters import Clusters
 from fixrgraph.annotator.print_acdfg_bin import print_clusters
 
+import re
 import logging
 import os
 import subprocess
@@ -16,6 +17,10 @@ graph extraction to the bigglue pipeline.
 """
 
 class Pipeline(object):
+    # Pipeline constants --- to be used for all the constants
+    # in the extraction process.
+    LATTICE_LIST="lattice_list.txt"
+    PATTERN_DUPLICATES="duplicates.txt"
 
     """ Utility method used to call an external process
     """
@@ -202,7 +207,6 @@ class Pipeline(object):
     """
     @staticmethod
     def computePatterns(config):
-
         # Generate the makefile
         makefile_path = os.path.join(config.cluster_path, "makefile")
         Clusters.gen_make(config.cluster_path,
@@ -217,8 +221,54 @@ class Pipeline(object):
         args = ["make", "-f", makefile_path]
         success = Pipeline._call_sub(args)
 
-        # if not success:
-        #     raise Exception("Error computing the patterns")
+        if not success:
+            raise Exception("Error computing the patterns")
+
+    """
+    Configuration for the computation of the duplicates
+    across clusters
+    """
+    class ComputeDuplicatesConfig(object):
+        def __init__(self,
+                     cluster_path,
+                     cluster_count,
+                     find_duplicates_path):
+            self.cluster_path = cluster_path
+            self.cluster_count = cluster_count
+            self.find_duplicates_path = find_duplicates_path
+
+    """
+    Run the computation of the of the duplicates across clusters
+    """
+    @staticmethod
+    def computeDuplicates(config):
+        # Create the file with the lattice list
+        lattice_list_file = os.path.join(config.cluster_path,
+                                         Pipeline.LATTICE_LIST)
+        prog = re.compile('.*\cluster_([0-9]+)_lattice.bin')
+        results = []
+        for root, directories, files in os.walk(config.cluster_path):
+            for f in files:
+                match = prog.match(f)
+                if match:
+                    cluster_id = int(match.group(1))
+                    results.append((cluster_id,
+                                    os.path.join(root, f)))
+
+        with open(lattice_list_file, "w+") as f:
+            for (cluster_id, fn) in results:
+                f.write("%d %s\n" % (cluster_id, fn))
+
+        pattern_duplicate_file = os.path.join(config.cluster_path,
+                                              Pipeline.PATTERN_DUPLICATES)
+        args = [config.find_duplicates_path,
+                "-f", lattice_list_file,
+                "-o", pattern_duplicate_file]
+
+        success = Pipeline._call_sub(args)
+
+        if not success:
+            raise Exception("Error computing the patterns")
 
 
     """

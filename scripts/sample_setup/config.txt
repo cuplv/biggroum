@@ -17,6 +17,9 @@ timeout=10
 frequency_cutoff=2
 disabled=False
 
+[duplicates]
+disabled = False
+
 [html]
 disabled=False
 genpng=True

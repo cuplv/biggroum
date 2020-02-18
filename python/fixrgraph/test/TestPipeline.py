@@ -59,6 +59,18 @@ class TestPipeline(unittest.TestCase):
         return frequentsubgraphs_path
 
     @staticmethod
+    def get_findduplicates_path():
+        repo_path = TestPipeline.get_repo_path()
+        findduplicates_path = os.path.join(repo_path,
+                                              "FixrGraphIso",
+                                              "build",
+                                              "src",
+                                              "fixrgraphiso",
+                                              "findDuplicates")
+        return findduplicates_path
+
+
+    @staticmethod
     def get_gather_results_path():
         repo_path = TestPipeline.get_repo_path()
         gather_results_path = os.path.join(repo_path,
@@ -200,6 +212,8 @@ class TestPipeline(unittest.TestCase):
         cluster_path = os.path.join(test_data_path, "clusters_data")
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
+
+
         configs = [Pipeline.ComputePatternsConfig(groums_path,
                                                   cluster_path,
                                                   cluster_file_path,
@@ -237,6 +251,39 @@ class TestPipeline(unittest.TestCase):
               if DELETE_FILES:
                   print "Removing..."
                   os.remove(c)
+
+    def test_compute_duplicates(self):
+        # Set the paths
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+        cluster_path = os.path.join(test_data_path,
+                                    "clusters_data_duplicates")
+        duplicates_path = TestPipeline.get_findduplicates_path()
+        self.assertTrue(os.path.exists(duplicates_path))
+
+        config  = Pipeline.ComputeDuplicatesConfig(cluster_path, "2",
+                                                   duplicates_path)
+        Pipeline.computeDuplicates(config)
+
+        lattice_list_file = os.path.join(config.cluster_path,
+                                         Pipeline.LATTICE_LIST)
+        pattern_duplicate_file = os.path.join(config.cluster_path,
+                                              Pipeline.PATTERN_DUPLICATES)
+        created = [lattice_list_file, pattern_duplicate_file]
+
+        self.assertTrue(os.path.exists(lattice_list_file))
+        self.assertTrue(len(open(lattice_list_file).readlines()) == 2)
+
+        results = ["1,2,2,2","1,3,2,3"]
+        for (e, l) in zip(results, open(pattern_duplicate_file).readlines()):
+            e = e.strip()
+            l = l.strip()
+            self.assertTrue(e == l)
+
+        for c in created:
+            self.assertTrue(os.path.exists(c))
+            if DELETE_FILES:
+                os.remove(c)
 
     def test_create_html(self):
         # Set the paths

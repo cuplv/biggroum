@@ -103,6 +103,9 @@ $> make
 - sql_alchemy for python
 - android SDK (Remember to set the android SDK home)
 
+- html (`pip install html`)
+- future (`pip install future`)
+
 3. Generate the protobuffer bindings for python
 
 ```

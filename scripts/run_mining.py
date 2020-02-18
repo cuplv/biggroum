@@ -22,6 +22,18 @@ def get_default(config, section, option, default):
         val = default
     return val
 
+def get_max_clusters(cluster_folders):
+    max_cluster = -1
+    for path in os.listdir(cluster_folders):
+        if path.startswith("cluster_"):
+            n_str = path[8:]
+            try:
+                n = int(n_str)
+                if n > max_cluster:
+                    max_cluster = n
+            except:
+                pass
+    return max_cluster
 
 def run_extraction(config):
     extractor_path = get_default(config, "extraction","extractor_jar",
@@ -30,12 +42,15 @@ def run_extraction(config):
                                     TestPipeline.get_fixrgraphiso_path())
     frequentsubgraphs_path = get_default(config, "pattern", "binary",
                                          TestPipeline.get_frequentsubgraphs_path())
+    duplicates_path = get_default(config, "duplicates", "binary",
+                                  TestPipeline.get_findduplicates_path())
     gather_results_path = get_default(config, "html", "result_script",
                                       TestPipeline.get_gather_results_path())
 
     disable_extraction = False
     disable_itemset = False
     disable_pattern = False
+    disable_duplicates = False
     disable_html = False
 
     try:
@@ -48,6 +63,10 @@ def run_extraction(config):
         pass
     try:
         disable_pattern = config.getboolean("pattern","disabled")
+    except:
+        pass
+    try:
+        disable_duplicates = config.getboolean("duplicates","disabled")
     except:
         pass
     try:
@@ -78,7 +97,8 @@ def run_extraction(config):
                                                 tot_thread,
                                                 config.getboolean("extraction", "use_apk"))
 
-    if ((not disable_itemset) or (not disable_pattern) or (not disable_html)):
+    if ((not disable_itemset) or (not disable_pattern) or (not disable_html) or
+        (not disable_duplicates)):
         cluster_path = os.path.join(out_path,"clusters")
         if (not os.path.isdir(cluster_path)):
             os.makedirs(cluster_path)
@@ -118,6 +138,7 @@ def run_extraction(config):
                                                         use_relative_frequency,
                                                         relative_frequency)
 
+
     # Extract the graphs
     if (not disable_extraction):
         print("Extract groums...")
@@ -136,23 +157,25 @@ def run_extraction(config):
         assert not pattern_config is None
         Pipeline.computePatterns(pattern_config)
 
+    # Compute duplicate patterns
+    if (not disable_duplicates):
+        print("Compute duplicates...")
+        cluster_folders = os.path.join(cluster_path, "all_clusters")
+        if (os.path.isdir(cluster_folders)):
+            max_cluster = get_max_clusters(cluster_folders)
+
+            config_duplicates  = Pipeline.ComputeDuplicatesConfig(cluster_path,
+                                                                  max_cluster,
+                                                                  duplicates_path)
+            Pipeline.computeDuplicates(config_duplicates)
+
     # Render the HTML results
     if (not disable_html):
         print("Render HTML pages...")
+
         cluster_folders = os.path.join(cluster_path, "all_clusters")
-
         if (os.path.isdir(cluster_folders)):
-            max_cluster = -1
-            for path in os.listdir(cluster_folders):
-                if path.startswith("cluster_"):
-                    n_str = path[8:]
-                    try:
-                        n = int(n_str)
-                        if n > max_cluster:
-                            max_cluster = n
-                    except:
-                        pass
-
+            max_cluster = get_max_clusters(cluster_folders)
 
             try:
                 genpng = config.getboolean("html", "genpng")
