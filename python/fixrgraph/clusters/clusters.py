@@ -109,9 +109,9 @@ class Clusters:
             else:
                 tasks_classification = ["classify_cluster_%s" % clusterid for (cluster,clusterid) in clusters]
                 f.write("ALL: classification\n\t\n")
-                f.write("classification: %s\n\t\n" % ("".join(tasks_classification)))
+                f.write("classification: %s\n\t\n" % (" ".join(tasks_classification)))
 
-            f.write("clustering: %s\n\t\n" % ("".join(tasks_clustering)))
+            f.write("clustering: %s\n\t\n" % (" ".join(tasks_clustering)))
 
             for (cluster,clusterid) in clusters:
 
