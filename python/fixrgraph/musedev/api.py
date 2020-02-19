@@ -11,6 +11,7 @@ import tempfile
 import shutil
 import sys
 import subprocess
+import re
 
 from fixrgraph.musedev.residue import Residue
 
@@ -120,13 +121,14 @@ def java_code_from_json(json, key):
         return "```java\n%s\n```" % str(json[key])
     else:
         return str("")
-
+def summarize_markdown(body):
+    return "<details>\n  <summary>Click for more Info.</summary>\n%s\n<\details>" % body
 def generate_message(anomaly):
-    message = anomaly["error"] + "\n\nPattern\n---------------------\n" + \
-    java_code_from_json(anomaly, "pattern") + \
-    "\n\nPatch\n---------------------\n" + \
-    java_code_from_json(anomaly, "patch")
-
+    anomalyText = java_code_from_json(anomaly, "pattern")
+    details = "\n\nPattern\n---------------------\n" + anomalyText \
+              + "\n\nPatch\n---------------------\n" + java_code_from_json(anomaly, "patch")
+    anomalyMethods = [f[:-1] for f in re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)]
+    message = anomaly["error"] + "\n" + "\n".join(anomalyMethods) + summarize_markdown(details)
     return message
 
 
@@ -226,8 +228,8 @@ def finalize(cmd_input):
             message = generate_message(anomaly)
 
             tool_note = {
-                "type" : "BigGroum Anomaly\n----------------\n",
-                "message" : message,
+                "type" : "BigGroum Anomaly",
+                "message" : "\n----------------\n" + message,
                 "file" : candidate_file,
                 "line" : anomaly["line"],
                 "column" : 0,
