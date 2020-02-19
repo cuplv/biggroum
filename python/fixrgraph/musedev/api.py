@@ -121,6 +121,14 @@ def java_code_from_json(json, key):
     else:
         return str("")
 
+def generate_message(anomaly):
+    message = anomaly["error"] + "\n\nPattern\n---------------------\n" + \
+    java_code_from_json(anomaly, "pattern") + \
+    "\n\nPatch\n---------------------\n" + \
+    java_code_from_json(anomaly, "patch")
+
+    return message
+
 
 def finalize(cmd_input):
     """ Input:
@@ -215,13 +223,10 @@ def finalize(cmd_input):
             if len(candidate_file) > 0 and candidate_file[0] == "/":
                 candidate_file = candidate_file[1:]
 
-            message = anomaly["error"] + "\n\nPattern\n---------------------\n" + \
-                      java_code_from_json(anomaly, "pattern") + \
-                      "\n\nPatch\n---------------------\n" + \
-                      java_code_from_json(anomaly, "patch")
+            message = generate_message(anomaly)
 
             tool_note = {
-                "type" : "Anomaly",
+                "type" : "BigGroum Anomaly\n----------------\n",
                 "message" : message,
                 "file" : candidate_file,
                 "line" : anomaly["line"],
