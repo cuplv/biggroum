@@ -214,7 +214,7 @@ def finalize(cmd_input):
             cmd_input.logger.error("Status Code: %i" % req_result.status_code)
             return 1
 
-        response_data = [d for d in req_result.json() if "patch" in d]
+        response_data = [d for d in req_result.json() if ("patch" in d) and (d["patch"] != "")]
         tool_notes = []
         for anomaly in response_data:
             sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
