@@ -122,13 +122,14 @@ def java_code_from_json(json, key):
     else:
         return str("")
 def summarize_markdown(body):
-    return "<details>\n  <summary>Click for more Info.</summary>\n%s\n<\details>" % body
+    return "<details>\n  <summary>Click for more Info.</summary>\n%s" % body
 def generate_message(anomaly):
     anomalyText = java_code_from_json(anomaly, "pattern")
     details = "\n\nPattern\n---------------------\n" + anomalyText \
               + "\n\nPatch\n---------------------\n" + java_code_from_json(anomaly, "patch")
-    anomalyMethods = [f[:-1] for f in re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)]
-    message = anomaly["error"] + "\n" + "\n".join(anomalyMethods) + summarize_markdown(details)
+    anomalyMethods = set([f[:-1] for f in
+                            re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
+    message = "**" + anomaly["error"] + "**\n" + "\n".join(anomalyMethods) + "\n" + summarize_markdown(details)
     return message
 
 
@@ -213,7 +214,7 @@ def finalize(cmd_input):
             cmd_input.logger.error("Status Code: %i" % req_result.status_code)
             return 1
 
-        response_data = req_result.json()
+        response_data = [d for d in req_result.json() if "patch" in d]
         tool_notes = []
         for anomaly in response_data:
             sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
