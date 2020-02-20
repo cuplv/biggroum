@@ -132,7 +132,11 @@ def generate_message(anomaly):
     message = "**" + anomaly["error"] + "**\n" + "\n".join(anomalyMethods) + "\n" + summarize_markdown(details)
     return message
 
-
+def is_only_whitespace(body):
+    if(isinstance(body,str)):
+        return body.strip() == ""
+    else:
+        return False
 def finalize(cmd_input):
     """ Input:
     {
@@ -214,7 +218,7 @@ def finalize(cmd_input):
             cmd_input.logger.error("Status Code: %i" % req_result.status_code)
             return 1
 
-        response_data = [d for d in req_result.json() if ("patch" in d) and (d["patch"] != "")]
+        response_data = [d for d in req_result.json() if ("patch" in d) and not is_only_whitespace(d["patch"])]
         tool_notes = []
         for anomaly in response_data:
             sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
