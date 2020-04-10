@@ -99,7 +99,7 @@ def printNodes(lattice, dot_stream, stats, f_filter, prefix_provenance):
        "FREQUENCY" : freq,
        "POPULARITY" : pop,
        "RELFREQ" : "%.2f" % relfreq,
-       "PROVENANCE_PATH" : html.escape(get_repr_page(acdfgBin, prefix_provenance)),
+       "PROVENANCE_PATH" : "", #html.escape(get_repr_page(acdfgBin, prefix_provenance)),
        "HREF" : "%s.svg" % str(acdfgBin.id),
       })
     dot_stream.write(node_repr)
