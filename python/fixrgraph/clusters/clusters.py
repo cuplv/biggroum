@@ -7,8 +7,13 @@ import string
 
 class Clusters:
 
-    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${CLUSTER_PATH}/*.acdfg.bin > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
+    CMD_BUILD_ACDFG_LIST="""find ${CLUSTER_PATH} -name "*acdfg.bin" > ${ACDFG_LIST_FILE}"""
+    CMD_FOR_MAKE="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} ${REL_FREQ_PARAMS} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${IS_ANYTIME} -i ${ACDFG_LIST_FILE} > ${CLUSTER_PATH}/run1.out 2> ${CLUSTER_PATH}/run1.err.out; echo "Computed cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
 """
+    CMD_FOR_CLASSIFICATION="""time -p sh -c 'ulimit -t ${TIMEOUT}; ${FIXRGRAPHISOBIN} -f ${FREQUENCY} ${REL_FREQ_PARAMS} -m ${CLUSTER_PATH}/methods_${CLUSTER_ID}.txt -p ${CLUSTER_PATH} -o ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_info.txt -l ${CLUSTER_PATH}/cluster_${CLUSTER_ID}_lattice.bin ${IS_ANYTIME} -i ${ACDFG_LIST_FILE} -c > ${CLUSTER_PATH}/classification1.out 2> ${CLUSTER_PATH}/classification1.err.out; echo "Re-classified cluster ${CLUSTER_ID}"'; echo "Computed cluster ${CLUSTER_ID}"
+"""
+
+
 
     """
     Read the cluster file and returns a list of clusters.
@@ -70,7 +75,11 @@ class Clusters:
                  timeout, # timeout to compute the patter for a cluster
                  frequency_cutoff,
                  graphisopath, # path
-                 frequentsubgraph_path):
+                 frequentsubgraph_path,
+                 use_relative_frequency = False,
+                 relative_frequency = 0.1,
+                 is_anytime = False,
+                 rerun_classification = False):
         def get_cluster_list(base_cluster_path):
             cluster_path = os.path.join(base_cluster_path, "all_clusters")
             clusters = []
@@ -90,22 +99,59 @@ class Clusters:
         suffix = get_suffix_name(timeout)
         with open(makefile, "w") as f:
             clusters = get_cluster_list(base_cluster_path)
-            tasks = ["cluster_%s" % clusterid for (cluster,clusterid) in clusters]
-            target_string = " ".join(tasks)
-            f.write("ALL: %s\n\t\n" % (target_string))
+            # Sort the cluster by id
+            clusters.sort(key=lambda elem: elem[1])
+
+            tasks_clustering = ["cluster_%s" % clusterid for (cluster,clusterid) in clusters]
+
+            if not rerun_classification:
+                f.write("ALL: clustering\n\t\n")
+            else:
+                tasks_classification = ["classify_cluster_%s" % clusterid for (cluster,clusterid) in clusters]
+                f.write("ALL: classification\n\t\n")
+                f.write("classification: %s\n\t\n" % (" ".join(tasks_classification)))
+
+            f.write("clustering: %s\n\t\n" % (" ".join(tasks_clustering)))
 
             for (cluster,clusterid) in clusters:
+
+                if (not use_relative_frequency):
+                  rel_req_param = ""
+                else:
+                  rel_req_param = "-r %f" % relative_frequency
+
+                cluster_path = os.path.join(base_cluster_path,
+                                            "all_clusters",
+                                            "cluster_%s" % clusterid)
+                acdfg_list_file = os.path.join(cluster_path,
+                                               "all_acdfg_bin.txt")
+
+                if is_anytime:
+                    is_anytime_params = "-a -s"
+                else:
+                    is_anytime_params = ""
+
+                acdfg_params = {"CLUSTER_PATH" : cluster_path,
+                                "ACDFG_LIST_FILE" : acdfg_list_file}
                 params = {"TIMEOUT" : timeout,
                           "FREQUENCY" : frequency_cutoff,
-                          "CLUSTER_PATH" : os.path.join(base_cluster_path,
-                                                        "all_clusters",
-                                                        "cluster_%s" % clusterid),
+                          "CLUSTER_PATH" : cluster_path,
+                          "ACDFG_LIST_FILE" : acdfg_list_file,
                           "CLUSTER_ID" : str(clusterid),
-                          "FIXRGRAPHISOBIN" : frequentsubgraph_path}
+                          "FIXRGRAPHISOBIN" : frequentsubgraph_path,
+                          "REL_FREQ_PARAMS" : rel_req_param,
+                          "IS_ANYTIME" : is_anytime_params}
 
+                acdfg_list_cmd = string.Template(Clusters.CMD_BUILD_ACDFG_LIST).safe_substitute(acdfg_params)
                 comp_cmd = string.Template(Clusters.CMD_FOR_MAKE).safe_substitute(params)
                 target_name = "cluster_%s" % clusterid
-                f.write("%s:\n\t%s\n\n" % (target_name, comp_cmd))
+                f.write("%s:\n\t%s\n\t%s\n\n" % (target_name, acdfg_list_cmd, comp_cmd))
+
+                if rerun_classification:
+                    classify_cmd = string.Template(Clusters.CMD_FOR_CLASSIFICATION).safe_substitute(params)
+                    classify_target_name = "classify_cluster_%s" % (clusterid)
+                    f.write("%s: %s\n\t%s\n\n" % (classify_target_name, target_name, classify_cmd))
+
             f.close()
 
 

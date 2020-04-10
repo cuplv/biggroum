@@ -3,7 +3,9 @@
 
 from fixrgraph.extraction.run_extractor import RepoProcessor
 from fixrgraph.clusters.clusters import Clusters
+from fixrgraph.annotator.print_acdfg_bin import print_clusters
 
+import re
 import logging
 import os
 import subprocess
@@ -15,14 +17,21 @@ graph extraction to the bigglue pipeline.
 """
 
 class Pipeline(object):
+    # Pipeline constants --- to be used for all the constants
+    # in the extraction process.
+    LATTICE_LIST="lattice_list.txt"
+    PATTERN_DUPLICATES="duplicates.txt"
 
     """ Utility method used to call an external process
     """
     @staticmethod
-    def _call_sub(args, cwd=None):
+    def _call_sub(args, cwd=None, env=None):
         # do not pipe stdout - processes will hang
         # we can pipe another stream
-        proc = subprocess.Popen(args, cwd=cwd)
+        if (env is None):
+            proc = subprocess.Popen(args, cwd=cwd)
+        else:
+            proc = subprocess.Popen(args, cwd=cwd, env=env)
         proc.wait()
 
         return_code = proc.returncode
@@ -179,34 +188,93 @@ class Pipeline(object):
                      cluster_file,
                      timeout,
                      frequency_cutoff,
-                     frequentsubgraphs_path):
+                     frequentsubgraphs_path,
+                     use_relative_frequency = False,
+                     relative_frequency = 0.1,
+                     is_anytime = False,
+                     rerun_classification = True):
             self.groums_path = groums_path
             self.cluster_path = cluster_path
             self.cluster_file = cluster_file
             self.timeout = timeout
             self.frequency_cutoff = frequency_cutoff
             self.frequentsubgraphs_path = frequentsubgraphs_path
+            self.use_relative_frequency = use_relative_frequency
+
+            assert 0 <= relative_frequency and relative_frequency <= 1
+            self.relative_frequency = relative_frequency
+            self.is_anytime = is_anytime
+            self.rerun_classification = rerun_classification
 
     """
     Run the computation of the of the cluster using make
     """
     @staticmethod
     def computePatterns(config):
-
         # Generate the makefile
         makefile_path = os.path.join(config.cluster_path, "makefile")
         Clusters.gen_make(config.cluster_path,
                           config.timeout,
                           config.frequency_cutoff,
                           config.groums_path,
-                          config.frequentsubgraphs_path)
+                          config.frequentsubgraphs_path,
+                          config.use_relative_frequency,
+                          config.relative_frequency,
+                          config.is_anytime,
+                          config.rerun_classification)
 
         # Run make
         args = ["make", "-f", makefile_path]
         success = Pipeline._call_sub(args)
 
-        # if not success:
-        #     raise Exception("Error computing the patterns")
+        if not success:
+            raise Exception("Error computing the patterns")
+
+    """
+    Configuration for the computation of the duplicates
+    across clusters
+    """
+    class ComputeDuplicatesConfig(object):
+        def __init__(self,
+                     cluster_path,
+                     cluster_count,
+                     find_duplicates_path):
+            self.cluster_path = cluster_path
+            self.cluster_count = cluster_count
+            self.find_duplicates_path = find_duplicates_path
+
+    """
+    Run the computation of the of the duplicates across clusters
+    """
+    @staticmethod
+    def computeDuplicates(config):
+        # Create the file with the lattice list
+        lattice_list_file = os.path.join(config.cluster_path,
+                                         Pipeline.LATTICE_LIST)
+        prog = re.compile('.*\cluster_([0-9]+)_lattice.bin')
+        results = []
+        for root, directories, files in os.walk(config.cluster_path):
+            for f in files:
+                match = prog.match(f)
+                if match:
+                    cluster_id = int(match.group(1))
+                    results.append((cluster_id,
+                                    os.path.join(root, f)))
+
+        with open(lattice_list_file, "w+") as f:
+            for (cluster_id, fn) in results:
+                f.write("%d %s\n" % (cluster_id, fn))
+
+        pattern_duplicate_file = os.path.join(config.cluster_path,
+                                              Pipeline.PATTERN_DUPLICATES)
+        args = [config.find_duplicates_path,
+                "-f", lattice_list_file,
+                "-o", pattern_duplicate_file]
+
+        success = Pipeline._call_sub(args)
+
+        if not success:
+            raise Exception("Error computing the patterns")
 
 
     """
@@ -217,11 +285,13 @@ class Pipeline(object):
                      cluster_path,
                      cluster_count,
                      gather_results_path,
-                     gen_png=False):
+                     gen_png=False,
+                     prefix_provenance=""):
             self.cluster_path = cluster_path
             self.cluster_count = cluster_count
             self.gather_results_path = gather_results_path
             self.gen_png = gen_png
+            self.prefix_provenance = prefix_provenance
 
     @staticmethod
     def computeHtml(config):
@@ -243,14 +313,13 @@ class Pipeline(object):
             raise Exception("Error computing the html pages")
 
         if config.gen_png:
-
             for dotfile in os.listdir(html_files_path):
                 if not dotfile.endswith(".dot"):
                     continue
-                    
+
                 basename = os.path.basename(dotfile)
                 pngfile = "%s.png" % basename[:-4]
-                
+
                 args = ["dot",
                         "-Tpng",
                         "-o%s" % pngfile,
@@ -262,6 +331,11 @@ class Pipeline(object):
                     logging.warning("Error computing the html pages "
                                     "for %s" % basename)
 
+        print_clusters(config.cluster_path,
+                       config.cluster_count,
+                       html_files_path,
+                       True,
+                       config.prefix_provenance)
 
 
 

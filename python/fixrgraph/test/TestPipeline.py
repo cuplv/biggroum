@@ -59,6 +59,18 @@ class TestPipeline(unittest.TestCase):
         return frequentsubgraphs_path
 
     @staticmethod
+    def get_findduplicates_path():
+        repo_path = TestPipeline.get_repo_path()
+        findduplicates_path = os.path.join(repo_path,
+                                              "FixrGraphIso",
+                                              "build",
+                                              "src",
+                                              "fixrgraphiso",
+                                              "findDuplicates")
+        return findduplicates_path
+
+
+    @staticmethod
     def get_gather_results_path():
         repo_path = TestPipeline.get_repo_path()
         gather_results_path = os.path.join(repo_path,
@@ -82,8 +94,8 @@ class TestPipeline(unittest.TestCase):
                     # Workaround
                     acdfg_simple_name = os.path.basename(file_name_path)
                     acdfg_simple_name = acdfg_simple_name.strip()
-                    acdfg_simple_name = acdfg_simple_name.lower()                
-                    
+                    acdfg_simple_name = acdfg_simple_name.lower()
+
                     if not acdfg_simple_name in existing_files:
                         groums_list.append(file_name_path)
                         existing_files.add(acdfg_simple_name)
@@ -185,7 +197,6 @@ class TestPipeline(unittest.TestCase):
                                     "methods_1.txt")
         self.assertTrue(os.path.exists(methods_file))
 
-        # cleanup 
         if DELETE_FILES and os.path.exists(cluster_path):
             shutil.rmtree(cluster_path)
 
@@ -201,14 +212,66 @@ class TestPipeline(unittest.TestCase):
         cluster_path = os.path.join(test_data_path, "clusters_data")
         cluster_file_path = os.path.join(cluster_path, "clusters.txt")
 
-        config = Pipeline.ComputePatternsConfig(groums_path,
-                                                cluster_path,
-                                                cluster_file_path,
-                                                10,
-                                                2,
-                                                frequentsubgraphs_path)
-
-        Pipeline.computePatterns(config)
+        configs = [Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  False,
+                                                  0.1,
+                                                  False,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  False,
+                                                  0.1,
+                                                  True,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  False,
+                                                  0.1,
+                                                  True,
+                                                  True),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  True,
+                                                  0.1,
+                                                  False,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  True,
+                                                  0.1,
+                                                  False,
+                                                  False),
+                   Pipeline.ComputePatternsConfig(groums_path,
+                                                  cluster_path,
+                                                  cluster_file_path,
+                                                  10,
+                                                  2,
+                                                  frequentsubgraphs_path,
+                                                  True,
+                                                  0.1,
+                                                  False,
+                                                  True)]
 
         cluster_1_path = os.path.join(cluster_path, "all_clusters", "cluster_1")
         created = [os.path.join(cluster_path, "makefile"),
@@ -218,17 +281,58 @@ class TestPipeline(unittest.TestCase):
                    os.path.join(cluster_1_path, "cluster_1_lattice.bin"),
                    os.path.join(cluster_1_path, "pop_1.dot"),
                    os.path.join(cluster_1_path, "pop_2.dot"),
-                   os.path.join(cluster_1_path, "anom_1.dot")]
+                   os.path.join(cluster_1_path, "all_acdfg_bin.txt")]
+
+        r0 = [os.path.join(cluster_1_path, "anom_1.dot")] + created
+        r1 = [os.path.join(cluster_1_path, "pop_3.dot"),
+              os.path.join(cluster_1_path, "pop_4.dot"),
+              os.path.join(cluster_1_path, "pop_5.dot")] + created
+        results = [r0,r0,r0, r1,r1,r1]
+
+        for config, res in zip(configs, results):
+            Pipeline.computePatterns(config)
+
+            for c in res:
+                logging.debug("Checking creation of %s..." % c)
+                self.assertTrue(os.path.exists(c))
+                # cleanup
+                if DELETE_FILES:
+                    print("Removing... %s" % c)
+                    os.remove(c)
+
+    def test_compute_duplicates(self):
+        # Set the paths
+        test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
+        test_data_path = os.path.join(test_path, "test_data")
+        cluster_path = os.path.join(test_data_path,
+                                    "clusters_data_duplicates")
+        duplicates_path = TestPipeline.get_findduplicates_path()
+        self.assertTrue(os.path.exists(duplicates_path))
+
+        config  = Pipeline.ComputeDuplicatesConfig(cluster_path, "2",
+                                                   duplicates_path)
+        Pipeline.computeDuplicates(config)
+
+        lattice_list_file = os.path.join(config.cluster_path,
+                                         Pipeline.LATTICE_LIST)
+        pattern_duplicate_file = os.path.join(config.cluster_path,
+                                              Pipeline.PATTERN_DUPLICATES)
+        created = [lattice_list_file, pattern_duplicate_file]
+
+        self.assertTrue(os.path.exists(lattice_list_file))
+        self.assertTrue(len(open(lattice_list_file).readlines()) == 2)
+
+        results = ["1,2,2,2","1,3,2,3"]
+        for (e, l) in zip(results, open(pattern_duplicate_file).readlines()):
+            e = e.strip()
+            l = l.strip()
+            self.assertTrue(e == l)
 
         for c in created:
-            logging.debug("Checking creation of %s..." % c)
             self.assertTrue(os.path.exists(c))
-            # cleanup
             if DELETE_FILES:
-                print "Removing..."
                 os.remove(c)
 
-    @unittest.skip("skip test_create_html")
     def test_create_html(self):
         # Set the paths
         test_path = os.path.abspath(os.path.dirname(fixrgraph.test.__file__))
@@ -249,9 +353,15 @@ class TestPipeline(unittest.TestCase):
                    "cluster_1_anom_1.dot",
                    "cluster_1_pop_1.dot",
                    "cluster_1_pop_2.dot",
-                   "index.html"]
-        created = [os.path.join(html_path, s) for s in created]
+                   "index.html",
+                   os.path.join("cluster_1","0.dot"),
+                   os.path.join("cluster_1","1.dot"),
+                   os.path.join("cluster_1","2.dot"),
+                   os.path.join("cluster_1","3.dot"),
+                   os.path.join("cluster_1","4.dot"),
+                   os.path.join("cluster_1","out.dot")]
 
+        created = [os.path.join(html_path, s) for s in created]
 
         for c in created:
             self.assertTrue(os.path.exists(c))

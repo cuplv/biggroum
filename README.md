@@ -103,6 +103,9 @@ $> make
 - sql_alchemy for python
 - android SDK (Remember to set the android SDK home)
 
+- html (`pip install html`)
+- future (`pip install future`)
+
 3. Generate the protobuffer bindings for python
 
 ```
@@ -191,6 +194,11 @@ The minimum frequency (number of groums) that a pattern must have to be consider
 - disabled: if True disable the pattern computation
 
 - binary: the path to the frequent subgraph computation binary (optional if using the one in FixrGraphIso path relative to the repository)
+
+- use_relative_frequency: true if using the relative frequency (cumulative) to select the popullar patterns
+
+- relative_frequency: threshold of relatve frequency for a pattern to be popular (must be between 0 and 1)
+
 
 #### Setting for the `[html]` section
 

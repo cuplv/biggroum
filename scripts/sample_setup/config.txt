@@ -16,6 +16,12 @@ disabled=False
 timeout=10
 frequency_cutoff=2
 disabled=False
+use_relative_frequency=False
+relative_frequency=0.1
+anytime=False
+
+[duplicates]
+disabled = False
 
 [html]
 disabled=False

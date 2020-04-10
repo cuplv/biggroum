@@ -1,0 +1,35 @@
+version: '2.2'
+services:
+  biggroum_search:
+    image: cuplv/biggroum_search:latest
+    ports:
+    - "8081:8081"
+    links:
+    - srcfinder
+    hostname: biggroum_search
+    volumes:
+    - ../FixrGraphPatternSearch/fixrsearch/test/data:/persist
+    cpu_count: 8
+    mem_limit: 8192000000
+    network_mode: bridge 
+
+  srcfinder:
+    image: cuplv/srcfinder:latest
+    ports:
+    - "8080:8080"
+    hostname: srcfinder
+    cpu_count: 8
+    mem_limit: 8192000000
+    network_mode: bridge 
+  fixrgraph:
+     environment:
+     - FIXR_SEARCH_ENDPOINT=http://biggroum_search:8081/process_muse_data
+     image: musedev/analyst
+     hostname: fixrgraph_deploy
+     command: ["sleep","9999999"]
+     cpu_count: 1
+     mem_limit: 1024000000
+     network_mode: bridge
+     links:
+     - biggroum_search
+    

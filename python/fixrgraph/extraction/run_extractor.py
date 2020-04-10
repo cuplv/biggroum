@@ -19,11 +19,9 @@ import os
 import stat
 import optparse
 import logging
-import traceback
 import shutil
 import json
 import subprocess
-import traceback
 import string
 
 try:
@@ -178,7 +176,7 @@ class ExtractorStatus:
         json_data["repo"] = repo_string
 
 
-class ErrorLog:
+class RepoErrorLog:
     """Keeps a list of error messages separated per repo.
     """
 
@@ -210,14 +208,6 @@ class ErrorLog:
             outStream.write("%s\n" % str(error))
             outStream.write("\n")
 
-    def printErrors(self, outStream):
-        for key, val in self.log.iteritems():
-            outStream.write("Repo %s\n" % str(key))
-            for error in val:
-                outStream.write("%s\n" % str(error))
-            outStream.write("\n")
-
-
 def read_repo(repo_file):
     """Read the repo_file as a json file and returns a list of couples.
     """
@@ -244,7 +234,6 @@ def read_repo(repo_file):
             if repo_hash == None:
                 logging.warning("Commit hash not found for %s, skipping it " % str(repo))
             else:
-                print repo_hash
                 res.append((repo["user_name"], repo["repo_name"], repo_hash))
     return res
 
@@ -287,7 +276,7 @@ class RepoProcessor:
                  tot_workers=1,
                  read_apk=False):
         # Keeps the error log for each repo
-        self.log = ErrorLog()
+        self.log = RepoErrorLog()
         # Directory where download the repositories
         self.in_dir = in_dir
         self.graph_dir = graph_dir
@@ -329,19 +318,28 @@ class RepoProcessor:
     def _call_sub(log, repo, args, cwd=None, wait=True):
         """Call a subprocess.
         """
-        logging.info("Executing %s" % " ".join(args))
+        from subprocess import PIPE
+        sys.stderr.write("Executing %s" % " ".join(args))
 
-        # not pipe stdout - processes will hang
+        # Warning: not pipe stdout and use wait - processes will hang
         # Known limitation of Popen
-        proc = subprocess.Popen(args, cwd=cwd)
-        proc.wait()
+        proc = subprocess.Popen(args, cwd=cwd,
+                                stdout = PIPE,
+                                stderr = PIPE,
+                                universal_newlines=True)
+        # proc.stderr.read()
+        # proc.stdout.read()
+        procout,procerrout = proc.communicate()
+        sys.stderr.write("** Graph Extractor Output **\n")
+        sys.stderr.write(procout)
+        sys.stderr.write("** Graph Extractor Err Output **\n")
+        sys.stderr.write(procerrout)
+        sys.stderr.write("** End Graph Extractor Output")
 
         return_code = proc.returncode
         if (return_code != 0):
             err_msg = "Error code is %s\nCommand line is: %s\n%s" % (str(return_code), str(" ".join(args)),"\n")
             write_log(log, repo, err_msg)
-
-            logging.error("Error executing %s\n%s" % (" ".join(args), err_msg))
             return False
 
         return True
@@ -356,7 +354,6 @@ class RepoProcessor:
             import pygit2
         except Exception as e:
             logging.error("Error importing pygit2.")
-            print "Error importing pygit2."
             self.log.add_error(repo, e.message)
             return None
 
@@ -379,8 +376,6 @@ class RepoProcessor:
             logging.debug("Downloaded %s" % (repo_url))
 
         except Exception as e:
-            traceback.print_exc()
-            print "Error processing %s" % (repo_url)
             logging.error("Error processing %s" % (repo_url))
             self.log.add_error(repo, e.message)
             return None
@@ -462,10 +457,14 @@ class RepoProcessor:
                        classpath,
                        extractor_jar,
                        build_info,
-                       buildable_repos_path):
+                       buildable_repos_path,
+                       file_filter=None):
+
 
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
+
+        assert (log is None or isinstance(log, RepoErrorLog))
 
         if build_info is None:
             logging.debug("Build information not found...")
@@ -537,7 +536,6 @@ class RepoProcessor:
                 class_path = []
                 for p in full_classes_path.split("/"):
                     class_path.append(p)
-                    # print p
                     if p == "classes":
                         break
                 return "/".join(class_path)
@@ -586,6 +584,13 @@ class RepoProcessor:
                     "-r", repo[1],
                     "-u", repo_url]
 
+            if file_filter is not None:
+                args.append("-q")
+                if isinstance(file_filter, str):
+                    args.append(file_filter)
+                elif isinstance(file_filter, list):
+                    args.append(":".join(file_filter))
+
             args.append("-p")
 
             # remove google support libraries from the thing to
@@ -604,7 +609,6 @@ class RepoProcessor:
                 args.append("-h")
                 args.append(repo[2])
 
-
             is_ok = RepoProcessor._call_sub(log, repo, args)
             if not is_ok:
                 msg = "call_sub ended in error for %s/%s" % (repo[0], repo[1])
@@ -613,7 +617,6 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-            traceback.print_exc()
 
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
             write_log(log, repo, e.message)
@@ -630,12 +633,13 @@ class RepoProcessor:
                            prov_dir,
                            extractor_jar,
                            build_info,
-                           buildable_repos_path):
+                           buildable_repos_path,
+                           file_filter = None):
         """Extract the graph for repo."""
         logging.info("Extracting graphs for repo: " + str(repo))
 
         assert (not build_info is None)
-        
+
         # Base path to the repo
         base_buildable_repo_folder = os.path.join(buildable_repos_path,
                                                   repo[0],
@@ -695,6 +699,21 @@ class RepoProcessor:
                     "-p", apk_full_path,
                     "-w", platforms_path]
 
+            if file_filter is not None:
+                args.append("-q")
+                if isinstance(file_filter, str):
+                    args.append(file_filter)
+                elif isinstance(file_filter, list):
+                    args.append(":".join(file_filter))
+                else:
+                    # file_filter should be either a string or a list
+                    assert False
+
+                # ignore the apk package name when we supply
+                # the source code we are interested in
+                args.append("--package-autodetect")
+                args.append("false")
+
             if len(repo) > 2:
                 args.append("-h")
                 args.append(repo[2])
@@ -707,9 +726,10 @@ class RepoProcessor:
                 return None
 
         except Exception as e:
-            traceback.print_exc()
-
+            import traceback
+            tb = traceback.format_exc(e)
             logging.debug("Cannot extract the graphs from %s/%s/%s" % (repo[0], repo[1], repo[2]))
+            logging.debug("Traceback:  %s" % tb)
             write_log(log, repo, e.message)
             return None
 
@@ -781,7 +801,6 @@ class RepoProcessor:
                 repo = f(repo)
             except Exception as e:
                 logging.info("Execution broken at %s." % task)
-                traceback.print_exc()
 
             if repo is None:
                 logging.info("Execution broken at %s." % task)
@@ -805,8 +824,6 @@ class RepoProcessor:
             try:
                 repoProcessor.processRepoFromStep(repo, task_index)
             except Exception:
-                traceback.print_exc()
-
                 logging.error("Thread: error processing repo " \
                               "%d/%d" % (repo_index, tot_repos))
                 logging.error("Thread: error processing repo " \
@@ -856,10 +873,6 @@ class RepoProcessor:
         for t in threads:
             t.join()
 
-    def printErrors(self, out):
-        self.log.printErrors(out)
-
-
     @staticmethod
     def init_extraction(indir, graphdir, provdir, applist):
         # create the indir, graphdir and provdir if they do not exist
@@ -879,7 +892,6 @@ class RepoProcessor:
         graphdir  = os.path.join(output_dir, "graphs")
         provdir = os.path.join(output_dir, "provenance")
         return (indir, graphdir, provdir)
-        
 
 def main():
     p = optparse.OptionParser()
@@ -903,9 +915,9 @@ def main():
 
     def usage(msg=""):
         if msg:
-            print "----"
-            print msg
-            print "----\n"
+            print("----")
+            print(msg)
+            print("----\n")
         p.print_help()
         sys.exit(1)
 
@@ -950,16 +962,14 @@ def main():
             try:
                 os.mkdir(d)
             except OSError as e:
-                traceback.print_exc()
                 sys.exit(1)
 
     try:
         repo_list = RepoProcessor.init_extraction(opts.indir,
                                                   opts.graphdir,
                                                   opts.provdir,
-                                                  app_list_file)
+                                                  opts.applist)
     except Exception as e:
-        traceback.print_exc()
         sys.exit(1)
 
 
@@ -992,7 +1002,6 @@ def main():
     #                 out_file.close()
 
     # except Exception as e:
-    #     traceback.print_exc()
     #     sys.exit(1)
 
 

@@ -34,7 +34,6 @@ RUN sudo apt-get install -y sbt
 # 4. Python 2
 RUN sudo apt-get install -y python
 RUN sudo apt-get install -y python-pip
-RUN sudo apt-get install -y python-sqlalchemy
 RUN sudo pip install protobuf
 
 # 5. Google protobuffer
@@ -92,8 +91,11 @@ RUN sudo mkdir app \
     && cmake --build . --target install \
     && sudo ldconfig \
     && rm -rf /app
-RUN sudo pip install pygit2
+
 RUN sudo apt-get install time
+
+RUN sudo pip install sqlalchemy
+RUN sudo apt install -y graphviz
 
 ################################################################################
 # Set up user
@@ -122,7 +124,8 @@ RUN mkdir "$ANDROID_HOME" .android \
   && curl -o sdk.zip $SDK_URL \
   && unzip sdk.zip \
   && rm sdk.zip \
-  && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
+  && yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses \
+  && touch /home/biggroum/.android/repositories.cfg
 
 # Install Gradle
 RUN wget $GRADLE_URL -O gradle.zip \
@@ -143,6 +146,7 @@ RUN git clone https://github.com/cuplv/biggroum \
 
 # Build the graph extractor
 RUN cd biggroum/FixrGraphExtractor/ \
+    && git checkout multidex \
     && sbt oneJar \
     && cd ../
 
@@ -161,15 +165,21 @@ RUN protoc -I=./biggroum/FixrGraphExtractor/src/main/protobuf --python_out=./big
 # Include the project in the PYTHONPATH variable
 ENV PYTHONPATH=/home/biggroum/biggroum/python:$PYTHONPATH
 
-
 USER biggroum
 WORKDIR /home/biggroum
 
 RUN cat /etc/passwd
 
+RUN cd biggroum \
+    && git checkout fix_docker && git pull\
+    && cd FixrGraphExtractor \
+    && git checkout multidex && git pull \
+    && cd ../../
+
 # Run the tests
 RUN cd biggroum/python/fixrgraph/test \
     && nosetests
+RUN mkdir /home/biggroum/data
 
 # overwrite this with 'CMD []' in a dependent Dockerfile
 CMD ["/bin/bash"]
