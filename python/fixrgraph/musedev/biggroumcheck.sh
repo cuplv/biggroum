@@ -53,7 +53,6 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
 	wget https://github.com/cuplv/ApkInfo/releases/download/0.11/apkinfo_2.12-0.11-one-jar.jar >>setup_log 2>&1 && \
         git clone https://github.com/cuplv/biggroum.git >>setup_log 2>&1 && \
         cd biggroum >>setup_log 2>&1 && \
-        git checkout fix_docker >>setup_log 2>&1 && \
         git pull >>setup_log 2>&1 && \
         echo "success" >> /root/biggroumsetup_completed 2>&1
 
