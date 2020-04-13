@@ -73,6 +73,7 @@ def extract_single_class_dir(repo, out_dir, extractor_jar, path, filter=None, re
 class BuildInfoApk:
     def __init__(self, apk):
         self.apks = [apk]
+
 def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None, repo_logger=None):
     assert (repo_logger is None or isinstance(repo_logger, RepoErrorLog))
     apk_list = findFiles(path, "apk")
@@ -81,17 +82,22 @@ def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None, repo_log
     prov_dir_path = os.path.join(out_dir, "provenance")
     for apk in apk_list:
         build_info = BuildInfoApk(apk)
-        RepoProcessor.extract_static_apk(repo,
-                                         repo_logger,
-                                         os.environ['ANDROID_HOME'],
-                                         graph_dir_path,
-                                         prov_dir_path,
-                                         extractor_jar,
-                                         build_info,
-                                         path,
-                                         filter)
-        return # Only extract one apk file
-    sys.stderr.write("Error: No apk file found in directory: %s\n" % path)
+        try:
+            sys.stderr.write("Extracting apk %s..." % apk)
+            RepoProcessor.extract_static_apk(repo,
+                                             repo_logger,
+                                             os.environ['ANDROID_HOME'],
+                                             graph_dir_path,
+                                             prov_dir_path,
+                                             extractor_jar,
+                                             build_info,
+                                             path,
+                                             filter)
+        except e:
+            sys.stderr.write("Error extracting apk %s..." % apk)
+
+    if len(apk_list) == 0:
+        sys.stderr.write("No apk file found in directory: %s\n" % path)
 
 
 if __name__ == "__main__":
