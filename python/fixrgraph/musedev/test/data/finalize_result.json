@@ -37,24 +37,24 @@
     }
   },
   "toolNotes": [
-    {
-      "function": "showDialog",
-      "column": 0,
-      "line": 47,
-      "file": "/AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
-      "type": "Anomaly",
-      "message": "missing method calls",
-      "noteId": 1
-    },
-    {
-      "function": "showDialog",
-      "column": 0,
-      "line": 47,
-      "file": "/AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java",
-      "type": "Anomaly",
-      "message": "missing method calls",
-      "noteId": 2
-    }
-  ],
+  {
+    "column": 0, 
+    "file": "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java", 
+    "function": "showDialog", 
+    "line": 47, 
+    "message": "\n----------------\n**missing method calls**\nBuilder.setTitle\n<details>\n  <summary>Click for more Info.</summary>\n\n\nPattern\n---------------------\n```java\nandroid.app.AlertDialog$Builder.<init>($r11, $r12);\n$r13 = android.app.AlertDialog$Builder.setTitle(builder, \"\\u027e\\ufffd\\ufffd\");\n\n```\n\nPatch\n---------------------\n```java\npublic void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}\n```", 
+    "noteId": 1, 
+    "type": "BigGroum Anomaly"
+  }, 
+  {
+    "column": 0, 
+    "file": "AwesomeApp/app/src/main/java/fixr/plv/colorado/edu/awesomeapp/MainActivity.java", 
+    "function": "showDialog", 
+    "line": 47, 
+    "message": "\n----------------\n**missing method calls**\nBuilder.setTitle\n<details>\n  <summary>Click for more Info.</summary>\n\n\nPattern\n---------------------\n```java\nandroid.app.AlertDialog$Builder.<init>($r0, this);\n$r1 = android.app.AlertDialog$Builder.setTitle($r0, \"Exit\");\n\n```\n\nPatch\n---------------------\n```java\npublic void showDialog(android.content.Context context) {\n    android.app.AlertDialog.Builder dialogBuilder = new android.app.AlertDialog.Builder(context);\n    java.lang.String title = \"Empty Field(s)\";\n    java.lang.String message = \"Please ensure all fields are contain data\";\n    dialogBuilder.setMessage(message);\n    dialogBuilder.setNegativeButton(\"OK\", new android.content.DialogInterface.OnClickListener() {\n        @java.lang.Override\n        public void onClick(android.content.DialogInterface dialog, int which) {\n        }\n    });\n    dialogBuilder.setPositiveButton(\"Cancel\", new android.content.DialogInterface.OnClickListener() {\n        public void onClick(android.content.DialogInterface dialog, int which) {\n            // continue with delete\n        }\n    });\n    dialogBuilder.create();\n    dialogBuilder.show();\n    // [0] The change should end here (before calling the method exit)\n}\n```", 
+    "noteId": 2, 
+    "type": "BigGroum Anomaly"
+  }
+],
   "summary": "BigGroum found 2 anomalies."
 }
