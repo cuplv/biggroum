@@ -11,6 +11,7 @@ import tempfile
 import shutil
 import sys
 import subprocess
+import re
 
 from fixrgraph.musedev.residue import Residue
 
@@ -115,6 +116,27 @@ def run(cmd_input):
 
     return 0
 
+def java_code_from_json(json, key):
+    if key in json:
+        return "```java\n%s\n```" % str(json[key])
+    else:
+        return str("")
+def summarize_markdown(body):
+    return "<details>\n  <summary>Click for more Info.</summary>\n%s" % body
+def generate_message(anomaly):
+    anomalyText = java_code_from_json(anomaly, "pattern")
+    details = "\n\nPattern\n---------------------\n" + anomalyText \
+              + "\n\nPatch\n---------------------\n" + java_code_from_json(anomaly, "patch")
+    anomalyMethods = set([f[:-1] for f in
+                            re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
+    message = "**" + anomaly["error"] + "**\n" + "\n".join(anomalyMethods) + "\n" + summarize_markdown(details)
+    return message
+
+def is_only_whitespace(body):
+    if(isinstance(body,str)):
+        return body.strip() == ""
+    else:
+        return False
 def finalize(cmd_input):
     """ Input:
     {
@@ -196,7 +218,7 @@ def finalize(cmd_input):
             cmd_input.logger.error("Status Code: %i" % req_result.status_code)
             return 1
 
-        response_data = req_result.json()
+        response_data = [d for d in req_result.json() if ("patch" in d) and not is_only_whitespace(d["patch"])]
         tool_notes = []
         for anomaly in response_data:
             sourcefiles = extract_single.findFiles(cmd_input.filepath,"java")
@@ -204,10 +226,16 @@ def finalize(cmd_input):
             simpleClassName = split[-1] if len(split) > 1 else anomaly["className"]
             candidateFiles = [j.split(cmd_input.filepath)[-1] for j in sourcefiles if (simpleClassName in j) and extract_single.matchesPackage(j,anomaly["packageName"])]
             # Create a tool note for the anomaly
+            candidate_file = candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File"
+            if len(candidate_file) > 0 and candidate_file[0] == "/":
+                candidate_file = candidate_file[1:]
+
+            message = generate_message(anomaly)
+
             tool_note = {
-                "type" : "Anomaly",
-                "message" : anomaly["error"],
-                "file" : candidateFiles[0] if len(candidateFiles) > 0 else "Failed to find File",
+                "type" : "BigGroum Anomaly",
+                "message" : "\n----------------\n" + message,
+                "file" : candidate_file,
                 "line" : anomaly["line"],
                 "column" : 0,
                 "function" : anomaly["methodName"],
