@@ -74,13 +74,21 @@ class BuildInfoApk:
     def __init__(self, apk):
         self.apks = [apk]
 
-def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None, repo_logger=None):
+def extract_single_apk(repo, out_dir, extractor_jar, path, filter=None,
+                       repo_logger=None,
+                       apk_blacklist=[]):
     assert (repo_logger is None or isinstance(repo_logger, RepoErrorLog))
     apk_list = findFiles(path, "apk")
     apk_list.reverse()
     graph_dir_path = os.path.join(out_dir, "graphs")
     prov_dir_path = os.path.join(out_dir, "provenance")
+
     for apk in apk_list:
+        apk_basename = os.path.basename(apk)
+        if apk_basename in apk_blacklist:
+            sys.stderr.write("Skipping apk in blacklist: %s..." % apk)
+            continue
+
         build_info = BuildInfoApk(apk)
         try:
             sys.stderr.write("Extracting apk %s..." % apk)

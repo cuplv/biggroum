@@ -186,13 +186,20 @@ def finalize(cmd_input):
         #                                         cmd_input.filepath,
         #                                         javafiles,
         #                                         None)
-        extract_single.extract_single_apk(["notset","notset",
-                                                 cmd_input.commit],
-                                                graphdir,
-                                                extractor_jar_path,
-                                                cmd_input.filepath,
-                                                javafiles,
-                                                None)
+        apk_blacklist = ["MapboxAndroidDemo-china-debug-androidTest.apk",
+                         "MapboxAndroidDemo-global-debug-androidTest.apk",
+                         "MapboxAndroidDemo-china-debug.apk]",
+                         "SharedCode-debug-androidTest.apk",
+                         "MapboxAndroidWearDemo-debug-androidTest.apk",
+                         "MapboxAndroidWearDemo-debug.apk"]
+
+        extract_single.extract_single_apk(["notset","notset", cmd_input.commit],
+                                          graphdir,
+                                          extractor_jar_path,
+                                          cmd_input.filepath,
+                                          javafiles,
+                                          None,
+                                          apk_blacklist)
 
         # Organize the data to call the search service
         # Copy source files to directory to zip
