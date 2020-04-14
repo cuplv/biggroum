@@ -188,7 +188,7 @@ def finalize(cmd_input):
         #                                         None)
         apk_blacklist = ["MapboxAndroidDemo-china-debug-androidTest.apk",
                          "MapboxAndroidDemo-global-debug-androidTest.apk",
-                         "MapboxAndroidDemo-china-debug.apk]",
+                         "MapboxAndroidDemo-china-debug.apk",
                          "SharedCode-debug-androidTest.apk",
                          "MapboxAndroidWearDemo-debug-androidTest.apk",
                          "MapboxAndroidWearDemo-debug.apk"]
