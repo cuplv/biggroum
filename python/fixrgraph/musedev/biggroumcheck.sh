@@ -52,9 +52,9 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
 	wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.2-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
 	wget https://github.com/cuplv/ApkInfo/releases/download/0.11/apkinfo_2.12-0.11-one-jar.jar >>setup_log 2>&1 && \
         git clone https://github.com/cuplv/biggroum.git >>setup_log 2>&1 && \
-	git checkout --track origin/demo2020 2>&1 && \
         cd biggroum >>setup_log 2>&1 && \
         git pull >>setup_log 2>&1 && \
+	git checkout --track origin/demo2020 2>&1 && \	
         echo "success" >> /root/biggroumsetup_completed 2>&1
 
         #TODO: check return status of last command exit if fail and log error
