@@ -12,6 +12,7 @@ import shutil
 import sys
 import subprocess
 import re
+from string import Template
 
 from fixrgraph.musedev.residue import Residue
 
@@ -121,22 +122,36 @@ def java_code_from_json(json, key):
         return "```java\n%s\n```" % str(json[key])
     else:
         return str("")
-def summarize_markdown(body):
-    return "<details>\n  <summary>Click for more Info.</summary>\n%s" % body
+
 def generate_message(anomaly):
+    template_str = """
+----------------
+**${ERROR_DESCRIPTION}**
+${ANOMALY_METHODS}
+<details>
+  <summary>Click for more Info.</summary>
+${DETAILS}"""
+
+    template = Template(template_str)
+
     anomalyText = java_code_from_json(anomaly, "pattern")
     details = "\n\nPattern\n---------------------\n" + anomalyText \
               + "\n\nPatch\n---------------------\n" + java_code_from_json(anomaly, "patch")
     anomalyMethods = set([f[:-1] for f in
-                            re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
-    message = "**" + anomaly["error"] + "**\n" + "\n".join(anomalyMethods) + "\n" + summarize_markdown(details)
-    return message
+                          re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
+
+    new_message = template.substitute({"ERROR_DESCRIPTION" : anomaly["error"],
+                                       "ANOMALY_METHODS" : "\n".join(anomalyMethods),
+                                       "DETAILS" : details})
+
+    return new_message
 
 def is_only_whitespace(body):
     if(isinstance(body,str)):
         return body.strip() == ""
     else:
         return False
+
 def finalize(cmd_input):
     """ Input:
     {
@@ -241,7 +256,7 @@ def finalize(cmd_input):
 
             tool_note = {
                 "type" : "BigGroum Anomaly",
-                "message" : "\n----------------\n" + message,
+                "message" : message,
                 "file" : candidate_file,
                 "line" : anomaly["line"],
                 "column" : 0,
