@@ -21,6 +21,31 @@ from fixrgraph.musedev.residue import Residue
 GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
 FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
+GITHUB_MESSAGE = """----------------
+*${ERROR_DESCRIPTION}* in `${METHOD_NAME}`
+<details>
+<summary>Methods Involved</summary>
+
+```java
+${ANOMALY_METHODS}
+```
+</details>
+<details>
+<summary>Reference Pattern</summary>
+
+```java\n
+${PATTERN_CODE}
+```
+</details>
+
+<details>
+<summary>Suggested Patch</summary>
+
+```java
+${PATCH_CODE}
+```
+</details>"""
+
 def get_none(json_data, field):
     if not json_data is None:
         if field in json_data:
@@ -117,32 +142,36 @@ def run(cmd_input):
 
     return 0
 
-def java_code_from_json(json, key):
-    if key in json:
-        return "```java\n%s\n```" % str(json[key])
-    else:
-        return str("")
-
 def generate_message(anomaly):
-    template_str = """
-----------------
-**${ERROR_DESCRIPTION}**
-${ANOMALY_METHODS}
-<details>
-  <summary>Click for more Info.</summary>
-${DETAILS}"""
+    def get_or_default(json, key, default):
+        if key in json:
+            return str(json[key])
+        else:
+            return default
 
-    template = Template(template_str)
+    template = Template(GITHUB_MESSAGE)
 
-    anomalyText = java_code_from_json(anomaly, "pattern")
-    details = "\n\nPattern\n---------------------\n" + anomalyText \
-              + "\n\nPatch\n---------------------\n" + java_code_from_json(anomaly, "patch")
-    anomalyMethods = set([f[:-1] for f in
-                          re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
+    if "pattern" in anomaly:
+        anomalyText = anomaly["pattern"]
+        anomalyMethods = set([f[:-1] for f in
+                              re.findall("[A-Za-z][A-Za-z0-9]+\.[A-Za-z][A-Za-z0-9]+\(", anomalyText) if(len(f) > 0)])
+        if anomalyMethods == "":
+            anomalyMethods = "Unkown methods"
 
-    new_message = template.substitute({"ERROR_DESCRIPTION" : anomaly["error"],
-                                       "ANOMALY_METHODS" : "\n".join(anomalyMethods),
-                                       "DETAILS" : details})
+    new_message = template.substitute(
+        {
+            "ERROR_DESCRIPTION" : get_or_default(anomaly, "error",
+                                                 "Unknown error").capitalize(),
+            "METHOD_NAME" : get_or_default(anomaly, "methodName",
+                                           "method not available"),
+            "METHOD_LINE" : get_or_default(anomaly, "line", "unknown line"),
+            "ANOMALY_METHODS" : "\n".join(anomalyMethods),
+            "PATTERN_CODE" : get_or_default(anomaly, "pattern",
+                                            "Pattern not available"),
+            "PATCH_CODE" : get_or_default(anomaly, "patch",
+                                          "Patch not available")
+        }
+    )
 
     return new_message
 
