@@ -21,7 +21,8 @@ from fixrgraph.musedev.residue import Residue
 GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
 FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
-GITHUB_MESSAGE = """----------------
+GITHUB_MESSAGE = """
+----------------
 *${ERROR_DESCRIPTION}* in `${METHOD_NAME}`
 <details>
 <summary>Methods Involved</summary>
