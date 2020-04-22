@@ -47,7 +47,7 @@ if [[ ! -f /root/biggroumsetup_completed ]]; then
         mkdir -p ${HOME}/biggroumsetup >> pre_setup_log 2>&1 &&\
         sdkmanager "platforms;android-25" >> setup_log 2>&1 && \
         cd ${HOME}/biggroumsetup >>setup_log 2>&1 && \
-        apt install -y wget python-pip >>setup_log 2>&1 && \
+        apt update && apt install -y wget python-pip >>setup_log 2>&1 && \
         pip install --quiet nose requests >>setup_log 2>&1 && \
 	wget https://github.com/cuplv/FixrGraphExtractor/releases/download/v1.2-musedev/fixrgraphextractor_2.12-0.1.0-one-jar.jar >>setup_log 2>&1 && \
 	wget https://github.com/cuplv/ApkInfo/releases/download/0.11/apkinfo_2.12-0.11-one-jar.jar >>setup_log 2>&1 && \
