@@ -225,6 +225,19 @@ def finalize(cmd_input):
     # DEBUG
     tool_notes = []
     summary = "BigGroum found %d anomalies." % (len(tool_notes))
+
+    tool_note = {
+        "type" : "BigGroum Anomaly",
+        "message" : "Test",
+        "file" : "./MapboxAndroidDemo/src/main/java/com/mapbox/mapboxandroiddemo/tagmap/MapDatabase.java",
+        "line" : 37,
+        "column" : 0,
+        "function" : "insert",
+        "noteId" : "1"
+    }
+    tool_notes.append(tool_note)
+
+
     output = {
         "toolNotes" : tool_notes,
         "summary" : summary,
