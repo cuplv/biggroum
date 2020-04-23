@@ -21,6 +21,9 @@ from fixrgraph.musedev.residue import Residue
 GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
 FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
+REMOTE_DEBUG = True
+DEBUG_ENDPOINT = "http://192.12.243.76:8081/remote_debug"
+
 GITHUB_MESSAGE = """
 ----------------
 *${ERROR_DESCRIPTION}* in `${METHOD_NAME}`
@@ -46,6 +49,20 @@ ${PATTERN_CODE}
 ${PATCH_CODE}
 ```
 </details>"""
+
+import requests
+def send_dbginfo(msg):
+    if not REMOTE_DEBUG:
+        return
+
+    try:
+        r = requests.post(DEBUG_ENDPOINT,
+                          json={'msg':msg})
+
+    except Exception as e:
+        # fail silently
+        pass
+
 
 def get_none(json_data, field):
     if not json_data is None:

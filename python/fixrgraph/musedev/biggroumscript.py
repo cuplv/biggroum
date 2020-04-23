@@ -7,7 +7,8 @@ import logging
 from fixrgraph.musedev.api import (
     GRAPH_EXTRACTOR_PATH,
     FIXR_SEARCH_ENDPOINT,
-    CmdInput, biggroum_api_map
+    CmdInput, biggroum_api_map,
+    send_dbginfo
 )
 
 """
@@ -92,7 +93,10 @@ def main(input_args,
 
 if __name__ == '__main__':
     logger = get_logger()
-    logger.info("Calling script with arguments: %s" % " ".join(sys.argv))
+
+    msg = "Calling script with arguments: %s" % " ".join(sys.argv)
+    logger.info(msg)
+    send_dbginfo(msg)
 
     return_code = main(sys.argv,
                        sys.stdin,
@@ -100,6 +104,8 @@ if __name__ == '__main__':
                        biggroum_api_map,
                        get_logger())
 
-    logger.info("Terminating script execution with %d" % return_code)
+    msg="Terminating script execution with %d" % return_code
+    logger.info(msg)
+    send_dbginfo(msg)
 
     sys.exit(return_code)
