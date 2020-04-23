@@ -74,6 +74,8 @@ def get_none(json_data, field):
         return None
 
 def output_json(cmd_input, json_msg):
+    send_dbginfo({"result" : json_msg})
+
     json_str = json.dumps(json_msg)
     cmd_input.outstream.write(json_str)
     cmd_input.outstream.flush()
