@@ -226,31 +226,6 @@ def finalize(cmd_input):
 
     residue = get_none(cmd_input.json_input, "residue")
 
-    # # DEBUG
-    # tool_notes = []
-    # summary = "BigGroum found %d anomalies." % (len(tool_notes))
-
-    # tool_note = {
-    #     "type" : "BigGroum Anomaly",
-    #     "message" : "Test",
-    #     "file" : "./MapboxAndroidDemo/src/main/java/com/mapbox/mapboxandroiddemo/tagmap/MapDatabase.java",
-    #     "line" : 37,
-    #     "column" : 0,
-    #     "function" : "insert",
-    #     "noteId" : "1"
-    # }
-    # tool_notes.append(tool_note)
-
-
-    output = {
-        "toolNotes" : tool_notes,
-        "summary" : summary,
-        "residue" : residue
-    }
-    output_json(cmd_input, output)
-    return 0
-
-
     extractor_jar_path = cmd_input.options[GRAPH_EXTRACTOR_PATH]
     if (not os.path.isfile(extractor_jar_path)):
         cmd_input.logger.error("Cannot find the graph extractor " +
