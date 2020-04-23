@@ -21,7 +21,7 @@ from fixrgraph.musedev.residue import Residue
 GRAPH_EXTRACTOR_PATH = "GRAPH_EXTRACTOR_PATH"
 FIXR_SEARCH_ENDPOINT = "FIXR_SEARCH_PATH"
 
-REMOTE_DEBUG = True
+REMOTE_DEBUG = False
 DEBUG_ENDPOINT = "http://192.12.243.76:8081/remote_debug"
 
 GITHUB_MESSAGE = """
