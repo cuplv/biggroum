@@ -103,6 +103,8 @@ def applicable(cmd_input):
     cmd_input.logger.info("Cmd: applicable")
     cmd_input.outstream.write("true")
     cmd_input.outstream.flush()
+
+    send_dbginfo("out of applicable: true")
     return 0
 
 def version(cmd_input):
@@ -113,6 +115,8 @@ def version(cmd_input):
     cmd_input.logger.info("Command: version")
     cmd_input.outstream.write("3")
     cmd_input.outstream.flush()
+
+    send_dbginfo("out of version: 3")
     return 0
 
 def run(cmd_input):
