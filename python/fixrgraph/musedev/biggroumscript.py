@@ -84,6 +84,20 @@ def main(input_args,
                                          GRAPH_EXTRACTOR_PATH : graph_extractor_jar,
                                          FIXR_SEARCH_ENDPOINT : fixr_search_endpoint,
                                      })
+
+                # DEBUG
+                msg = {
+                    "cmd" : cmd,
+                    "filepath" : filepath,
+                    "commit": commit,
+                    "options" : {
+                        GRAPH_EXTRACTOR_PATH : graph_extractor_jar,
+                        FIXR_SEARCH_ENDPOINT : fixr_search_endpoint,
+                    },
+                    "json_input" : json_input
+                }
+                send_dbginfo(msg)
+
                 return_code = cmds_map[cmd](cmd_input)
 
     logger.info("Main function returns: %d" % return_code)
