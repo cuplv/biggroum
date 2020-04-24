@@ -245,6 +245,19 @@ def finalize(cmd_input):
                         javafiles.append(filePath)
                         break
 
+    if len(javafiles) == 0:
+        cmd_input.logger.debug("File list is empty, not processing anything...")
+        # early termination
+        summary = "BigGroum found %d anomalies." % (0)
+
+        output = {
+            "toolNotes" : [],
+            "summary" : summary,
+            "residue" : residue
+        }
+        output_json(cmd_input, output)
+        return 0
+
     # extract the graphs
     try:
         graphdir = tempfile.mkdtemp(".groum_test_extract_single")
