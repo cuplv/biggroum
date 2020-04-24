@@ -239,7 +239,11 @@ def finalize(cmd_input):
     for compilation_info in Residue.get_compilation_infos(residue):
         for filePath in Residue.get_files(compilation_info):
             if filePath.endswith(".java"):
-                javafiles.append(filePath)
+                # DEBUG - fast debug on the changed files of the PR
+                for name in ["MuseDevDemo.java","MapDatabase.java"]:
+                    if name in filePath:
+                        javafiles.append(filePath)
+                        break
 
     # extract the graphs
     try:
